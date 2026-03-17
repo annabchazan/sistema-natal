@@ -80,21 +80,11 @@ export async function salvarCartinha(
         };
       }
 
-      // Gerar nome único para a foto
-      const fileExtension = foto_cartinha.name.split(".").pop();
-      const fileName = `cartinha_${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExtension}`;
-
-      // Salvar foto no diretório public/uploads
-      const fs = require("fs").promises;
-      const path = require("path");
-
-      const uploadDir = path.join(process.cwd(), "public", "uploads");
-      await fs.mkdir(uploadDir, { recursive: true });
-
+      // Converter para base64
       const buffer = await foto_cartinha.arrayBuffer();
-      await fs.writeFile(path.join(uploadDir, fileName), Buffer.from(buffer));
-
-      fotoPath = `/uploads/${fileName}`;
+      const base64 = Buffer.from(buffer).toString("base64");
+      const mimeType = foto_cartinha.type;
+      fotoPath = `data:${mimeType};base64,${base64}`;
     }
 
     if (id) {
@@ -168,11 +158,56 @@ export async function excluirCartinha(id: number): Promise<CartinhaState> {
 export async function listarCartinhas() {
   try {
     const [cartinhas] = await db.query(
-      "SELECT * FROM cartinhas ORDER BY id DESC",
+      `SELECT c.*, t.nome as tag_nome
+       FROM cartinhas c
+       LEFT JOIN tags t ON c.tag_id = t.id
+       ORDER BY c.id DESC`,
     );
     return cartinhas as any[];
   } catch (err) {
     console.error("Erro ao listar cartinhas:", err);
+    return [];
+  }
+}
+
+// --- FUNÇÃO PARA LISTAR CARTINHAS COM FILTROS ---
+export async function listarCartinhasFiltradas(filtros: {
+  tag_id?: number;
+  idade_min?: number;
+  idade_max?: number;
+}) {
+  "use server";
+
+  try {
+    let query = `
+      SELECT c.*, t.nome as tag_nome
+      FROM cartinhas c
+      LEFT JOIN tags t ON c.tag_id = t.id
+      WHERE 1=1
+    `;
+    const params: any[] = [];
+
+    if (filtros.tag_id !== undefined && filtros.tag_id !== null) {
+      query += " AND c.tag_id = ?";
+      params.push(filtros.tag_id);
+    }
+
+    if (filtros.idade_min !== undefined) {
+      query += " AND c.idade >= ?";
+      params.push(filtros.idade_min);
+    }
+
+    if (filtros.idade_max !== undefined) {
+      query += " AND c.idade <= ?";
+      params.push(filtros.idade_max);
+    }
+
+    query += " ORDER BY c.id DESC";
+
+    const [cartinhas] = await db.query(query, params);
+    return cartinhas as any[];
+  } catch (err) {
+    console.error("Erro ao listar cartinhas filtradas:", err);
     return [];
   }
 }

@@ -11,7 +11,7 @@ ALTER TABLE cartinhas ADD COLUMN numero_sequencial INT;
 -- Se a coluna já existe com nome errado, renomeie:
 -- ALTER TABLE cartinhas CHANGE foto_crianca foto_cartinha VARCHAR(255);
 -- Senão, crie nova:
-ALTER TABLE cartinhas ADD COLUMN foto_cartinha VARCHAR(255);
+ALTER TABLE cartinhas ADD COLUMN foto_cartinha LONGTEXT;
 
 -- 4. Adicionar coluna de data limite de entrega na tabela cartinhas
 ALTER TABLE cartinhas ADD COLUMN data_limite_entrega DATE;

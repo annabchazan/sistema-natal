@@ -29,3 +29,16 @@ export async function cadastrarTags(
     };
   }
 }
+
+// --- FUNÇÃO PARA LISTAR TAGS ---
+export async function listarTags() {
+  try {
+    const [tags] = await db.query(
+      "SELECT id, nome FROM tags ORDER BY nome ASC",
+    );
+    return tags as any[];
+  } catch (err) {
+    console.error("Erro ao listar tags:", err);
+    return [];
+  }
+}
