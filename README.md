@@ -55,4 +55,4 @@ CREATE TABLE adocoes (
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
     FOREIGN KEY (cartinha_id) REFERENCES cartinhas(id),
     FOREIGN KEY (ponto_entrega_id) REFERENCES pontos_entrega(id)
-);
+);# sistema-natal
