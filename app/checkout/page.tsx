@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import { finalizarApadrinamento } from "@/app/actions/cartinhas";
 
 export default function Checkout() {
-  const { cartinhas, limparCarrinho } = useCarrinhoApadrinhamento();
+  const { cartinhas, isLoaded, limparCarrinho } =
+    useCarrinhoApadrinhamento();
   const [isLoading, setIsLoading] = useState(false);
   const [mensagem, setMensagem] = useState<{
     tipo: "sucesso" | "erro";
@@ -16,10 +17,10 @@ export default function Checkout() {
 
   // Redirecionar se não houver cartinhas
   useEffect(() => {
-    if (cartinhas.length === 0) {
+    if (isLoaded && cartinhas.length === 0) {
       router.push("/");
     }
-  }, [cartinhas, router]);
+  }, [cartinhas, isLoaded, router]);
 
   const handleFinalizarApadrinamento = async () => {
     setIsLoading(true);
@@ -46,7 +47,7 @@ export default function Checkout() {
     }
   };
 
-  if (cartinhas.length === 0) {
+  if (!isLoaded || cartinhas.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-red-50 to-green-50 flex items-center justify-center">
         <div className="text-center">
@@ -107,7 +108,7 @@ export default function Checkout() {
 
                     <div className="mb-3">
                       <p className="text-sm text-gray-700 italic">
-                        "{cartinha.texto_cartinha}"
+                        {cartinha.texto_cartinha}
                       </p>
                     </div>
 
@@ -242,7 +243,7 @@ export default function Checkout() {
               Sua generosidade vai transformar o Natal de uma criança especial.
             </p>
             <p className="text-red-100">
-              "Não é o quanto você dá, mas o quanto de amor você põe no dar."
+              Não é o quanto você dá, mas o quanto de amor você põe no dar.
             </p>
           </div>
         </div>

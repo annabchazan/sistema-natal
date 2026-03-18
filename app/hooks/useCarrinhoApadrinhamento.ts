@@ -58,6 +58,7 @@ export function useCarrinhoApadrinhamento() {
 
   return {
     cartinhas,
+    isLoaded,
     adicionarCartinha,
     removerCartinha,
     limparCarrinho,

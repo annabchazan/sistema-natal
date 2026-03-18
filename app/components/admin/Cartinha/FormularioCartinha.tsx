@@ -75,7 +75,7 @@ export default function FormularioCartinha({ instituicoes, tags }: FormProps) {
             <select
               name="instituicao_id"
               required
-              className="w-full p-2 border rounded-md bg-white"
+              className="w-full p-2 border rounded-md"
             >
               <option value="">Selecione uma instituição</option>
               {instituicoes.map((inst) => (

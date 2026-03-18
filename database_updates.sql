@@ -20,6 +20,17 @@ ALTER TABLE cartinhas ADD COLUMN data_limite_entrega DATE;
 ALTER TABLE cartinhas ADD COLUMN apadrinada TINYINT(1) DEFAULT 0;
 ALTER TABLE cartinhas ADD COLUMN data_apadrinamento DATETIME NULL;
 
+-- 6. Criar tabela de usuarios para cadastro e login
+CREATE TABLE IF NOT EXISTS usuarios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    telefone VARCHAR(20) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    senha VARCHAR(255) NOT NULL,
+    tipo ENUM('admin', 'padrinho') DEFAULT 'padrinho'
+);
+
 -- Verificar se as colunas foram adicionadas corretamente
 -- DESCRIBE instituicoes;
 -- DESCRIBE cartinhas;
+-- DESCRIBE usuarios;
