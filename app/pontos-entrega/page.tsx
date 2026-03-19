@@ -5,7 +5,7 @@ export default async function PontosEntrega() {
   const pontos = await listarPontosEntrega();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-red-50 to-green-50 py-12">
+    <div className="min-h-screen bg-linear-to-b from-red-50 to-green-50 py-12">
       <div className="container mx-auto px-4">
         <div className="max-w-6xl mx-auto">
           <h1 className="text-4xl font-bold text-center text-red-700 mb-8">

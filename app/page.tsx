@@ -13,7 +13,7 @@ export default async function Home() {
   const tags = await listarTags();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-red-50 to-green-50">
+    <div className="min-h-screen bg-linear-to-b from-red-50 to-green-50">
       <ListaCartinhasHome cartinhas={cartinhas} tags={tags} />
 
       <div className="container mx-auto px-4 py-12">

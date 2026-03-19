@@ -35,8 +35,7 @@ export default function CadastroPage() {
 
     setFormulario((prev) => ({
       ...prev,
-      [campo]:
-        campo === "telefone" ? formatarTelefoneCelular(valor) : valor,
+      [campo]: campo === "telefone" ? formatarTelefoneCelular(valor) : valor,
     }));
   };
 
@@ -57,7 +56,9 @@ export default function CadastroPage() {
     }
 
     if (!telefoneEhCelular(telefone)) {
-      setErro("Informe um celular valido com DDD. Telefones fixos nao sao aceitos.");
+      setErro(
+        "Informe um celular valido com DDD. Telefones fixos nao sao aceitos.",
+      );
       setSalvando(false);
       return;
     }
@@ -94,7 +95,7 @@ export default function CadastroPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-red-50 to-green-50 py-12">
+    <div className="min-h-screen bg-linear-to-b from-red-50 to-green-50 py-12">
       <div className="container mx-auto px-4">
         <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl border border-red-100 overflow-hidden">
           <div className="bg-red-600 text-white p-8">
@@ -106,7 +107,10 @@ export default function CadastroPage() {
 
           <form onSubmit={handleSubmit} className="p-8 space-y-6">
             <div>
-              <label htmlFor="nome" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label
+                htmlFor="nome"
+                className="block text-sm font-semibold text-gray-700 mb-2"
+              >
                 Nome completo
               </label>
               <input
@@ -131,7 +135,9 @@ export default function CadastroPage() {
                 id="telefone"
                 type="tel"
                 value={formulario.telefone}
-                onChange={(event) => handleChange("telefone", event.target.value)}
+                onChange={(event) =>
+                  handleChange("telefone", event.target.value)
+                }
                 className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500"
                 placeholder="(11) 91234-5678"
                 autoComplete="tel"
@@ -142,7 +148,10 @@ export default function CadastroPage() {
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label
+                htmlFor="email"
+                className="block text-sm font-semibold text-gray-700 mb-2"
+              >
                 E-mail
               </label>
               <input
@@ -157,7 +166,10 @@ export default function CadastroPage() {
             </div>
 
             <div>
-              <label htmlFor="senha" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label
+                htmlFor="senha"
+                className="block text-sm font-semibold text-gray-700 mb-2"
+              >
                 Senha
               </label>
               <input
@@ -182,7 +194,9 @@ export default function CadastroPage() {
                 id="confirmarSenha"
                 type="password"
                 value={formulario.confirmarSenha}
-                onChange={(event) => handleChange("confirmarSenha", event.target.value)}
+                onChange={(event) =>
+                  handleChange("confirmarSenha", event.target.value)
+                }
                 className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500"
                 placeholder="Repita sua senha"
                 autoComplete="new-password"
@@ -205,7 +219,10 @@ export default function CadastroPage() {
 
             <p className="text-center text-sm text-gray-600">
               Ja tem conta?{" "}
-              <Link href="/login" className="font-semibold text-red-700 hover:text-red-800">
+              <Link
+                href="/login"
+                className="font-semibold text-red-700 hover:text-red-800"
+              >
                 Entrar
               </Link>
             </p>

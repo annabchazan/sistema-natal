@@ -16,6 +16,17 @@ export default function CartinhasIndex({
   cartinhas,
 }: Props) {
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [cartinhaEmEdicao, setCartinhaEmEdicao] = useState<any | null>(null);
+
+  const abrirFormularioEdicao = (cartinha: any) => {
+    setCartinhaEmEdicao(cartinha);
+    setMostrarFormulario(true);
+  };
+
+  const fecharFormulario = () => {
+    setCartinhaEmEdicao(null);
+    setMostrarFormulario(false);
+  };
 
   return (
     <div className="space-y-6">
@@ -31,7 +42,14 @@ export default function CartinhasIndex({
         </div>
 
         <button
-          onClick={() => setMostrarFormulario(!mostrarFormulario)}
+          onClick={() => {
+            if (mostrarFormulario) {
+              fecharFormulario();
+            } else {
+              setCartinhaEmEdicao(null);
+              setMostrarFormulario(true);
+            }
+          }}
           className={`px-4 py-2 rounded-lg font-bold transition-all ${
             mostrarFormulario
               ? "bg-gray-100 text-gray-600 hover:bg-gray-200"
@@ -45,11 +63,16 @@ export default function CartinhasIndex({
       {/* ÁREA DO FORMULÁRIO (Só aparece se o botão for clicado) */}
       {mostrarFormulario && (
         <div className="bg-white p-6 rounded-xl border-2 border-red-100 shadow-xl animate-in slide-in-from-top duration-300">
-          <h3 className="text-lg font-bold mb-4 text-red-600">Nova Cartinha</h3>
+          <h3 className="text-lg font-bold mb-4 text-red-600">
+            {cartinhaEmEdicao ? "Editar Cartinha" : "Nova Cartinha"}
+          </h3>
           <FormularioCartinha
             instituicoes={instituicoes}
             tags={tags}
-            onSuccess={() => setMostrarFormulario(false)} // Opcional: fecha ao salvar
+            cartinha={cartinhaEmEdicao}
+            onSuccess={() => {
+              fecharFormulario();
+            }}
           />
         </div>
       )}

@@ -1,10 +1,93 @@
 "use server";
+import crypto from "crypto";
 import db from "@/lib/db";
 import { revalidatePath } from "next/cache";
 
 export interface CartinhaState {
   success: boolean;
   message: string;
+}
+
+async function uploadToCloudinary(file: File): Promise<string | null> {
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+  if (!cloudName) return null;
+
+  const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
+
+  const uploadPreset = process.env.CLOUDINARY_UPLOAD_PRESET;
+  const apiKey = process.env.CLOUDINARY_API_KEY;
+  const apiSecret = process.env.CLOUDINARY_API_SECRET;
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  if (uploadPreset) {
+    // unsigned upload
+    formData.append("upload_preset", uploadPreset);
+  } else if (apiKey && apiSecret) {
+    // signed upload
+    const timestamp = Math.floor(Date.now() / 1000);
+    const params = {
+      timestamp: String(timestamp),
+    };
+    const paramString = Object.keys(params)
+      .sort()
+      .map((key) => `${key}=${params[key as keyof typeof params]}`)
+      .join("&");
+    const signature = crypto
+      .createHash("sha1")
+      .update(`${paramString}${apiSecret}`)
+      .digest("hex");
+
+    formData.append("api_key", apiKey);
+    formData.append("timestamp", String(timestamp));
+    formData.append("signature", signature);
+  } else {
+    // No config, fallback to base64 storage
+    return null;
+  }
+
+  try {
+    const response = await fetch(uploadUrl, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(
+        "Falha no upload para Cloudinary",
+        response.status,
+        errorText,
+      );
+      return null;
+    }
+
+    const data = await response.json();
+    return data.secure_url || data.url || null;
+  } catch (err) {
+    console.error("Erro ao enviar imagem para Cloudinary:", err);
+    return null;
+  }
+}
+
+// --- HELPERS DE STATUS ---
+let _hasStatusColumn: boolean | null = null;
+
+async function hasStatusColumn(): Promise<boolean> {
+  if (_hasStatusColumn !== null) return _hasStatusColumn;
+
+  try {
+    const [rows]: any = await db.query(
+      "SHOW COLUMNS FROM cartinhas LIKE 'status'",
+    );
+    _hasStatusColumn = Array.isArray(rows) && rows.length > 0;
+  } catch (err) {
+    console.error("Erro ao verificar coluna status:", err);
+    _hasStatusColumn = false;
+  }
+
+  return _hasStatusColumn;
 }
 
 // --- FUNÇÃO HELPER: GERAR NÚMERO SEQUENCIAL POR INSTITUIÇÃO ---
@@ -60,6 +143,15 @@ export async function salvarCartinha(
   const tag_id = tag_id_raw === "" ? null : tag_id_raw;
   const foto_cartinha = formData.get("foto_cartinha") as File | null;
   const data_limite_entrega = formData.get("data_limite_entrega") as string;
+  const statusRaw = (formData.get("status") as string) || "disponivel";
+  const allowedStatuses = [
+    "disponivel",
+    "apadrinhada",
+    "conferida",
+    "embrulhado",
+    "reapadrinhado",
+  ];
+  const status = allowedStatuses.includes(statusRaw) ? statusRaw : "disponivel";
 
   try {
     let fotoPath = null;
@@ -80,29 +172,55 @@ export async function salvarCartinha(
         };
       }
 
-      // Converter para base64
-      const buffer = await foto_cartinha.arrayBuffer();
-      const base64 = Buffer.from(buffer).toString("base64");
-      const mimeType = foto_cartinha.type;
-      fotoPath = `data:${mimeType};base64,${base64}`;
+      // Tenta enviar para Cloudinary (se configurado)
+      const uploadedUrl = await uploadToCloudinary(foto_cartinha);
+      if (uploadedUrl) {
+        fotoPath = uploadedUrl;
+      } else {
+        // Fallback para base64, caso Cloudinary não esteja configurado
+        const buffer = await foto_cartinha.arrayBuffer();
+        const base64 = Buffer.from(buffer).toString("base64");
+        const mimeType = foto_cartinha.type;
+        fotoPath = `data:${mimeType};base64,${base64}`;
+      }
     }
+
+    const includeStatus = await hasStatusColumn();
 
     if (id) {
       // SE TEM ID, É EDIÇÃO (UPDATE)
-      await db.query(
-        "UPDATE cartinhas SET nome_crianca = ?, idade = ?, texto_cartinha = ?, presente_pedido = ?, instituicao_id = ?, tag_id = ?, foto_cartinha = COALESCE(?, foto_cartinha), data_limite_entrega = ? WHERE id = ?",
-        [
-          nome_crianca,
-          Number(idade),
-          texto_cartinha,
-          presente_pedido,
-          Number(instituicao_id),
-          tag_id,
-          fotoPath,
-          data_limite_entrega || null,
-          Number(id),
-        ],
-      );
+      if (includeStatus) {
+        await db.query(
+          "UPDATE cartinhas SET nome_crianca = ?, idade = ?, texto_cartinha = ?, presente_pedido = ?, instituicao_id = ?, tag_id = ?, foto_cartinha = COALESCE(?, foto_cartinha), data_limite_entrega = ?, status = ? WHERE id = ?",
+          [
+            nome_crianca,
+            Number(idade),
+            texto_cartinha,
+            presente_pedido,
+            Number(instituicao_id),
+            tag_id,
+            fotoPath,
+            data_limite_entrega || null,
+            status,
+            Number(id),
+          ],
+        );
+      } else {
+        await db.query(
+          "UPDATE cartinhas SET nome_crianca = ?, idade = ?, texto_cartinha = ?, presente_pedido = ?, instituicao_id = ?, tag_id = ?, foto_cartinha = COALESCE(?, foto_cartinha), data_limite_entrega = ? WHERE id = ?",
+          [
+            nome_crianca,
+            Number(idade),
+            texto_cartinha,
+            presente_pedido,
+            Number(instituicao_id),
+            tag_id,
+            fotoPath,
+            data_limite_entrega || null,
+            Number(id),
+          ],
+        );
+      }
     } else {
       // SE NÃO TEM ID, É CADASTRO NOVO (INSERT)
       // Gera o número sequencial para essa instituição
@@ -110,20 +228,38 @@ export async function salvarCartinha(
         Number(instituicao_id),
       );
 
-      await db.query(
-        "INSERT INTO cartinhas(nome_crianca, idade, texto_cartinha, presente_pedido, instituicao_id, tag_id, numero_sequencial, foto_cartinha, data_limite_entrega) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        [
-          nome_crianca,
-          Number(idade),
-          texto_cartinha,
-          presente_pedido,
-          Number(instituicao_id),
-          tag_id,
-          numeroSequencial,
-          fotoPath,
-          data_limite_entrega || null,
-        ],
-      );
+      if (includeStatus) {
+        await db.query(
+          "INSERT INTO cartinhas(nome_crianca, idade, texto_cartinha, presente_pedido, instituicao_id, tag_id, numero_sequencial, foto_cartinha, data_limite_entrega, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+          [
+            nome_crianca,
+            Number(idade),
+            texto_cartinha,
+            presente_pedido,
+            Number(instituicao_id),
+            tag_id,
+            numeroSequencial,
+            fotoPath,
+            data_limite_entrega || null,
+            status,
+          ],
+        );
+      } else {
+        await db.query(
+          "INSERT INTO cartinhas(nome_crianca, idade, texto_cartinha, presente_pedido, instituicao_id, tag_id, numero_sequencial, foto_cartinha, data_limite_entrega) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+          [
+            nome_crianca,
+            Number(idade),
+            texto_cartinha,
+            presente_pedido,
+            Number(instituicao_id),
+            tag_id,
+            numeroSequencial,
+            fotoPath,
+            data_limite_entrega || null,
+          ],
+        );
+      }
     }
 
     revalidatePath("/admin");
@@ -157,10 +293,16 @@ export async function excluirCartinha(id: number): Promise<CartinhaState> {
 // --- FUNÇÃO PARA LISTAR CARTINHAS ---
 export async function listarCartinhas() {
   try {
+    const includeStatus = await hasStatusColumn();
+    const whereClause = includeStatus
+      ? "WHERE c.status = 'disponivel' OR c.status IS NULL"
+      : "WHERE c.apadrinada = 0";
+
     const [cartinhas] = await db.query(
       `SELECT c.*, t.nome as tag_nome
        FROM cartinhas c
        LEFT JOIN tags t ON c.tag_id = t.id
+       ${whereClause}
        ORDER BY c.id DESC`,
     );
     return cartinhas as any[];
@@ -179,11 +321,17 @@ export async function listarCartinhasFiltradas(filtros: {
   "use server";
 
   try {
+    const includeStatus = await hasStatusColumn();
+
+    const baseWhere = includeStatus
+      ? "WHERE (c.status = 'disponivel' OR c.status IS NULL)"
+      : "WHERE c.apadrinada = 0";
+
     let query = `
       SELECT c.*, t.nome as tag_nome
       FROM cartinhas c
       LEFT JOIN tags t ON c.tag_id = t.id
-      WHERE 1=1
+      ${baseWhere}
     `;
     const params: any[] = [];
 
@@ -223,10 +371,19 @@ export async function finalizarApadrinamento(
 
     // Marca as cartinhas como apadrinadas (exemplo: adiciona uma coluna apadrinada = 1)
     const placeholders = cartas_ids.map(() => "?").join(",");
-    await db.query(
-      `UPDATE cartinhas SET apadrinada = 1, data_apadrinamento = NOW() WHERE id IN (${placeholders})`,
-      cartas_ids,
-    );
+    const includeStatus = await hasStatusColumn();
+
+    if (includeStatus) {
+      await db.query(
+        `UPDATE cartinhas SET apadrinada = 1, data_apadrinamento = NOW(), status = 'apadrinhada' WHERE id IN (${placeholders})`,
+        cartas_ids,
+      );
+    } else {
+      await db.query(
+        `UPDATE cartinhas SET apadrinada = 1, data_apadrinamento = NOW() WHERE id IN (${placeholders})`,
+        cartas_ids,
+      );
+    }
 
     revalidatePath("/");
 

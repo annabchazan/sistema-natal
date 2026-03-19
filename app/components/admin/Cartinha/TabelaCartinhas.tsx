@@ -1,6 +1,12 @@
 "use client";
 import { excluirCartinha } from "@/app/actions/cartinhas";
-export default function TabelaCartinhas({ dados, onEdit }: { dados: any[], onEdit: (cartinha: any) => void }) {
+export default function TabelaCartinhas({
+  dados,
+  onEdit,
+}: {
+  dados: any[];
+  onEdit: (cartinha: any) => void;
+}) {
   const handleExcluir = async (id: number) => {
     if (confirm("Deseja realmente apagar esta cartinha?")) {
       const res = await excluirCartinha(id);
@@ -28,15 +34,23 @@ export default function TabelaCartinhas({ dados, onEdit }: { dados: any[], onEdi
               <td className="px-6 py-4">{item.presente_pedido}</td>
               <td className="px-6 py-4">{item.nome_instituicao}</td>
               <td className="px-6 py-4">
-                <span
-                  className={`px-2 py-1 rounded-full text-xs font-bold ${
-                    item.status === "disponivel"
-                      ? "bg-green-100 text-green-700"
-                      : "bg-blue-100 text-blue-700"
-                  }`}
-                >
-                  {item.status}
-                </span>
+                {(() => {
+                  const status =
+                    item.status ||
+                    (item.apadrinada ? "apadrinhada" : "disponivel");
+                  const isDisponivel = status === "disponivel";
+                  return (
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-bold ${
+                        isDisponivel
+                          ? "bg-green-100 text-green-700"
+                          : "bg-blue-100 text-blue-700"
+                      }`}
+                    >
+                      {status}
+                    </span>
+                  );
+                })()}
               </td>
               <td className="p-4 text-right space-x-2">
                 {/* BOTÃO EDITAR */}

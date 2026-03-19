@@ -10,13 +10,19 @@ ALTER TABLE cartinhas ADD COLUMN numero_sequencial INT;
 -- 3. Adicionar coluna de foto da cartinha na tabela cartinhas
 -- Se a coluna já existe com nome errado, renomeie:
 -- ALTER TABLE cartinhas CHANGE foto_crianca foto_cartinha VARCHAR(255);
+-- Se a coluna existe com tamanho insuficiente, ajuste para VARCHAR(500):
+-- ALTER TABLE cartinhas MODIFY foto_cartinha VARCHAR(500);
 -- Senão, crie nova:
-ALTER TABLE cartinhas ADD COLUMN foto_cartinha LONGTEXT;
+ALTER TABLE cartinhas ADD COLUMN foto_cartinha VARCHAR(500);
 
 -- 4. Adicionar coluna de data limite de entrega na tabela cartinhas
 ALTER TABLE cartinhas ADD COLUMN data_limite_entrega DATE;
 
--- 5. Adicionar coluna de apadrinhamento na tabela cartinhas (opcional, para controle)
+-- 5. Adicionar coluna de status na tabela cartinhas (para controle de disponibilidade)
+ALTER TABLE cartinhas ADD COLUMN status ENUM('disponivel','apadrinhada','conferida','embrulhado','reapadrinhado') DEFAULT 'disponivel';
+UPDATE cartinhas SET status = 'disponivel' WHERE status IS NULL;
+
+-- 6. Adicionar coluna de apadrinhamento na tabela cartinhas (opcional, para controle)
 ALTER TABLE cartinhas ADD COLUMN apadrinada TINYINT(1) DEFAULT 0;
 ALTER TABLE cartinhas ADD COLUMN data_apadrinamento DATETIME NULL;
 

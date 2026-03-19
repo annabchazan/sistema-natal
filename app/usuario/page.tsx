@@ -10,7 +10,7 @@ export default async function UsuarioPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-red-50 to-green-50 py-12">
+    <div className="min-h-screen bg-linear-to-b from-red-50 to-green-50 py-12">
       <div className="container mx-auto px-4">
         <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-xl border border-green-100 overflow-hidden">
           <div className="bg-green-600 text-white p-8">
@@ -24,18 +24,24 @@ export default async function UsuarioPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="rounded-xl bg-red-50 border border-red-100 p-5">
                 <p className="text-sm font-semibold text-red-700">Nome</p>
-                <p className="mt-2 text-lg font-bold text-gray-800">{usuario.nome}</p>
+                <p className="mt-2 text-lg font-bold text-gray-800">
+                  {usuario.nome}
+                </p>
               </div>
 
               <div className="rounded-xl bg-green-50 border border-green-100 p-5">
                 <p className="text-sm font-semibold text-green-700">Celular</p>
-                <p className="mt-2 text-lg font-bold text-gray-800">{usuario.telefone}</p>
+                <p className="mt-2 text-lg font-bold text-gray-800">
+                  {usuario.telefone}
+                </p>
               </div>
             </div>
 
             <div className="rounded-xl bg-blue-50 border border-blue-100 p-5">
               <p className="text-sm font-semibold text-blue-700">E-mail</p>
-              <p className="mt-2 text-lg font-bold text-gray-800">{usuario.email}</p>
+              <p className="mt-2 text-lg font-bold text-gray-800">
+                {usuario.email}
+              </p>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3">

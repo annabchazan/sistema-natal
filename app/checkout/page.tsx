@@ -6,8 +6,7 @@ import { useRouter } from "next/navigation";
 import { finalizarApadrinamento } from "@/app/actions/cartinhas";
 
 export default function Checkout() {
-  const { cartinhas, isLoaded, limparCarrinho } =
-    useCarrinhoApadrinhamento();
+  const { cartinhas, isLoaded, limparCarrinho } = useCarrinhoApadrinhamento();
   const [isLoading, setIsLoading] = useState(false);
   const [mensagem, setMensagem] = useState<{
     tipo: "sucesso" | "erro";
@@ -49,7 +48,7 @@ export default function Checkout() {
 
   if (!isLoaded || cartinhas.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-red-50 to-green-50 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-b from-red-50 to-green-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Redirecionando...</p>
@@ -59,7 +58,7 @@ export default function Checkout() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-red-50 to-green-50 py-12">
+    <div className="min-h-screen bg-linear-to-b from-red-50 to-green-50 py-12">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-4xl font-bold text-center text-red-700 mb-8">

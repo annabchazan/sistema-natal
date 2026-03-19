@@ -42,7 +42,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-red-50 to-green-50 py-12">
+    <div className="min-h-screen bg-linear-to-b from-red-50 to-green-50 py-12">
       <div className="container mx-auto px-4">
         <div className="max-w-xl mx-auto bg-white rounded-2xl shadow-xl border border-red-100 overflow-hidden">
           <div className="bg-red-600 text-white p-8">
@@ -54,7 +54,10 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="p-8 space-y-6">
             <div>
-              <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label
+                htmlFor="email"
+                className="block text-sm font-semibold text-gray-700 mb-2"
+              >
                 E-mail
               </label>
               <input
@@ -69,7 +72,10 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label htmlFor="senha" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label
+                htmlFor="senha"
+                className="block text-sm font-semibold text-gray-700 mb-2"
+              >
                 Senha
               </label>
               <input
@@ -99,7 +105,10 @@ export default function LoginPage() {
 
             <p className="text-center text-sm text-gray-600">
               Ainda nao tem conta?{" "}
-              <Link href="/cadastro" className="font-semibold text-red-700 hover:text-red-800">
+              <Link
+                href="/cadastro"
+                className="font-semibold text-red-700 hover:text-red-800"
+              >
                 Criar cadastro
               </Link>
             </p>

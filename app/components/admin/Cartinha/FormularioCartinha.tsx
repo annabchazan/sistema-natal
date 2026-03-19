@@ -1,21 +1,40 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { salvarCartinha, CartinhaState } from "@/app/actions/cartinhas";
 import { Instituicao, Tag } from "@/app/admin/cartinhas/page";
-import Link from "next/link";
 
 interface FormProps {
   instituicoes: Instituicao[];
   tags: Tag[];
+  cartinha?: any;
+  onSuccess?: () => void;
 }
 const initialState: CartinhaState = { success: false, message: "" };
-export default function FormularioCartinha({ instituicoes, tags }: FormProps) {
+export default function FormularioCartinha({
+  instituicoes,
+  tags,
+  cartinha,
+  onSuccess,
+}: FormProps) {
   const [state, formAction] = useActionState(salvarCartinha, initialState);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (state.success) {
+      router.refresh();
+      if (onSuccess) {
+        onSuccess();
+      }
+    }
+  }, [state.success, onSuccess, router]);
 
   return (
     <>
       <form action={formAction} className="space-y-4">
+        <input type="hidden" name="id" value={cartinha?.id ?? ""} />
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700">
@@ -26,6 +45,7 @@ export default function FormularioCartinha({ instituicoes, tags }: FormProps) {
               type="text"
               required
               className="w-full p-2 border rounded-md"
+              defaultValue={cartinha?.nome_crianca ?? ""}
             />
           </div>
           <div>
@@ -37,6 +57,7 @@ export default function FormularioCartinha({ instituicoes, tags }: FormProps) {
               type="number"
               required
               className="w-full p-2 border rounded-md"
+              defaultValue={cartinha?.idade ?? ""}
             />
           </div>
         </div>
@@ -51,6 +72,7 @@ export default function FormularioCartinha({ instituicoes, tags }: FormProps) {
             required
             className="w-full p-2 border rounded-md"
             placeholder="Ex: Bola de futebol"
+            defaultValue={cartinha?.presente_pedido ?? ""}
           />
         </div>
 
@@ -64,6 +86,7 @@ export default function FormularioCartinha({ instituicoes, tags }: FormProps) {
             rows={4}
             className="w-full p-2 border rounded-md"
             placeholder="Querido Papai Noel..."
+            defaultValue={cartinha?.texto_cartinha ?? ""}
           ></textarea>
         </div>
 
@@ -76,6 +99,7 @@ export default function FormularioCartinha({ instituicoes, tags }: FormProps) {
               name="instituicao_id"
               required
               className="w-full p-2 border rounded-md"
+              defaultValue={cartinha?.instituicao_id ?? ""}
             >
               <option value="">Selecione uma instituição</option>
               {instituicoes.map((inst) => (
@@ -112,6 +136,7 @@ export default function FormularioCartinha({ instituicoes, tags }: FormProps) {
               type="date"
               className="w-full p-2 border rounded-md"
               min={new Date().toISOString().split("T")[0]}
+              defaultValue={cartinha?.data_limite_entrega ?? ""}
             />
             <p className="text-xs text-gray-500 mt-1">
               Quando o presente deve ser entregue
@@ -125,6 +150,7 @@ export default function FormularioCartinha({ instituicoes, tags }: FormProps) {
             <select
               name="tag_id"
               className="w-full p-2 border rounded-md bg-white"
+              defaultValue={cartinha?.tag_id ?? ""}
             >
               <option value="">Nenhuma</option>
               {tags.map((tag) => (
@@ -134,13 +160,33 @@ export default function FormularioCartinha({ instituicoes, tags }: FormProps) {
               ))}
             </select>
           </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Status
+            </label>
+            <select
+              name="status"
+              className="w-full p-2 border rounded-md bg-white"
+              defaultValue={cartinha?.status ?? "disponivel"}
+            >
+              <option value="disponivel">Disponível</option>
+              <option value="apadrinhada">Apadrinhada</option>
+              <option value="conferida">Conferida</option>
+              <option value="embrulhado">Embrulhado</option>
+              <option value="reapadrinhado">Reapadrinhado</option>
+            </select>
+            <p className="text-xs text-gray-500 mt-1">
+              Esse campo influencia apenas o painel administrativo.
+            </p>
+          </div>
         </div>
 
         <button
           type="submit"
           className="w-full bg-red-600 text-white font-bold py-3 rounded-lg hover:bg-red-700 transition shadow-lg"
         >
-          🎁 Cadastrar Cartinha
+          {cartinha ? "💾 Salvar Alterações" : "🎁 Cadastrar Cartinha"}
         </button>
 
         {state.message && (
