@@ -174,13 +174,6 @@ export async function atualizarPermissoesUsuario(input: {
     return { success: false, message: permissao.message };
   }
 
-  if (permissao.usuario.id === input.usuarioId && input.tipo !== "admin") {
-    return {
-      success: false,
-      message: "Voce nao pode remover seu proprio acesso de administrador por aqui.",
-    };
-  }
-
   const adminRole = input.tipo === "admin" ? input.admin_role : null;
 
   if (input.tipo === "admin" && !adminRole) {
@@ -191,6 +184,58 @@ export async function atualizarPermissoesUsuario(input: {
   }
 
   try {
+    const [rows]: any = await db.query(
+      "SELECT id, tipo, admin_role FROM usuarios WHERE id = ? LIMIT 1",
+      [input.usuarioId],
+    );
+
+    const usuarioAtual = rows?.[0] as
+      | {
+          id: number;
+          tipo: "admin" | "padrinho";
+          admin_role: "full" | "editor" | null;
+        }
+      | undefined;
+
+    if (!usuarioAtual) {
+      return { success: false, message: "Usuario nao encontrado." };
+    }
+
+    const vaiPerderAcessoAdmin =
+      usuarioAtual.tipo === "admin" && input.tipo !== "admin";
+    const vaiPerderNivelFull =
+      usuarioAtual.tipo === "admin" &&
+      usuarioAtual.admin_role === "full" &&
+      (input.tipo !== "admin" || adminRole !== "full");
+
+    if (permissao.usuario.id === input.usuarioId && vaiPerderAcessoAdmin) {
+      return {
+        success: false,
+        message: "Voce nao pode remover seu proprio acesso de administrador por aqui.",
+      };
+    }
+
+    if (permissao.usuario.id === input.usuarioId && vaiPerderNivelFull) {
+      return {
+        success: false,
+        message: "Voce nao pode rebaixar seu proprio usuario de admin completo.",
+      };
+    }
+
+    if (vaiPerderNivelFull) {
+      const [fullAdmins]: any = await db.query(
+        "SELECT COUNT(*) as total FROM usuarios WHERE tipo = 'admin' AND admin_role = 'full' AND id <> ?",
+        [input.usuarioId],
+      );
+
+      if ((fullAdmins?.[0]?.total ?? 0) === 0) {
+        return {
+          success: false,
+          message: "Precisa existir pelo menos um administrador completo no sistema.",
+        };
+      }
+    }
+
     await db.query(
       "UPDATE usuarios SET tipo = ?, admin_role = ? WHERE id = ?",
       [input.tipo, adminRole, input.usuarioId],

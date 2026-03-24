@@ -2,7 +2,7 @@
 import crypto from "crypto";
 import db from "@/lib/db";
 import { revalidatePath } from "next/cache";
-import { validarPermissaoAdmin } from "@/lib/auth";
+import { getUsuarioAutenticado, validarPermissaoAdmin } from "@/lib/auth";
 
 export interface CartinhaState {
   success: boolean;
@@ -74,6 +74,7 @@ async function uploadToCloudinary(file: File): Promise<string | null> {
 
 // --- HELPERS DE STATUS ---
 let _hasStatusColumn: boolean | null = null;
+let _hasApadrinhadoPorUsuarioColumn: boolean | null = null;
 
 async function hasStatusColumn(): Promise<boolean> {
   if (_hasStatusColumn !== null) return _hasStatusColumn;
@@ -89,6 +90,27 @@ async function hasStatusColumn(): Promise<boolean> {
   }
 
   return _hasStatusColumn;
+}
+
+async function hasApadrinhadoPorUsuarioColumn(): Promise<boolean> {
+  if (_hasApadrinhadoPorUsuarioColumn !== null) {
+    return _hasApadrinhadoPorUsuarioColumn;
+  }
+
+  try {
+    const [rows]: any = await db.query(
+      "SHOW COLUMNS FROM cartinhas LIKE 'apadrinhado_por_usuario_id'",
+    );
+    _hasApadrinhadoPorUsuarioColumn = Array.isArray(rows) && rows.length > 0;
+  } catch (err) {
+    console.error(
+      "Erro ao verificar coluna apadrinhado_por_usuario_id:",
+      err,
+    );
+    _hasApadrinhadoPorUsuarioColumn = false;
+  }
+
+  return _hasApadrinhadoPorUsuarioColumn;
 }
 
 // --- FUNÇÃO HELPER: GERAR NÚMERO SEQUENCIAL POR INSTITUIÇÃO ---
@@ -376,27 +398,79 @@ export async function finalizarApadrinamento(
   cartas_ids: number[],
 ): Promise<CartinhaState> {
   try {
+    const usuario = await getUsuarioAutenticado();
+    if (!usuario) {
+      return {
+        success: false,
+        message: "Voce precisa estar logado para finalizar o apadrinhamento.",
+      };
+    }
+
     if (cartas_ids.length === 0) {
       return { success: false, message: "Nenhuma cartinha selecionada." };
     }
 
-    // Marca as cartinhas como apadrinadas (exemplo: adiciona uma coluna apadrinada = 1)
     const placeholders = cartas_ids.map(() => "?").join(",");
     const includeStatus = await hasStatusColumn();
+    const includeUsuario = await hasApadrinhadoPorUsuarioColumn();
+    let resultado: any;
 
     if (includeStatus) {
-      await db.query(
-        `UPDATE cartinhas SET apadrinada = 1, data_apadrinamento = NOW(), status = 'apadrinhada' WHERE id IN (${placeholders})`,
-        cartas_ids,
-      );
+      if (includeUsuario) {
+        [resultado] = await db.query(
+          `UPDATE cartinhas
+           SET apadrinada = 1,
+               data_apadrinamento = NOW(),
+               apadrinhado_por_usuario_id = ?,
+               status = 'apadrinhada'
+           WHERE id IN (${placeholders})
+             AND (status = 'disponivel' OR status IS NULL)`,
+          [usuario.id, ...cartas_ids],
+        );
+      } else {
+        [resultado] = await db.query(
+          `UPDATE cartinhas
+           SET apadrinada = 1,
+               data_apadrinamento = NOW(),
+               status = 'apadrinhada'
+           WHERE id IN (${placeholders})
+             AND (status = 'disponivel' OR status IS NULL)`,
+          cartas_ids,
+        );
+      }
     } else {
-      await db.query(
-        `UPDATE cartinhas SET apadrinada = 1, data_apadrinamento = NOW() WHERE id IN (${placeholders})`,
-        cartas_ids,
-      );
+      if (includeUsuario) {
+        [resultado] = await db.query(
+          `UPDATE cartinhas
+           SET apadrinada = 1,
+               data_apadrinamento = NOW(),
+               apadrinhado_por_usuario_id = ?
+           WHERE id IN (${placeholders})
+             AND apadrinada = 0`,
+          [usuario.id, ...cartas_ids],
+        );
+      } else {
+        [resultado] = await db.query(
+          `UPDATE cartinhas
+           SET apadrinada = 1,
+               data_apadrinamento = NOW()
+           WHERE id IN (${placeholders})
+             AND apadrinada = 0`,
+          cartas_ids,
+        );
+      }
+    }
+
+    if ((resultado?.affectedRows ?? 0) !== cartas_ids.length) {
+      return {
+        success: false,
+        message:
+          "Algumas cartinhas ja foram apadrinhadas por outra pessoa. Atualize a lista e tente novamente.",
+      };
     }
 
     revalidatePath("/");
+    revalidatePath("/usuario");
 
     return {
       success: true,

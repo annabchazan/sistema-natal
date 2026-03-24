@@ -1,4 +1,5 @@
 "use server";
+
 import db from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { validarPermissaoAdmin } from "@/lib/auth";
@@ -8,35 +9,69 @@ export interface TagsState {
   message: string;
 }
 
-export async function cadastrarTags(
+export async function salvarTag(
   prevstate: TagsState | null,
   formData: FormData,
 ): Promise<TagsState> {
+  const id = String(formData.get("id") ?? "").trim();
+  const nome = String(formData.get("nome") ?? "").trim();
+
+  const permissao = await validarPermissaoAdmin(id ? "edit" : "manage");
+  if (!permissao.ok) {
+    return { success: false, message: permissao.message };
+  }
+
+  if (!nome) {
+    return { success: false, message: "Informe o nome da tag." };
+  }
+
+  try {
+    if (id) {
+      await db.query("UPDATE tags SET nome = ? WHERE id = ?", [
+        nome,
+        Number(id),
+      ]);
+    } else {
+      await db.query("INSERT INTO tags(nome) VALUES (?)", [nome]);
+    }
+
+    revalidatePath("/admin");
+    revalidatePath("/");
+
+    return {
+      success: true,
+      message: id ? "Tag atualizada com sucesso!" : "Tag cadastrada com sucesso!",
+    };
+  } catch (err) {
+    console.error("Erro ao salvar tag:", err);
+    return {
+      success: false,
+      message:
+        "Erro ao salvar no banco. Verifique se os campos estao corretos.",
+    };
+  }
+}
+
+export async function excluirTag(id: number): Promise<TagsState> {
   const permissao = await validarPermissaoAdmin("manage");
   if (!permissao.ok) {
     return { success: false, message: permissao.message };
   }
 
-  const nome = formData.get("nome") as string;
-
   try {
-    await db.query("INSERT INTO tags(nome) VALUES (?)", [nome]);
-
-    revalidatePath("/admin/tags");
+    await db.query("DELETE FROM tags WHERE id = ?", [id]);
+    revalidatePath("/admin");
     revalidatePath("/");
-
-    return { success: true, message: "Tag cadastrada com sucesso!" };
+    return { success: true, message: "Tag removida com sucesso!" };
   } catch (err) {
-    console.error("Erro ao cadastrar tag:", err);
+    console.error("Erro ao excluir tag:", err);
     return {
       success: false,
-      message:
-        "Erro ao salvar no banco. Verifique se os campos estão corretos.",
+      message: "Nao foi possivel excluir a tag. Verifique se ela esta em uso.",
     };
   }
 }
 
-// --- FUNÇÃO PARA LISTAR TAGS ---
 export async function listarTags() {
   try {
     const [tags] = await db.query(

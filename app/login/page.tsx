@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { loginUsuario } from "@/app/actions/auth";
 import { emailValido } from "@/app/utils/usuarioCadastro";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState("");
@@ -36,7 +37,8 @@ export default function LoginPage() {
       }
 
       window.dispatchEvent(new Event("auth-changed"));
-      router.push(resultado.redirectTo || "/usuario");
+      const next = searchParams.get("next");
+      router.push(next || resultado.redirectTo || "/usuario");
       router.refresh();
     });
   };

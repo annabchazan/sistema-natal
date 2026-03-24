@@ -9,18 +9,19 @@ export interface PontoEntregaState {
   message: string;
 }
 
-export async function cadastrarPontoEntrega(
+export async function salvarPontoEntrega(
   prevState: PontoEntregaState | null,
   formData: FormData,
 ): Promise<PontoEntregaState> {
-  const permissao = await validarPermissaoAdmin("manage");
-  if (!permissao.ok) {
-    return { success: false, message: permissao.message };
-  }
-
+  const id = String(formData.get("id") ?? "").trim();
   const nome = String(formData.get("nome_local") ?? "").trim();
   const endereco = String(formData.get("endereco") ?? "").trim();
   const horario = String(formData.get("horario") ?? "").trim();
+
+  const permissao = await validarPermissaoAdmin(id ? "edit" : "manage");
+  if (!permissao.ok) {
+    return { success: false, message: permissao.message };
+  }
 
   if (!nome || !endereco || !horario) {
     return {
@@ -30,24 +31,58 @@ export async function cadastrarPontoEntrega(
   }
 
   try {
-    await db.query(
-      "INSERT INTO pontos_entrega(nome_local, endereco, horario) VALUES (?, ?, ?)",
-      [nome, endereco, horario],
-    );
+    if (id) {
+      await db.query(
+        "UPDATE pontos_entrega SET nome_local = ?, endereco = ?, horario = ? WHERE id = ?",
+        [nome, endereco, horario, Number(id)],
+      );
+    } else {
+      await db.query(
+        "INSERT INTO pontos_entrega(nome_local, endereco, horario) VALUES (?, ?, ?)",
+        [nome, endereco, horario],
+      );
+    }
 
+    revalidatePath("/admin");
     revalidatePath("/admin/pontos-entrega");
     revalidatePath("/pontos-entrega");
     revalidatePath("/");
 
     return {
       success: true,
-      message: "Ponto de entrega cadastrado com sucesso!",
+      message: id
+        ? "Ponto de entrega atualizado com sucesso!"
+        : "Ponto de entrega cadastrado com sucesso!",
     };
   } catch (err) {
-    console.error("Erro ao cadastrar ponto de entrega:", err);
+    console.error("Erro ao salvar ponto de entrega:", err);
     return {
       success: false,
       message: "Erro ao conectar com o banco de dados.",
+    };
+  }
+}
+
+export async function excluirPontoEntrega(
+  id: number,
+): Promise<PontoEntregaState> {
+  const permissao = await validarPermissaoAdmin("manage");
+  if (!permissao.ok) {
+    return { success: false, message: permissao.message };
+  }
+
+  try {
+    await db.query("DELETE FROM pontos_entrega WHERE id = ?", [id]);
+    revalidatePath("/admin");
+    revalidatePath("/admin/pontos-entrega");
+    revalidatePath("/pontos-entrega");
+    revalidatePath("/");
+    return { success: true, message: "Ponto de entrega removido com sucesso!" };
+  } catch (err) {
+    console.error("Erro ao excluir ponto de entrega:", err);
+    return {
+      success: false,
+      message: "Nao foi possivel excluir o ponto de entrega.",
     };
   }
 }

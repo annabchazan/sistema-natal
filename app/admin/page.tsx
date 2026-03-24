@@ -1,12 +1,10 @@
 import db from "@/lib/db";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import FormularioTags from "../components/admin/Tag/FormularioTag";
-import FormularioPontoEntrega from "../components/admin/PontoEntrega/FormularioPontoEntrega";
-import TabelaTags from "../components/admin/Tag/TabelaTags";
-import TabelaPontosEntrega from "../components/admin/PontoEntrega/TabelaPontosEntrega";
 import CartinhasIndex from "../components/admin/Cartinha";
 import InstituicoesIndex from "../components/admin/Instituicao";
+import TagsIndex from "../components/admin/Tag";
+import PontosEntregaIndex from "../components/admin/PontoEntrega";
 import FormularioUsuarioAdmin from "../components/admin/Usuario/FormularioUsuarioAdmin";
 import TabelaUsuariosAdmin from "../components/admin/Usuario/TabelaUsuariosAdmin";
 import { adminPodeCriarOuExcluir, requireAdminAccess } from "@/lib/auth";
@@ -31,7 +29,7 @@ export default async function AdminPage({ searchParams }: AdminProps) {
   `)) as [any[], any];
 
   const [instituicoes]: any = await db.query(
-    "SELECT id, nome_instituicao, contato, responsavel FROM instituicoes",
+    "SELECT id, nome_instituicao, contato, responsavel, quantidade_vagas FROM instituicoes",
   );
   const [pontosEntrega]: any = await db.query(
     "SELECT id, nome_local, endereco, horario FROM pontos_entrega",
@@ -120,31 +118,14 @@ export default async function AdminPage({ searchParams }: AdminProps) {
           )}
 
           {abaAtiva === "tags" && (
-            <div className="space-y-8">
-              {canManage && <FormularioTags />}
-
-              <div className="bg-white rounded-lg shadow border border-gray-200">
-                <div className="p-4 border-b">
-                  <h2 className="font-bold text-gray-700">Tags Registradas</h2>
-                </div>
-                <TabelaTags dados={tags} />
-              </div>
-            </div>
+            <TagsIndex tags={tags} canManage={canManage} />
           )}
 
           {abaAtiva === "pontos" && (
-            <div className="space-y-8">
-              {canManage && <FormularioPontoEntrega />}
-
-              <div className="bg-white rounded-lg shadow border border-gray-200">
-                <div className="p-4 border-b">
-                  <h2 className="font-bold text-gray-700">
-                    Pontos de Entrega Registrados
-                  </h2>
-                </div>
-                <TabelaPontosEntrega dados={pontosEntrega} />
-              </div>
-            </div>
+            <PontosEntregaIndex
+              pontosEntrega={pontosEntrega}
+              canManage={canManage}
+            />
           )}
 
           {abaAtiva === "usuarios" && canManage && (

@@ -25,6 +25,7 @@ UPDATE cartinhas SET status = 'disponivel' WHERE status IS NULL;
 -- 6. Adicionar coluna de apadrinhamento na tabela cartinhas (opcional, para controle)
 ALTER TABLE cartinhas ADD COLUMN apadrinada TINYINT(1) DEFAULT 0;
 ALTER TABLE cartinhas ADD COLUMN data_apadrinamento DATETIME NULL;
+ALTER TABLE cartinhas ADD COLUMN apadrinhado_por_usuario_id INT NULL;
 
 -- 6. Criar tabela de usuarios para cadastro e login
 CREATE TABLE IF NOT EXISTS usuarios (
@@ -38,6 +39,10 @@ CREATE TABLE IF NOT EXISTS usuarios (
 
 -- 7. Adicionar papel administrativo para diferenciar perfis de acesso
 ALTER TABLE usuarios ADD COLUMN admin_role ENUM('full', 'editor') NULL;
+
+ALTER TABLE cartinhas
+  ADD CONSTRAINT fk_cartinhas_apadrinhado_por_usuario
+  FOREIGN KEY (apadrinhado_por_usuario_id) REFERENCES usuarios(id);
 
 -- Exemplos de configuracao:
 -- UPDATE usuarios SET tipo = 'admin', admin_role = 'full' WHERE email = 'admin@exemplo.com';

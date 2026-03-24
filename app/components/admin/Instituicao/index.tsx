@@ -14,6 +14,19 @@ export default function InstituicoesIndex({
   canManage,
 }: Props) {
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [instituicaoEmEdicao, setInstituicaoEmEdicao] = useState<any | null>(
+    null,
+  );
+
+  const abrirEdicao = (instituicao: any) => {
+    setInstituicaoEmEdicao(instituicao);
+    setMostrarFormulario(true);
+  };
+
+  const fecharFormulario = () => {
+    setInstituicaoEmEdicao(null);
+    setMostrarFormulario(false);
+  };
 
   return (
     <div className="space-y-6">
@@ -29,29 +42,43 @@ export default function InstituicoesIndex({
 
         {canManage && (
           <button
-            onClick={() => setMostrarFormulario(!mostrarFormulario)}
+            onClick={() => {
+              if (mostrarFormulario && !instituicaoEmEdicao) {
+                fecharFormulario();
+              } else {
+                setInstituicaoEmEdicao(null);
+                setMostrarFormulario(true);
+              }
+            }}
             className={`px-4 py-2 rounded-lg font-bold transition-all ${
-              mostrarFormulario
+              mostrarFormulario && !instituicaoEmEdicao
                 ? "bg-gray-100 text-gray-600 hover:bg-gray-200"
                 : "bg-red-600 text-white hover:bg-red-700 shadow-md"
             }`}
           >
-            {mostrarFormulario ? "Cancelar" : "Adicionar instituicao"}
+            {mostrarFormulario && !instituicaoEmEdicao
+              ? "Cancelar"
+              : "Adicionar instituicao"}
           </button>
         )}
       </div>
 
       {mostrarFormulario && (
         <div className="bg-white p-6 rounded-xl border-2 border-red-100 shadow-xl animate-in slide-in-from-top duration-300">
-          <h3 className="text-lg font-bold mb-4 text-red-600">
-            Nova instituicao
-          </h3>
-          <FormularioInstituicao />
+          <FormularioInstituicao
+            key={instituicaoEmEdicao?.id ?? "nova"}
+            instituicao={instituicaoEmEdicao}
+            onCancel={fecharFormulario}
+          />
         </div>
       )}
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <TabelaInstituicoes dados={instituicoes} />
+        <TabelaInstituicoes
+          dados={instituicoes}
+          onEdit={abrirEdicao}
+          canManage={canManage}
+        />
       </div>
     </div>
   );
