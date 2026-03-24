@@ -2,6 +2,7 @@
 import crypto from "crypto";
 import db from "@/lib/db";
 import { revalidatePath } from "next/cache";
+import { validarPermissaoAdmin } from "@/lib/auth";
 
 export interface CartinhaState {
   success: boolean;
@@ -153,6 +154,11 @@ export async function salvarCartinha(
   ];
   const status = allowedStatuses.includes(statusRaw) ? statusRaw : "disponivel";
 
+  const permissao = await validarPermissaoAdmin(id ? "edit" : "manage");
+  if (!permissao.ok) {
+    return { success: false, message: permissao.message };
+  }
+
   try {
     let fotoPath = null;
 
@@ -277,6 +283,11 @@ export async function salvarCartinha(
 
 // --- FUNÇÃO PARA EXCLUIR ---
 export async function excluirCartinha(id: number): Promise<CartinhaState> {
+  const permissao = await validarPermissaoAdmin("manage");
+  if (!permissao.ok) {
+    return { success: false, message: permissao.message };
+  }
+
   try {
     await db.query("DELETE FROM cartinhas WHERE id = ?", [id]);
 

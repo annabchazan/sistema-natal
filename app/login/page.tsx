@@ -36,7 +36,7 @@ export default function LoginPage() {
       }
 
       window.dispatchEvent(new Event("auth-changed"));
-      router.push("/usuario");
+      router.push(resultado.redirectTo || "/usuario");
       router.refresh();
     });
   };

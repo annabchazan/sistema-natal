@@ -10,6 +10,8 @@ interface UsuarioMenu {
   id: number;
   nome: string;
   email: string;
+  tipo: "admin" | "padrinho";
+  admin_role?: "full" | "editor" | null;
 }
 
 export default function Header() {
@@ -118,6 +120,19 @@ export default function Header() {
                         : "Crie seu cadastro para continuar."}
                     </p>
                   </button>
+
+                  {usuario?.tipo === "admin" && (
+                    <Link
+                      href="/admin"
+                      onClick={() => setIsUserMenuOpen(false)}
+                      className="block w-full text-left px-4 py-3 rounded-lg hover:bg-red-50 transition-colors"
+                    >
+                      <p className="font-semibold">Painel admin</p>
+                      <p className="text-sm text-gray-500">
+                        Abrir area administrativa.
+                      </p>
+                    </Link>
+                  )}
 
                   {!usuario && (
                     <Link

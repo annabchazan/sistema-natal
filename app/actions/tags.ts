@@ -1,6 +1,7 @@
 "use server";
 import db from "@/lib/db";
 import { revalidatePath } from "next/cache";
+import { validarPermissaoAdmin } from "@/lib/auth";
 
 export interface TagsState {
   success: boolean;
@@ -11,6 +12,11 @@ export async function cadastrarTags(
   prevstate: TagsState | null,
   formData: FormData,
 ): Promise<TagsState> {
+  const permissao = await validarPermissaoAdmin("manage");
+  if (!permissao.ok) {
+    return { success: false, message: permissao.message };
+  }
+
   const nome = formData.get("nome") as string;
 
   try {

@@ -36,6 +36,13 @@ CREATE TABLE IF NOT EXISTS usuarios (
     tipo ENUM('admin', 'padrinho') DEFAULT 'padrinho'
 );
 
+-- 7. Adicionar papel administrativo para diferenciar perfis de acesso
+ALTER TABLE usuarios ADD COLUMN admin_role ENUM('full', 'editor') NULL;
+
+-- Exemplos de configuracao:
+-- UPDATE usuarios SET tipo = 'admin', admin_role = 'full' WHERE email = 'admin@exemplo.com';
+-- UPDATE usuarios SET tipo = 'admin', admin_role = 'editor' WHERE email = 'editor@exemplo.com';
+
 -- Verificar se as colunas foram adicionadas corretamente
 -- DESCRIBE instituicoes;
 -- DESCRIBE cartinhas;

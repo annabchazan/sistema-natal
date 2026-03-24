@@ -1,17 +1,23 @@
 import { createHmac, randomBytes, scryptSync, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import db from "@/lib/db";
+
+export type TipoUsuario = "admin" | "padrinho";
+export type AdminRole = "full" | "editor";
 
 export interface UsuarioAutenticado {
   id: number;
   nome: string;
   telefone: string;
   email: string;
-  tipo: string;
+  tipo: TipoUsuario;
+  admin_role: AdminRole | null;
 }
 
-const SESSION_COOKIE = "sistema_natal_session";
+export const SESSION_COOKIE = "sistema_natal_session";
 const SESSION_MAX_AGE = 60 * 60 * 24 * 7;
+let _hasAdminRoleColumn: boolean | null = null;
 
 function getAuthSecret() {
   return process.env.AUTH_SECRET || "sistema-natal-dev-secret";
@@ -103,10 +109,103 @@ export async function getUsuarioAutenticado() {
     return null;
   }
 
+  const hasAdminRoleColumn = await verificarColunaAdminRole();
+  const camposUsuario = hasAdminRoleColumn
+    ? "id, nome, telefone, email, tipo, admin_role"
+    : "id, nome, telefone, email, tipo, NULL as admin_role";
+
   const [rows]: any = await db.query(
-    "SELECT id, nome, telefone, email, tipo FROM usuarios WHERE id = ? LIMIT 1",
+    `SELECT ${camposUsuario} FROM usuarios WHERE id = ? LIMIT 1`,
     [usuarioId],
   );
 
   return (rows?.[0] as UsuarioAutenticado | undefined) || null;
+}
+
+export function usuarioEhAdmin(usuario: UsuarioAutenticado | null | undefined) {
+  return usuario?.tipo === "admin";
+}
+
+export function adminPodeCriarOuExcluir(
+  usuario: UsuarioAutenticado | null | undefined,
+) {
+  return usuarioEhAdmin(usuario) && usuario?.admin_role === "full";
+}
+
+export function adminPodeEditar(
+  usuario: UsuarioAutenticado | null | undefined,
+) {
+  return usuarioEhAdmin(usuario);
+}
+
+export async function requireUsuarioAutenticado() {
+  const usuario = await getUsuarioAutenticado();
+
+  if (!usuario) {
+    redirect("/login");
+  }
+
+  return usuario;
+}
+
+export async function requireAdminAccess() {
+  const usuario = await getUsuarioAutenticado();
+
+  if (!usuario) {
+    redirect("/login?next=/admin");
+  }
+
+  if (!usuarioEhAdmin(usuario)) {
+    redirect("/usuario");
+  }
+
+  return usuario;
+}
+
+export async function validarPermissaoAdmin(
+  permissao: "edit" | "manage",
+): Promise<{ ok: true; usuario: UsuarioAutenticado } | { ok: false; message: string }> {
+  const usuario = await getUsuarioAutenticado();
+
+  if (!usuario || !usuarioEhAdmin(usuario)) {
+    return {
+      ok: false,
+      message: "Voce precisa estar logado como administrador.",
+    };
+  }
+
+  if (permissao === "edit" && !adminPodeEditar(usuario)) {
+    return {
+      ok: false,
+      message: "Seu perfil nao pode editar este conteudo.",
+    };
+  }
+
+  if (permissao === "manage" && !adminPodeCriarOuExcluir(usuario)) {
+    return {
+      ok: false,
+      message:
+        "Seu perfil pode editar registros existentes, mas nao pode cadastrar nem remover.",
+    };
+  }
+
+  return { ok: true, usuario };
+}
+
+async function verificarColunaAdminRole() {
+  if (_hasAdminRoleColumn !== null) {
+    return _hasAdminRoleColumn;
+  }
+
+  try {
+    const [rows]: any = await db.query(
+      "SHOW COLUMNS FROM usuarios LIKE 'admin_role'",
+    );
+    _hasAdminRoleColumn = Array.isArray(rows) && rows.length > 0;
+  } catch (error) {
+    console.error("Erro ao verificar coluna admin_role:", error);
+    _hasAdminRoleColumn = false;
+  }
+
+  return _hasAdminRoleColumn;
 }

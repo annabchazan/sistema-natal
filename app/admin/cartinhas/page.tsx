@@ -1,6 +1,8 @@
 import FormularioCartinha from "@/app/components/admin/Cartinha/FormularioCartinha";
+import { adminPodeCriarOuExcluir, requireAdminAccess } from "@/lib/auth";
 import db from "@/lib/db";
 import { RowDataPacket } from "mysql2/promise";
+import { redirect } from "next/navigation";
 
 export type Instituicao = RowDataPacket & {
   id: number;
@@ -12,6 +14,11 @@ export type Tag = RowDataPacket & {
 };
 
 export default async function PaginaCadastroCartinha() {
+  const usuario = await requireAdminAccess();
+  if (!adminPodeCriarOuExcluir(usuario)) {
+    redirect("/admin");
+  }
+
   const [instituicoes] = await db.query<Instituicao[]>(
     "SELECT id, nome_instituicao FROM instituicoes",
   );

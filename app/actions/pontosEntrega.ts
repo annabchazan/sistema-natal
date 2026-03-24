@@ -2,6 +2,7 @@
 
 import db from "@/lib/db";
 import { revalidatePath } from "next/cache";
+import { validarPermissaoAdmin } from "@/lib/auth";
 
 export interface PontoEntregaState {
   success: boolean;
@@ -12,6 +13,11 @@ export async function cadastrarPontoEntrega(
   prevState: PontoEntregaState | null,
   formData: FormData,
 ): Promise<PontoEntregaState> {
+  const permissao = await validarPermissaoAdmin("manage");
+  if (!permissao.ok) {
+    return { success: false, message: permissao.message };
+  }
+
   const nome = String(formData.get("nome_local") ?? "").trim();
   const endereco = String(formData.get("endereco") ?? "").trim();
   const horario = String(formData.get("horario") ?? "").trim();

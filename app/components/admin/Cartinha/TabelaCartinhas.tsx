@@ -1,28 +1,37 @@
 "use client";
+
 import { excluirCartinha } from "@/app/actions/cartinhas";
+
 export default function TabelaCartinhas({
   dados,
   onEdit,
+  canManage,
 }: {
   dados: any[];
   onEdit: (cartinha: any) => void;
+  canManage: boolean;
 }) {
   const handleExcluir = async (id: number) => {
     if (confirm("Deseja realmente apagar esta cartinha?")) {
       const res = await excluirCartinha(id);
-      if (res.success) alert(res.message);
+      if (res.success) {
+        alert(res.message);
+      } else {
+        alert(res.message);
+      }
     }
   };
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm text-left text-gray-500">
         <thead className="text-xs text-gray-700 uppercase bg-gray-50">
           <tr>
-            <th className="px-6 py-3">Criança</th>
+            <th className="px-6 py-3">Crianca</th>
             <th className="px-6 py-3">Presente</th>
-            <th className="px-6 py-3">Instituição</th>
+            <th className="px-6 py-3">Instituicao</th>
             <th className="px-6 py-3">Status</th>
-            <th className="p-4 text-right">Ações</th>
+            <th className="p-4 text-right">Acoes</th>
           </tr>
         </thead>
         <tbody>
@@ -53,7 +62,6 @@ export default function TabelaCartinhas({
                 })()}
               </td>
               <td className="p-4 text-right space-x-2">
-                {/* BOTÃO EDITAR */}
                 <button
                   onClick={() => onEdit(item)}
                   className="text-blue-600 hover:underline"
@@ -61,19 +69,21 @@ export default function TabelaCartinhas({
                   Editar
                 </button>
 
-                {/* BOTÃO EXCLUIR */}
-                <button
-                  onClick={() => handleExcluir(item.id)}
-                  className="text-red-600 hover:underline"
-                >
-                  Excluir
-                </button>
+                {canManage && (
+                  <button
+                    onClick={() => handleExcluir(item.id)}
+                    className="text-red-600 hover:underline"
+                  >
+                    Excluir
+                  </button>
+                )}
               </td>
             </tr>
           ))}
+
           {dados.length === 0 && (
             <tr>
-              <td colSpan={4} className="px-6 py-8 text-center text-gray-400">
+              <td colSpan={5} className="px-6 py-8 text-center text-gray-400">
                 Nenhuma cartinha encontrada no banco de dados.
               </td>
             </tr>

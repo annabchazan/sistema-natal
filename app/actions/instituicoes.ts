@@ -1,6 +1,7 @@
 "use server";
 import db from "@/lib/db";
 import { revalidatePath } from "next/cache";
+import { validarPermissaoAdmin } from "@/lib/auth";
 export interface InstituicaoState {
   success: boolean;
   message: string;
@@ -9,6 +10,11 @@ export async function cadastrarInstituicao(
   prevState: InstituicaoState | null,
   formData: FormData,
 ): Promise<InstituicaoState> {
+  const permissao = await validarPermissaoAdmin("manage");
+  if (!permissao.ok) {
+    return { success: false, message: permissao.message };
+  }
+
   const nome = formData.get("nome_instituicao") as string;
   const responsavel = formData.get("responsavel") as string;
   const contato = formData.get("contato") as string;
