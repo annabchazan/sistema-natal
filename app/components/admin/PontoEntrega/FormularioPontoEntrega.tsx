@@ -1,4 +1,5 @@
 "use client";
+
 import { cadastrarPontoEntrega } from "@/app/actions/pontosEntrega";
 import { useActionState } from "react";
 
@@ -8,7 +9,7 @@ export default function FormularioPontoEntrega() {
   return (
     <div>
       <h1 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-        🏢 Cadastro de Ponto de Entrega
+        Cadastro de Ponto de Entrega
       </h1>
 
       <form action={formAction} className="space-y-5">
@@ -20,11 +21,12 @@ export default function FormularioPontoEntrega() {
             name="nome_local"
             type="text"
             required
-            placeholder="Ex: Recreação"
+            placeholder="Ex: Recreacao"
             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none transition"
           />
         </div>
-        <div className="grid grid-cols-2 gap-4">
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">
               Horario
@@ -36,9 +38,10 @@ export default function FormularioPontoEntrega() {
               className="w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-red-500"
             />
           </div>
+
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Endereço
+              Endereco
             </label>
             <input
               name="endereco"
@@ -49,12 +52,14 @@ export default function FormularioPontoEntrega() {
             />
           </div>
         </div>
+
         <button
           type="submit"
           className="w-full bg-red-600 text-white font-bold py-3 rounded-lg hover:bg-red-700 transition-all shadow-md active:scale-95"
         >
-          Salvar ponto de Entrega
+          Salvar ponto de entrega
         </button>
+
         {state?.message && (
           <p
             className={`mt-4 p-3 rounded ${state.success ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}

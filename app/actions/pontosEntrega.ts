@@ -1,24 +1,38 @@
 "use server";
+
 import db from "@/lib/db";
 import { revalidatePath } from "next/cache";
+
 export interface PontoEntregaState {
   success: boolean;
   message: string;
 }
+
 export async function cadastrarPontoEntrega(
   prevState: PontoEntregaState | null,
   formData: FormData,
 ): Promise<PontoEntregaState> {
-  const nome = formData.get("nome_local") as string;
-  const endereco = formData.get("endereco") as string;
-  const horario = formData.get("horario") as string;
+  const nome = String(formData.get("nome_local") ?? "").trim();
+  const endereco = String(formData.get("endereco") ?? "").trim();
+  const horario = String(formData.get("horario") ?? "").trim();
+
+  if (!nome || !endereco || !horario) {
+    return {
+      success: false,
+      message: "Preencha nome, endereco e horario do ponto de entrega.",
+    };
+  }
 
   try {
     await db.query(
-      "INSERT INTO pontos_entrega(nome_local,  endereco, horario) VALUES (?, ?, ?)",
+      "INSERT INTO pontos_entrega(nome_local, endereco, horario) VALUES (?, ?, ?)",
       [nome, endereco, horario],
     );
+
     revalidatePath("/admin/pontos-entrega");
+    revalidatePath("/pontos-entrega");
+    revalidatePath("/");
+
     return {
       success: true,
       message: "Ponto de entrega cadastrado com sucesso!",
@@ -32,7 +46,6 @@ export async function cadastrarPontoEntrega(
   }
 }
 
-// --- FUNÇÃO PARA LISTAR PONTOS DE ENTREGA ---
 export async function listarPontosEntrega() {
   try {
     const [pontos] = await db.query(
