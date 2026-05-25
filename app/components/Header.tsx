@@ -63,6 +63,7 @@ export default function Header() {
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
+    limparCarrinho();
     await logoutUsuario();
     setUsuario(null);
     window.dispatchEvent(new Event("auth-changed"));
@@ -112,7 +113,7 @@ export default function Header() {
                     className="w-full text-left px-4 py-3 rounded-lg hover:bg-red-50 transition-colors"
                   >
                     <p className="font-semibold">
-                      {usuario ? "Ver area do usuario" : "Cadastrar usuario"}
+                      {usuario ? "Ver área do usuário" : "Cadastrar"}
                     </p>
                     <p className="text-sm text-gray-500">
                       {usuario
@@ -129,7 +130,7 @@ export default function Header() {
                     >
                       <p className="font-semibold">Painel admin</p>
                       <p className="text-sm text-gray-500">
-                        Abrir area administrativa.
+                        Abrir área administrativa.
                       </p>
                     </Link>
                   )}
@@ -157,7 +158,7 @@ export default function Header() {
                         {isLoggingOut ? "Saindo..." : "Sair"}
                       </p>
                       <p className="text-sm text-gray-500">
-                        Encerrar sessao com seguranca.
+                        Encerrar sessão com segurança.
                       </p>
                     </button>
                   )}

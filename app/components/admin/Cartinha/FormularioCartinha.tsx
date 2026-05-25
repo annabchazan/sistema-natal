@@ -173,11 +173,14 @@ export default function FormularioCartinha({
               <option value="disponivel">Disponível</option>
               <option value="apadrinhada">Apadrinhada</option>
               <option value="conferida">Conferida</option>
+              <option value="carente">Carente</option>
               <option value="embrulhado">Embrulhado</option>
               <option value="reapadrinhado">Reapadrinhado</option>
+              <option value="entregue">Entregue</option>
+              <option value="cancelada">Cancelada</option>
             </select>
             <p className="text-xs text-gray-500 mt-1">
-              Esse campo influencia apenas o painel administrativo.
+              Controle interno — não aparece para o padrinho.
             </p>
           </div>
         </div>

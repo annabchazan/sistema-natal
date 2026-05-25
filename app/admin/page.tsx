@@ -7,6 +7,8 @@ import TagsIndex from "../components/admin/Tag";
 import PontosEntregaIndex from "../components/admin/PontoEntrega";
 import FormularioUsuarioAdmin from "../components/admin/Usuario/FormularioUsuarioAdmin";
 import TabelaUsuariosAdmin from "../components/admin/Usuario/TabelaUsuariosAdmin";
+import ExportarIndex from "../components/admin/Exportar";
+import DashboardMetricas from "../components/admin/DashboardMetricas";
 import { adminPodeCriarOuExcluir, requireAdminAccess } from "@/lib/auth";
 
 interface AdminProps {
@@ -19,33 +21,46 @@ export default async function AdminPage({ searchParams }: AdminProps) {
   const { tab } = await searchParams;
   const abaAtiva = tab || "cartinhas";
 
-  const [cartinhas] = (await db.query(`
-    SELECT 
-      cartinhas.*, 
-      instituicoes.nome_instituicao 
-    FROM cartinhas
-    INNER JOIN instituicoes ON cartinhas.instituicao_id = instituicoes.id
-    ORDER BY cartinhas.id DESC
-  `)) as [any[], any];
+  const [
+    [cartinhas],
+    [instituicoes],
+    [pontosEntrega],
+    [tags],
+    [usuarios],
+    [statusRows],
+    [[{ totalPadrinhos }]],
+    [[{ totalVencidas }]],
+  ]: any = await Promise.all([
+    db.query(`
+      SELECT cartinhas.*, instituicoes.nome_instituicao
+      FROM cartinhas
+      INNER JOIN instituicoes ON cartinhas.instituicao_id = instituicoes.id
+      ORDER BY cartinhas.id DESC
+    `),
+    db.query("SELECT id, nome_instituicao, contato, responsavel, quantidade_vagas FROM instituicoes"),
+    db.query("SELECT id, nome_local, endereco, horario FROM pontos_entrega"),
+    db.query("SELECT id, nome FROM tags"),
+    db.query("SELECT id, nome, telefone, email, tipo, admin_role FROM usuarios ORDER BY nome ASC"),
+    db.query("SELECT status, COUNT(*) as total FROM cartinhas GROUP BY status"),
+    db.query("SELECT COUNT(*) as totalPadrinhos FROM usuarios WHERE tipo = 'padrinho'"),
+    db.query(`SELECT COUNT(*) as totalVencidas FROM cartinhas
+              WHERE data_limite_entrega < CURDATE()
+                AND status NOT IN ('entregue', 'cancelada')`),
+  ]);
 
-  const [instituicoes]: any = await db.query(
-    "SELECT id, nome_instituicao, contato, responsavel, quantidade_vagas FROM instituicoes",
-  );
-  const [pontosEntrega]: any = await db.query(
-    "SELECT id, nome_local, endereco, horario FROM pontos_entrega",
-  );
-  const [tags]: any = await db.query("SELECT id, nome FROM tags");
-  const [usuarios]: any = await db.query(
-    "SELECT id, nome, telefone, email, tipo, admin_role FROM usuarios ORDER BY nome ASC",
-  );
+  const porStatus: Record<string, number> = {};
+  for (const row of statusRows) {
+    porStatus[row.status] = Number(row.total);
+  }
 
   const abas = [
-    { id: "cartinhas", label: "Cartinhas", icon: "Cartinhas" },
-    { id: "instituicoes", label: "Instituicoes", icon: "Instituicoes" },
-    { id: "tags", label: "Tags", icon: "Tags" },
-    { id: "pontos", label: "Pontos de Entrega", icon: "Pontos" },
+    { id: "cartinhas",   label: "Cartinhas",        icon: "Cartinhas" },
+    { id: "instituicoes", label: "Instituições",     icon: "Instituições" },
+    { id: "tags",        label: "Tags",              icon: "Tags" },
+    { id: "pontos",      label: "Pontos de Entrega", icon: "Pontos" },
+    { id: "exportar",    label: "Exportar",          icon: "Exportar" },
     ...(canManage
-      ? [{ id: "usuarios", label: "Usuarios", icon: "Usuarios" }]
+      ? [{ id: "usuarios", label: "Usuários", icon: "Usuários" }]
       : []),
   ];
   const abasPermitidas = new Set(abas.map((aba) => aba.id));
@@ -58,7 +73,7 @@ export default async function AdminPage({ searchParams }: AdminProps) {
     <div className="min-h-screen bg-gray-50 flex">
       <aside className="w-64 bg-white border-r border-gray-200 hidden md:flex flex-col">
         <div className="p-6">
-          <h2 className="text-xl font-bold text-red-600">Natal Solidario</h2>
+          <h2 className="text-xl font-bold text-red-600">Natal Solidário</h2>
           <p className="text-xs text-gray-500">Painel de Controle</p>
         </div>
         <nav className="flex-1 px-4 space-y-2">
@@ -80,6 +95,12 @@ export default async function AdminPage({ searchParams }: AdminProps) {
       </aside>
 
       <main className="flex-1 p-8">
+        <DashboardMetricas
+          porStatus={porStatus}
+          totalPadrinhos={Number(totalPadrinhos)}
+          totalVencidas={Number(totalVencidas)}
+        />
+
         <header className="mb-8 space-y-4">
           <div className="flex items-start justify-between gap-4">
             <div>
@@ -94,7 +115,7 @@ export default async function AdminPage({ searchParams }: AdminProps) {
 
           {!canManage && (
             <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-              Seu perfil pode editar registros existentes, mas nao pode cadastrar
+              Seu perfil pode editar registros existentes, mas não pode cadastrar
               nem remover itens.
             </div>
           )}
@@ -127,6 +148,8 @@ export default async function AdminPage({ searchParams }: AdminProps) {
               canManage={canManage}
             />
           )}
+
+          {abaAtiva === "exportar" && <ExportarIndex />}
 
           {abaAtiva === "usuarios" && canManage && (
             <div className="space-y-8">

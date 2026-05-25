@@ -17,10 +17,12 @@ export interface UsuarioAutenticado {
 
 export const SESSION_COOKIE = "sistema_natal_session";
 const SESSION_MAX_AGE = 60 * 60 * 24 * 7;
-let _hasAdminRoleColumn: boolean | null = null;
-
 function getAuthSecret() {
-  return process.env.AUTH_SECRET || "sistema-natal-dev-secret";
+  const secret = process.env.AUTH_SECRET;
+  if (!secret) {
+    throw new Error("AUTH_SECRET não está definida. Adicione-a ao .env.local antes de iniciar o servidor.");
+  }
+  return secret;
 }
 
 export function gerarHashSenha(senha: string) {
@@ -109,13 +111,8 @@ export async function getUsuarioAutenticado() {
     return null;
   }
 
-  const hasAdminRoleColumn = await verificarColunaAdminRole();
-  const camposUsuario = hasAdminRoleColumn
-    ? "id, nome, telefone, email, tipo, admin_role"
-    : "id, nome, telefone, email, tipo, NULL as admin_role";
-
   const [rows]: any = await db.query(
-    `SELECT ${camposUsuario} FROM usuarios WHERE id = ? LIMIT 1`,
+    "SELECT id, nome, telefone, email, tipo, admin_role FROM usuarios WHERE id = ? LIMIT 1",
     [usuarioId],
   );
 
@@ -192,20 +189,3 @@ export async function validarPermissaoAdmin(
   return { ok: true, usuario };
 }
 
-async function verificarColunaAdminRole() {
-  if (_hasAdminRoleColumn !== null) {
-    return _hasAdminRoleColumn;
-  }
-
-  try {
-    const [rows]: any = await db.query(
-      "SHOW COLUMNS FROM usuarios LIKE 'admin_role'",
-    );
-    _hasAdminRoleColumn = Array.isArray(rows) && rows.length > 0;
-  } catch (error) {
-    console.error("Erro ao verificar coluna admin_role:", error);
-    _hasAdminRoleColumn = false;
-  }
-
-  return _hasAdminRoleColumn;
-}

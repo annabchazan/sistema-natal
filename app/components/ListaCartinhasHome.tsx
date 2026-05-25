@@ -59,34 +59,19 @@ export default function ListaCartinhasHome({
 
   // Função para aplicar filtros
   const aplicarFiltros = async () => {
-    console.log("Aplicando filtros...");
     setIsFiltering(true);
     try {
       const filtros: any = {};
 
-      if (filtroTag) {
-        filtros.tag_id = parseInt(filtroTag);
-        console.log("Filtro tag:", filtros.tag_id);
-      }
+      if (filtroTag)     filtros.tag_id    = parseInt(filtroTag);
+      if (filtroIdadeMin) filtros.idade_min = parseInt(filtroIdadeMin);
+      if (filtroIdadeMax) filtros.idade_max = parseInt(filtroIdadeMax);
 
-      if (filtroIdadeMin) {
-        filtros.idade_min = parseInt(filtroIdadeMin);
-        console.log("Filtro idade min:", filtros.idade_min);
-      }
-
-      if (filtroIdadeMax) {
-        filtros.idade_max = parseInt(filtroIdadeMax);
-        console.log("Filtro idade max:", filtros.idade_max);
-      }
-
-      // Se não há filtros aplicados, usar a função normal
       const temFiltros = filtroTag || filtroIdadeMin || filtroIdadeMax;
-      console.log("Tem filtros:", temFiltros);
       const cartinhasFiltradas = temFiltros
         ? await listarCartinhasFiltradas(filtros)
         : cartinhasIniciais;
 
-      console.log("Cartinhas filtradas:", cartinhasFiltradas.length);
       setCartinhas(cartinhasFiltradas);
 
       // Atualizar estado do carrinho para as cartinhas filtradas
@@ -306,7 +291,7 @@ export default function ListaCartinhasHome({
                     }`}
                   >
                     {carrinhoAtualizado[cartinha.id]
-                      ? "✓ Apadinhada"
+                      ? "✓ Apadrinhada"
                       : "🎁 Apadrinhar"}
                   </button>
                 </div>

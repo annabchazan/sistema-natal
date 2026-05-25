@@ -97,6 +97,15 @@ export default function LoginPage() {
               </div>
             )}
 
+            <div className="text-right -mt-2">
+              <Link
+                href="/esqueci-senha"
+                className="text-sm text-red-600 hover:text-red-700 hover:underline"
+              >
+                Esqueci minha senha
+              </Link>
+            </div>
+
             <button
               type="submit"
               disabled={isPending}

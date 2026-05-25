@@ -90,7 +90,7 @@ export default function Footer() {
             <div className="space-y-2 text-red-200">
               <p>📧 contato@sistemanatal.com.br</p>
               <p>📞 (11) 9999-9999</p>
-              <p>📍 São Paulo, SP</p>
+              <p>📍 Niterói, RJ</p>
             </div>
           </div>
         </div>

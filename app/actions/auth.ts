@@ -1,5 +1,6 @@
 "use server";
 
+import crypto from "crypto";
 import db from "@/lib/db";
 import {
   criarSessao,
@@ -9,6 +10,7 @@ import {
   validarPermissaoAdmin,
   validarSenha,
 } from "@/lib/auth";
+import { enviarEmailRecuperacaoSenha } from "@/lib/email";
 import { revalidatePath } from "next/cache";
 
 export interface AuthActionState {
@@ -161,6 +163,168 @@ export async function cadastrarUsuarioAdmin(
   } catch (error) {
     console.error("Erro ao cadastrar usuario pelo admin:", error);
     return { success: false, message: "Nao foi possivel cadastrar o usuario." };
+  }
+}
+
+export async function solicitarRecuperacaoSenha(
+  email: string,
+): Promise<AuthActionState> {
+  // Mensagem genérica para não revelar se o e-mail existe no sistema
+  const MENSAGEM_PADRAO =
+    "Se este e-mail estiver cadastrado, você receberá as instruções em instantes.";
+
+  const emailNormalizado = email.trim().toLowerCase();
+  if (!emailNormalizado) {
+    return { success: false, message: "Informe um e-mail válido." };
+  }
+
+  try {
+    const [rows]: any = await db.query(
+      "SELECT id FROM usuarios WHERE email = ? LIMIT 1",
+      [emailNormalizado],
+    );
+
+    if (!rows?.length) {
+      return { success: true, message: MENSAGEM_PADRAO };
+    }
+
+    const token = crypto.randomBytes(32).toString("hex");
+    const expiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hora
+
+    await db.query(
+      "UPDATE usuarios SET reset_token = ?, reset_token_expiry = ? WHERE id = ?",
+      [token, expiry, rows[0].id],
+    );
+
+    const baseUrl = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
+    const linkRedefinicao = `${baseUrl}/redefinir-senha?token=${token}`;
+
+    // Disparo não-bloqueante — falha no e-mail não impede a resposta
+    enviarEmailRecuperacaoSenha({ email: emailNormalizado, linkRedefinicao }).catch(
+      (err) => console.error("Falha no e-mail de recuperação:", err),
+    );
+
+    return { success: true, message: MENSAGEM_PADRAO };
+  } catch (err) {
+    console.error("Erro ao solicitar recuperação de senha:", err);
+    return { success: true, message: MENSAGEM_PADRAO };
+  }
+}
+
+export async function redefinirSenha(
+  token: string,
+  novaSenha: string,
+): Promise<AuthActionState> {
+  if (!token) {
+    return { success: false, message: "Link inválido. Solicite um novo." };
+  }
+  if (novaSenha.length < 6) {
+    return { success: false, message: "A senha deve ter pelo menos 6 caracteres." };
+  }
+
+  try {
+    const [rows]: any = await db.query(
+      `SELECT id FROM usuarios
+       WHERE reset_token = ? AND reset_token_expiry > NOW()
+       LIMIT 1`,
+      [token],
+    );
+
+    if (!rows?.length) {
+      return {
+        success: false,
+        message: "Link inválido ou expirado. Solicite uma nova redefinição.",
+      };
+    }
+
+    const novoHash = gerarHashSenha(novaSenha);
+    await db.query(
+      "UPDATE usuarios SET senha = ?, reset_token = NULL, reset_token_expiry = NULL WHERE id = ?",
+      [novoHash, rows[0].id],
+    );
+
+    return {
+      success: true,
+      message: "Senha redefinida com sucesso! Faça login com sua nova senha.",
+    };
+  } catch (err) {
+    console.error("Erro ao redefinir senha:", err);
+    return { success: false, message: "Não foi possível redefinir a senha. Tente novamente." };
+  }
+}
+
+export async function atualizarPerfil(input: {
+  nome: string;
+  telefone: string;
+  email: string;
+  senhaAtual?: string;
+  novaSenha?: string;
+}): Promise<AuthActionState> {
+  const usuario = await getUsuarioAutenticado();
+  if (!usuario) {
+    return { success: false, message: "Você precisa estar logado." };
+  }
+
+  const nome = input.nome.trim();
+  const telefone = input.telefone.trim();
+  const email = input.email.trim().toLowerCase();
+
+  if (!nome || !telefone || !email) {
+    return { success: false, message: "Nome, telefone e e-mail são obrigatórios." };
+  }
+
+  // Verifica se o novo e-mail já está em uso por outro usuário
+  if (email !== usuario.email) {
+    const [existentes]: any = await db.query(
+      "SELECT id FROM usuarios WHERE email = ? AND id <> ? LIMIT 1",
+      [email, usuario.id],
+    );
+    if (existentes?.length) {
+      return { success: false, message: "Este e-mail já está em uso por outra conta." };
+    }
+  }
+
+  // Troca de senha — só executa se o usuário preencheu os campos
+  let novoHash: string | null = null;
+  if (input.novaSenha) {
+    if (!input.senhaAtual) {
+      return { success: false, message: "Informe sua senha atual para alterá-la." };
+    }
+    const [rows]: any = await db.query(
+      "SELECT senha FROM usuarios WHERE id = ? LIMIT 1",
+      [usuario.id],
+    );
+    const senhaArmazenada = rows?.[0]?.senha;
+    if (!senhaArmazenada || !validarSenha(input.senhaAtual, senhaArmazenada)) {
+      return { success: false, message: "Senha atual incorreta." };
+    }
+    if (input.novaSenha.length < 6) {
+      return { success: false, message: "A nova senha deve ter pelo menos 6 caracteres." };
+    }
+    novoHash = gerarHashSenha(input.novaSenha);
+  }
+
+  try {
+    if (novoHash) {
+      await db.query(
+        "UPDATE usuarios SET nome = ?, telefone = ?, email = ?, senha = ? WHERE id = ?",
+        [nome, telefone, email, novoHash, usuario.id],
+      );
+    } else {
+      await db.query(
+        "UPDATE usuarios SET nome = ?, telefone = ?, email = ? WHERE id = ?",
+        [nome, telefone, email, usuario.id],
+      );
+    }
+
+    revalidatePath("/usuario");
+    return {
+      success: true,
+      message: novoHash ? "Dados e senha atualizados com sucesso!" : "Dados atualizados com sucesso!",
+    };
+  } catch (err) {
+    console.error("Erro ao atualizar perfil:", err);
+    return { success: false, message: "Não foi possível salvar as alterações." };
   }
 }
 
