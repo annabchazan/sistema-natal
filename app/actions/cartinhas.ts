@@ -271,12 +271,20 @@ export async function listarCartinhasFiltradas(filtros: {
 export async function finalizarApadrinamento(
   cartas_ids: number[],
 ): Promise<CartinhaState> {
+  const LIMITE_POR_CHECKOUT = 20;
+
   const usuario = await getUsuarioAutenticado();
   if (!usuario) {
     return { success: false, message: "Você precisa estar logado para finalizar o apadrinhamento." };
   }
   if (cartas_ids.length === 0) {
     return { success: false, message: "Nenhuma cartinha selecionada." };
+  }
+  if (cartas_ids.length > LIMITE_POR_CHECKOUT) {
+    return {
+      success: false,
+      message: `Você pode apadrinhar no máximo ${LIMITE_POR_CHECKOUT} cartinhas por vez.`,
+    };
   }
 
   const conn = await db.getConnection();
@@ -343,5 +351,49 @@ export async function finalizarApadrinamento(
     return { success: false, message: "Erro ao finalizar apadrinamento." };
   } finally {
     conn.release();
+  }
+}
+
+// --- CANCELAR APADRINHAMENTO (pelo padrinho) ---
+export async function cancelarApadrinamento(
+  cartinhaId: number,
+): Promise<CartinhaState> {
+  const usuario = await getUsuarioAutenticado();
+  if (!usuario) {
+    return { success: false, message: "Você precisa estar logado." };
+  }
+
+  try {
+    // Só cancela se a cartinha for do usuário e ainda estiver como 'apadrinhada'
+    const [rows]: any = await db.query(
+      `SELECT id FROM cartinhas
+       WHERE id = ? AND apadrinhado_por_usuario_id = ? AND status = 'apadrinhada'
+       LIMIT 1`,
+      [cartinhaId, usuario.id],
+    );
+
+    if (!rows?.length) {
+      return {
+        success: false,
+        message: "Não foi possível cancelar. A cartinha já está em processamento ou não pertence a você.",
+      };
+    }
+
+    await db.query(
+      `UPDATE cartinhas
+       SET status = 'disponivel',
+           apadrinhado_por_usuario_id = NULL,
+           data_apadrinamento = NULL
+       WHERE id = ?`,
+      [cartinhaId],
+    );
+
+    revalidatePath("/usuario");
+    revalidatePath("/");
+
+    return { success: true, message: "Apadrinhamento cancelado. A cartinha voltou para a lista." };
+  } catch (err) {
+    console.error("Erro ao cancelar apadrinamento:", err);
+    return { success: false, message: "Erro ao cancelar. Tente novamente." };
   }
 }

@@ -193,9 +193,8 @@ finalizarApadrinamento() em cartinhas.ts
 
 - [x] **E-mail de confirmação pós-apadrinhamento**: enviado via Resend após `finalizarApadrinamento()`. Template em `emails/ConfirmacaoApadrinhamento.tsx`, cliente em `lib/email.ts` — **feito**
 - [x] **Lembretes automáticos**: cron diário às 9h via Vercel (`vercel.json`). Rota `GET /api/cron/lembretes` protegida por `CRON_SECRET`. Templates em `emails/LembreteEntrega.tsx`. Controle de duplicatas em `lembretes_enviados` (`migration_v4.sql`) — **feito**
-- [ ] **Reapadrinhamento**: status `reapadrinhado` existe no banco mas nenhuma action o aciona. Implementar `reapadrinhарCartinha()`
-- [ ] **Painel de reapadrinhadas**: cartinhas com status `reapadrinhado` devem ter seção separada no admin
-- [ ] **Limite de cartinhas por padrinho**: validar em `finalizarApadrinamento()` (decisão: 3 por campanha?)
+- [x] **Cancelar apadrinhamento**: padrinho cancela da área dele enquanto status for `apadrinhada`. Cartinha volta para `disponivel`. Action `cancelarApadrinamento()` em `cartinhas.ts` — **feito**
+- [x] **Limite de cartinhas por padrinho**: 20 por checkout, validado em `finalizarApadrinamento()` — **feito**
 - [x] **Recuperação de senha**: fluxo completo via e-mail (Resend). Páginas `/esqueci-senha` e `/redefinir-senha`. Requer `migration_v3.sql` aplicada — **feito**
 - [x] **Limpar localStorage no logout**: `limparCarrinho()` chamado em `handleLogout()` no Header — **feito**
 

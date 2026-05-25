@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getUsuarioAutenticado } from "@/lib/auth";
 import db from "@/lib/db";
 import FormularioEditarPerfil from "@/app/components/usuario/FormularioEditarPerfil";
+import BotaoCancelarApadrinamento from "@/app/components/usuario/BotaoCancelarApadrinamento";
 
 // Ordem do fluxo para a barra de progresso (estados especiais ficam fora)
 const FLUXO = ["apadrinhada", "conferida", "embrulhado", "entregue"] as const;
@@ -239,23 +240,29 @@ export default async function UsuarioPage() {
                           : "—"}
                       </span>
 
-                      {prazo && statusAtivo && (
-                        <span
-                          className={`font-semibold ${
-                            prazoVencido
-                              ? "text-red-600"
+                      <div className="flex items-center gap-3">
+                        {prazo && statusAtivo && (
+                          <span
+                            className={`font-semibold ${
+                              prazoVencido
+                                ? "text-red-600"
+                                : prazoUrgente
+                                ? "text-amber-600"
+                                : "text-gray-500"
+                            }`}
+                          >
+                            {prazoVencido
+                              ? `⚠️ Prazo vencido (${formatarData(cartinha.data_limite_entrega)})`
                               : prazoUrgente
-                              ? "text-amber-600"
-                              : "text-gray-500"
-                          }`}
-                        >
-                          {prazoVencido
-                            ? `⚠️ Prazo vencido (${formatarData(cartinha.data_limite_entrega)})`
-                            : prazoUrgente
-                            ? `⏰ ${diasRestantes === 0 ? "Prazo hoje" : `${diasRestantes} dia${diasRestantes !== 1 ? "s" : ""} para entregar`}`
-                            : `Entregar até ${formatarData(cartinha.data_limite_entrega)}`}
-                        </span>
-                      )}
+                              ? `⏰ ${diasRestantes === 0 ? "Prazo hoje" : `${diasRestantes} dia${diasRestantes !== 1 ? "s" : ""} para entregar`}`
+                              : `Entregar até ${formatarData(cartinha.data_limite_entrega)}`}
+                          </span>
+                        )}
+
+                        {cartinha.status === "apadrinhada" && (
+                          <BotaoCancelarApadrinamento cartinhaId={cartinha.id} />
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

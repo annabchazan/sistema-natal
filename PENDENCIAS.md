@@ -52,22 +52,16 @@ Páginas a revisar:
 
 ## Prioridade Média
 
-### Reapadrinhamento
-O status `reapadrinhado` existe no banco e no enum, mas nenhuma action o aciona.
+### ~~Reapadrinhamento~~ ✅ Feito
+- Padrinho pode cancelar da sua área (`/usuario`) enquanto status for `apadrinhada`
+- Action `cancelarApadrinamento()` em `cartinhas.ts`: zera padrinho e volta status para `disponivel`
+- Botão "Cancelar apadrinhamento" em `BotaoCancelarApadrinamento.tsx` com confirmação
+- Cartinha reaparece automaticamente na home após o cancelamento
 
-- Implementar action `reapadrinhарCartinha(cartinhaId)` em `cartinhas.ts`
-  - Valida que o status atual é `apadrinhada` (ou `carente`)
-  - Zera `apadrinhado_por_usuario_id` e `data_apadrinamento`
-  - Seta status para `reapadrinhado` (ou `disponivel`?) — **decisão a tomar com o cliente**
-- Adicionar seção no admin (`/admin?tab=cartinhas`) destacando cartinhas reapadrinhadas
-- Definir se o padrinho original recebe notificação de cancelamento
-
-### Limite de cartinhas por padrinho
-Evitar que um único padrinho monopolize muitas cartinhas.
-
-- Validar em `finalizarApadrinamento()` antes de abrir a transação
-- **Decisão pendente com o cliente:** quantas cartinhas por campanha? (sugestão: 3)
-- Exibir mensagem clara no checkout quando o limite for atingido
+### ~~Limite de cartinhas por padrinho~~ ✅ Feito
+- Limite de **20 cartinhas por checkout**
+- Validado em `finalizarApadrinamento()` antes de abrir a transação
+- Mensagem clara retornada ao usuário quando o limite é atingido
 
 ### ~~Notificação ao padrinho quando entregue~~ ✅ Feito
 - E-mail disparado automaticamente em `salvarCartinha()` quando status muda para `entregue`
