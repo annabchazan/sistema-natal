@@ -3,6 +3,7 @@ import { createElement } from "react";
 import ConfirmacaoApadrinhamento from "@/emails/ConfirmacaoApadrinhamento";
 import RecuperacaoSenha from "@/emails/RecuperacaoSenha";
 import LembreteEntrega from "@/emails/LembreteEntrega";
+import PresenteEntregue from "@/emails/PresenteEntregue";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -111,6 +112,44 @@ export async function enviarLembreteEntrega({
     return { ok: true };
   } catch (err) {
     console.error(`Erro ao enviar lembrete ${tipo}:`, err);
+    return { ok: false };
+  }
+}
+
+export async function enviarNotificacaoEntrega({
+  nomePadrinho,
+  emailPadrinho,
+  nomeCrianca,
+  presentePedido,
+  numeroSequencial,
+}: {
+  nomePadrinho: string;
+  emailPadrinho: string;
+  nomeCrianca: string;
+  presentePedido: string;
+  numeroSequencial: number | null;
+}) {
+  const urlSite = process.env.NEXT_PUBLIC_URL ?? "http://localhost:3000";
+  try {
+    const { error } = await resend.emails.send({
+      from: FROM,
+      to: emailPadrinho,
+      subject: `🎉 ${nomeCrianca} recebeu o presente! Obrigado, ${nomePadrinho.split(" ")[0]}!`,
+      react: createElement(PresenteEntregue, {
+        nomePadrinho,
+        nomeCrianca,
+        presentePedido,
+        numeroSequencial,
+        urlSite,
+      }),
+    });
+    if (error) {
+      console.error("Resend erro (presente entregue):", error);
+      return { ok: false };
+    }
+    return { ok: true };
+  } catch (err) {
+    console.error("Erro ao enviar notificação de entrega:", err);
     return { ok: false };
   }
 }

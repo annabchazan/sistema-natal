@@ -69,12 +69,11 @@ Evitar que um único padrinho monopolize muitas cartinhas.
 - **Decisão pendente com o cliente:** quantas cartinhas por campanha? (sugestão: 3)
 - Exibir mensagem clara no checkout quando o limite for atingido
 
-### Notificação ao padrinho quando entregue
-Fechar o ciclo de comunicação — o padrinho sabe que a criança recebeu o presente.
-
-- E-mail disparado quando admin muda status para `entregue`
-- Acionar em `atualizarStatusCartinha()` (a criar) ou no `salvarCartinha()` quando detectar transição para `entregue`
-- Template `emails/PresenteEntregue.tsx`
+### ~~Notificação ao padrinho quando entregue~~ ✅ Feito
+- E-mail disparado automaticamente em `salvarCartinha()` quando status muda para `entregue`
+- Detecta transição via query do status anterior antes do UPDATE
+- Template `emails/PresenteEntregue.tsx`, função `enviarNotificacaoEntrega()` em `lib/email.ts`
+- Disparo não-bloqueante (`.catch`) — falha no e-mail não impede o salvamento
 
 ---
 

@@ -3,7 +3,7 @@ import crypto from "crypto";
 import db from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { getUsuarioAutenticado, validarPermissaoAdmin } from "@/lib/auth";
-import { enviarConfirmacaoApadrinhamento } from "@/lib/email";
+import { enviarConfirmacaoApadrinhamento, enviarNotificacaoEntrega } from "@/lib/email";
 
 export interface CartinhaState {
   success: boolean;
@@ -133,6 +133,17 @@ export async function salvarCartinha(
     }
 
     if (id) {
+      // Captura status anterior e dados do padrinho antes de atualizar
+      const [anterior]: any = await db.query(
+        `SELECT c.status, c.nome_crianca, c.presente_pedido, c.numero_sequencial,
+                u.nome AS padrinho_nome, u.email AS padrinho_email
+         FROM cartinhas c
+         LEFT JOIN usuarios u ON c.apadrinhado_por_usuario_id = u.id
+         WHERE c.id = ? LIMIT 1`,
+        [Number(id)],
+      );
+      const statusAnterior = anterior?.[0]?.status;
+
       await db.query(
         `UPDATE cartinhas
          SET nome_crianca = ?, idade = ?, texto_cartinha = ?, presente_pedido = ?,
@@ -146,6 +157,20 @@ export async function salvarCartinha(
           data_limite_entrega || null, status, Number(id),
         ],
       );
+
+      // Dispara e-mail ao padrinho quando o status muda para "entregue"
+      if (status === "entregue" && statusAnterior !== "entregue") {
+        const padrinho = anterior?.[0];
+        if (padrinho?.padrinho_email) {
+          enviarNotificacaoEntrega({
+            nomePadrinho:     padrinho.padrinho_nome,
+            emailPadrinho:    padrinho.padrinho_email,
+            nomeCrianca:      padrinho.nome_crianca,
+            presentePedido:   padrinho.presente_pedido,
+            numeroSequencial: padrinho.numero_sequencial,
+          }).catch((err) => console.error("Falha no e-mail de entrega:", err));
+        }
+      }
     } else {
       const numeroSequencial = await gerarNumeroSequencial(instituicao_id);
       await db.query(

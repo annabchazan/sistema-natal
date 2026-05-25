@@ -206,7 +206,7 @@ finalizarApadrinamento() em cartinhas.ts
 - [x] **Dashboard admin com métricas**: cards por status, total de padrinhos, % entregues, barra de progresso e alerta de prazos vencidos — **feito**
 - [ ] **Índices no banco**: `idx_cartinhas_status`, `idx_cartinhas_instituicao`, `idx_cartinhas_apadrinhado_por`
 - [ ] **Impressão de crachá**: mencionado na entrevista como "a verificar"
-- [ ] **Notificação quando entregue**: avisar padrinho que a criança recebeu o presente
+- [x] **Notificação quando entregue**: e-mail disparado em `salvarCartinha()` ao detectar transição para `entregue`. Template `emails/PresenteEntregue.tsx` — **feito**
 - [ ] **Exclusão de conta (LGPD)**: obrigatório legalmente
 
 ---
