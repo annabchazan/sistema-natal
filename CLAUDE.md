@@ -192,7 +192,7 @@ finalizarApadrinamento() em cartinhas.ts
 ### Prioridade Média
 
 - [x] **E-mail de confirmação pós-apadrinhamento**: enviado via Resend após `finalizarApadrinamento()`. Template em `emails/ConfirmacaoApadrinhamento.tsx`, cliente em `lib/email.ts` — **feito**
-- [ ] **Lembretes automáticos**: 10 dias antes do prazo e após vencimento (cron job)
+- [x] **Lembretes automáticos**: cron diário às 9h via Vercel (`vercel.json`). Rota `GET /api/cron/lembretes` protegida por `CRON_SECRET`. Templates em `emails/LembreteEntrega.tsx`. Controle de duplicatas em `lembretes_enviados` (`migration_v4.sql`) — **feito**
 - [ ] **Reapadrinhamento**: status `reapadrinhado` existe no banco mas nenhuma action o aciona. Implementar `reapadrinhарCartinha()`
 - [ ] **Painel de reapadrinhadas**: cartinhas com status `reapadrinhado` devem ter seção separada no admin
 - [ ] **Limite de cartinhas por padrinho**: validar em `finalizarApadrinamento()` (decisão: 3 por campanha?)
@@ -244,11 +244,14 @@ EMAIL_FROM_NAME=Natal Solidário        # nome exibido como remetente (opcional,
 
 # URL pública — usada para montar links nos e-mails (ex: link de redefinição de senha)
 NEXT_PUBLIC_URL=https://seudominio.com.br   # em dev o padrão é http://localhost:3000
+
+# Cron de lembretes automáticos (Vercel injeta automaticamente nas rotas cron)
+CRON_SECRET=<string aleatória longa>   # protege GET /api/cron/lembretes
 ```
 
 ### Popular o banco
 Executar `database_updates.sql` no MySQL após criar o schema base.
-Em seguida, executar `migration_v2.sql` (status extras) e `migration_v3.sql` (recuperação de senha) na mesma ordem.
+Em seguida, executar as migrations na ordem: `migration_v2.sql` (status extras) → `migration_v3.sql` (recuperação de senha) → `migration_v4.sql` (tabela `lembretes_enviados`).
 
 ---
 

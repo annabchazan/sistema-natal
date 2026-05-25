@@ -2,6 +2,7 @@ import { Resend } from "resend";
 import { createElement } from "react";
 import ConfirmacaoApadrinhamento from "@/emails/ConfirmacaoApadrinhamento";
 import RecuperacaoSenha from "@/emails/RecuperacaoSenha";
+import LembreteEntrega from "@/emails/LembreteEntrega";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -61,6 +62,55 @@ export async function enviarConfirmacaoApadrinhamento({
     return { ok: true };
   } catch (err) {
     console.error("Erro ao enviar e-mail de confirmação:", err);
+    return { ok: false };
+  }
+}
+
+export async function enviarLembreteEntrega({
+  nomePadrinho,
+  emailPadrinho,
+  nomeCrianca,
+  presentePedido,
+  dataLimite,
+  numeroSequencial,
+  tipo,
+}: {
+  nomePadrinho: string;
+  emailPadrinho: string;
+  nomeCrianca: string;
+  presentePedido: string;
+  dataLimite: string | null;
+  numeroSequencial: number | null;
+  tipo: "10d" | "vencido";
+}) {
+  const urlSite = process.env.NEXT_PUBLIC_URL ?? "http://localhost:3000";
+  const assunto =
+    tipo === "vencido"
+      ? `⚠️ Prazo vencido — presente de ${nomeCrianca} aguarda entrega`
+      : `⏰ Faltam 10 dias para entregar o presente de ${nomeCrianca}`;
+
+  try {
+    const { error } = await resend.emails.send({
+      from: FROM,
+      to: emailPadrinho,
+      subject: assunto,
+      react: createElement(LembreteEntrega, {
+        nomePadrinho,
+        nomeCrianca,
+        presentePedido,
+        dataLimite,
+        numeroSequencial,
+        tipo,
+        urlSite,
+      }),
+    });
+    if (error) {
+      console.error(`Resend erro (lembrete ${tipo}):`, error);
+      return { ok: false };
+    }
+    return { ok: true };
+  } catch (err) {
+    console.error(`Erro ao enviar lembrete ${tipo}:`, err);
     return { ok: false };
   }
 }
