@@ -35,6 +35,15 @@ Complementar o lembrete por e-mail com mensagem no WhatsApp do padrinho, usando 
 
 ---
 
+### ~~Overlay do carrinho/menu ficando preto~~ ✅ Feito
+- `bg-black bg-opacity-20` não funciona no Tailwind v4 — corrigido para `bg-black/20` em `Header.tsx`
+
+### ~~Textos sem acento no `/checkout`~~ ✅ Feito
+- Corrigidos em `CheckoutClient.tsx`: "Próximos Passos", "botão", "área", "ficará", "Após", "você poderá", "até", "criança", "Não é o quanto você dá", "você põe"
+
+### ~~"ID: {cartinha.id}" visível nos cards da home~~ ✅ Feito
+- Removido de `ListaCartinhasHome.tsx`
+
 ### Revisão geral de layout e responsividade
 Passar por todas as páginas e alinhar visual, espaçamentos e responsividade antes do lançamento.
 

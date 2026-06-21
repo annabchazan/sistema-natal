@@ -258,7 +258,7 @@ export default function Header() {
 
       {(isOpen || isUserMenuOpen) && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-20 z-30"
+          className="fixed inset-0 bg-black/20 z-30"
           onClick={() => {
             setIsOpen(false);
             setIsUserMenuOpen(false);

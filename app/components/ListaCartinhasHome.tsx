@@ -296,9 +296,6 @@ export default function ListaCartinhasHome({
                   </button>
                 </div>
 
-                <div className="text-xs text-gray-400 mt-3">
-                  ID: {cartinha.id}
-                </div>
               </div>
             ))}
           </div>

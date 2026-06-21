@@ -137,7 +137,7 @@ export default function CheckoutClient() {
             <div className="space-y-6">
               <div className="bg-white rounded-lg shadow-lg p-6">
                 <h2 className="text-2xl font-bold text-red-700 mb-4">
-                  Proximos Passos
+                  Próximos Passos
                 </h2>
 
                 <div className="space-y-4">
@@ -150,7 +150,7 @@ export default function CheckoutClient() {
                         Confirme o apadrinhamento
                       </h3>
                       <p className="text-sm text-gray-600">
-                        Clique no botao abaixo para confirmar seu apadrinhamento.
+                        Clique no botão abaixo para confirmar seu apadrinhamento.
                       </p>
                     </div>
                   </div>
@@ -175,10 +175,10 @@ export default function CheckoutClient() {
                     </div>
                     <div>
                       <h3 className="font-semibold text-gray-800">
-                        Acompanhe sua area
+                        Acompanhe sua área
                       </h3>
                       <p className="text-sm text-gray-600">
-                        O apadrinhamento ficara vinculado ao seu cadastro.
+                        O apadrinhamento ficará vinculado ao seu cadastro.
                       </p>
                     </div>
                   </div>
@@ -190,7 +190,7 @@ export default function CheckoutClient() {
                   Pontos de Entrega
                 </h2>
                 <p className="text-gray-700 mb-4">
-                  Apos confirmar o apadrinhamento, voce podera levar os presentes
+                  Após confirmar o apadrinhamento, você poderá levar os presentes
                   a qualquer um dos nossos pontos de entrega parceiros.
                 </p>
                 <a
@@ -218,8 +218,8 @@ export default function CheckoutClient() {
                 </button>
 
                 <p className="text-xs text-gray-500 mt-3 text-center">
-                  Ao confirmar, voce se compromete a entregar os presentes nos
-                  pontos de coleta ate a data limite.
+                  Ao confirmar, você se compromete a entregar os presentes nos
+                  pontos de coleta até a data limite.
                 </p>
               </div>
             </div>
@@ -228,10 +228,10 @@ export default function CheckoutClient() {
           <div className="mt-12 bg-gradient-to-r from-red-600 to-green-600 rounded-lg p-8 text-center text-white">
             <h2 className="text-2xl font-bold mb-4">Muito obrigado!</h2>
             <p className="text-lg mb-4">
-              Sua generosidade vai transformar o Natal de uma crianca especial.
+              Sua generosidade vai transformar o Natal de uma criança especial.
             </p>
             <p className="text-red-100">
-              Nao e o quanto voce da, mas o quanto de amor voce poe no dar.
+              Não é o quanto você dá, mas o quanto de amor você põe no dar.
             </p>
           </div>
         </div>
