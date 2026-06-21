@@ -10,33 +10,40 @@ export default function Footer() {
           {/* Logo e descrição */}
           <div className="col-span-1 md:col-span-2">
             <h3 className="text-2xl font-bold mb-4 text-yellow-300">
-              🎄 Sistema Natal
+              🎄 Noelzinho Solidário
             </h3>
             <p className="text-red-100 mb-4">
-              Conectando corações através do apadrinhamento de cartinhas de
-              Natal. Faça a diferença na vida de uma criança este ano!
+              Uma iniciativa do Projeto Sempre Criança. Conectando padrinhos a
+              crianças de Niterói e São Gonçalo através do apadrinhamento de
+              cartinhas de Natal.
             </p>
             <div className="flex space-x-4">
               <a
-                href="#"
+                href="https://www.facebook.com/semprecrianca/"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-red-200 hover:text-white transition-colors"
                 aria-label="Facebook"
               >
                 📘 Facebook
               </a>
               <a
-                href="#"
+                href="https://www.instagram.com/projetosemprecrianca/"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-red-200 hover:text-white transition-colors"
                 aria-label="Instagram"
               >
                 📷 Instagram
               </a>
               <a
-                href="#"
+                href="https://www.youtube.com/channel/UC4iKh2GpjG99VL6225el2BA"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-red-200 hover:text-white transition-colors"
-                aria-label="Twitter"
+                aria-label="YouTube"
               >
-                🐦 Twitter
+                ▶️ YouTube
               </a>
             </div>
           </div>
@@ -88,9 +95,10 @@ export default function Footer() {
               Contato
             </h4>
             <div className="space-y-2 text-red-200">
-              <p>📧 contato@sistemanatal.com.br</p>
-              <p>📞 (11) 9999-9999</p>
-              <p>📍 Niterói, RJ</p>
+              <p>📧 contato@semprecrianca.com.br</p>
+              <p>📞 (21) 99999-9999</p>
+              <p>📍 Av. Rui Barbosa, 738 - loft 2</p>
+              <p>São Francisco, Niterói - RJ</p>
             </div>
           </div>
         </div>
@@ -99,7 +107,7 @@ export default function Footer() {
         <div className="border-t border-red-600 mt-8 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-red-200 text-sm">
-              © 2024 Sistema Natal. Todos os direitos reservados.
+              © 2025 Projeto Sempre Criança. Todos os direitos reservados.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <Link
