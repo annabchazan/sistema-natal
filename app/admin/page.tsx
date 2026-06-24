@@ -73,7 +73,7 @@ export default async function AdminPage({ searchParams }: AdminProps) {
     <div className="min-h-screen bg-gray-50 flex">
       <aside className="w-64 bg-white border-r border-gray-200 hidden md:flex flex-col">
         <div className="p-6">
-          <h2 className="text-xl font-bold text-red-600">Natal Solidário</h2>
+          <h2 className="text-xl font-bold text-brand">Noelzinho Solidário</h2>
           <p className="text-xs text-gray-500">Painel de Controle</p>
         </div>
         <nav className="flex-1 px-4 space-y-2">
@@ -83,7 +83,7 @@ export default async function AdminPage({ searchParams }: AdminProps) {
               href={`/admin?tab=${aba.id}`}
               className={`flex items-center gap-3 p-3 rounded-lg transition-all ${
                 abaAtiva === aba.id
-                  ? "bg-red-50 text-red-700 font-semibold"
+                  ? "bg-brand/10 text-brand font-semibold"
                   : "text-gray-600 hover:bg-gray-100"
               }`}
             >

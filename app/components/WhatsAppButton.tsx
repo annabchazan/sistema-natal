@@ -69,7 +69,7 @@ export default function WhatsAppButton() {
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-gray-800">
-                  💬 Como podemos ajudar?
+                  Como podemos ajudar?
                 </h3>
                 <button
                   onClick={() => setIsOpen(false)}

@@ -47,9 +47,9 @@ export default function CheckoutClient() {
 
   if (!isLoaded || cartinhas.length === 0) {
     return (
-      <div className="min-h-screen bg-linear-to-b from-red-50 to-green-50 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-b from-orange-50 to-amber-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand mx-auto mb-4"></div>
           <p className="text-gray-600">Redirecionando...</p>
         </div>
       </div>
@@ -57,16 +57,16 @@ export default function CheckoutClient() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-red-50 to-green-50 py-12">
+    <div className="min-h-screen bg-linear-to-b from-orange-50 to-amber-50 py-12">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl font-bold text-center text-red-700 mb-8">
+          <h1 className="text-4xl font-bold text-center text-brand mb-8">
             Finalizar Apadrinhamento
           </h1>
 
           {mensagem && (
             <div
-              className={`mb-6 p-4 rounded-lg text-center font-semibold ${
+              className={`mb-6 p-4 rounded-[25px] text-center font-semibold ${
                 mensagem.tipo === "sucesso"
                   ? "bg-green-100 text-green-800 border border-green-200"
                   : "bg-red-100 text-red-800 border border-red-200"
@@ -77,8 +77,8 @@ export default function CheckoutClient() {
           )}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h2 className="text-2xl font-bold text-red-700 mb-6">
+            <div className="bg-white rounded-[25px] shadow-lg p-6">
+              <h2 className="text-2xl font-bold text-brand mb-6">
                 Resumo das Cartinhas
               </h2>
 
@@ -86,18 +86,18 @@ export default function CheckoutClient() {
                 {cartinhas.map((cartinha, index) => (
                   <div
                     key={cartinha.id}
-                    className="border border-gray-200 rounded-lg p-4 bg-gray-50"
+                    className="border border-gray-200 rounded-[25px] p-4 bg-gray-50"
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div>
-                        <h3 className="font-bold text-red-700 text-lg">
+                        <h3 className="font-bold text-brand text-lg">
                           {cartinha.nome_crianca}
                         </h3>
                         <p className="text-sm text-gray-600">
                           Idade: {cartinha.idade} anos
                         </p>
                       </div>
-                      <span className="bg-red-100 text-red-800 text-xs font-bold px-2 py-1 rounded-full">
+                      <span className="bg-brand/10 text-brand text-xs font-bold px-2 py-1 rounded-full">
                         #{index + 1}
                       </span>
                     </div>
@@ -108,11 +108,11 @@ export default function CheckoutClient() {
                       </p>
                     </div>
 
-                    <div className="bg-green-50 border border-green-200 rounded p-3">
-                      <p className="text-sm font-semibold text-green-800">
+                    <div className="bg-orange-50 border border-orange-200 rounded-2xl p-3">
+                      <p className="text-sm font-semibold text-orange-800">
                         Presente desejado:
                       </p>
-                      <p className="text-sm text-green-700">
+                      <p className="text-sm text-orange-700">
                         {cartinha.presente_pedido}
                       </p>
                     </div>
@@ -129,20 +129,20 @@ export default function CheckoutClient() {
               <div className="mt-6 pt-4 border-t border-gray-200">
                 <div className="flex justify-between items-center text-lg font-bold">
                   <span>Total de cartinhas:</span>
-                  <span className="text-red-600">{cartinhas.length}</span>
+                  <span className="text-brand">{cartinhas.length}</span>
                 </div>
               </div>
             </div>
 
             <div className="space-y-6">
-              <div className="bg-white rounded-lg shadow-lg p-6">
-                <h2 className="text-2xl font-bold text-red-700 mb-4">
+              <div className="bg-white rounded-[25px] shadow-lg p-6">
+                <h2 className="text-2xl font-bold text-brand mb-4">
                   Próximos Passos
                 </h2>
 
                 <div className="space-y-4">
                   <div className="flex items-start space-x-3">
-                    <div className="flex-shrink-0 w-8 h-8 bg-red-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                    <div className="flex-shrink-0 w-8 h-8 bg-brand text-white rounded-full flex items-center justify-center text-sm font-bold">
                       1
                     </div>
                     <div>
@@ -185,8 +185,8 @@ export default function CheckoutClient() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg shadow-lg p-6">
-                <h2 className="text-xl font-bold text-red-700 mb-4">
+              <div className="bg-white rounded-[25px] shadow-lg p-6">
+                <h2 className="text-xl font-bold text-brand mb-4">
                   Pontos de Entrega
                 </h2>
                 <p className="text-gray-700 mb-4">
@@ -195,21 +195,21 @@ export default function CheckoutClient() {
                 </p>
                 <a
                   href="/pontos-entrega"
-                  className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-semibold transition-colors"
+                  className="inline-block bg-white text-brand border border-brand px-4 py-2 rounded-full font-semibold hover:bg-brand hover:text-white transition-colors"
                 >
                   Ver Pontos de Entrega
                 </a>
               </div>
 
-              <div className="bg-white rounded-lg shadow-lg p-6">
+              <div className="bg-white rounded-[25px] shadow-lg p-6">
                 <button
                   onClick={handleFinalizarApadrinamento}
                   disabled={isLoading}
-                  className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white py-4 rounded-lg font-bold text-lg transition-colors flex items-center justify-center space-x-2"
+                  className="w-full bg-brand border border-brand text-white py-4 rounded-full font-bold text-lg hover:bg-white hover:text-brand transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
                 >
                   {isLoading ? (
                     <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current"></div>
                       <span>Finalizando...</span>
                     </>
                   ) : (
@@ -225,12 +225,12 @@ export default function CheckoutClient() {
             </div>
           </div>
 
-          <div className="mt-12 bg-gradient-to-r from-red-600 to-green-600 rounded-lg p-8 text-center text-white">
+          <div className="mt-12 bg-gradient-to-r from-brand to-amber-600 rounded-[25px] p-8 text-center text-white">
             <h2 className="text-2xl font-bold mb-4">Muito obrigado!</h2>
             <p className="text-lg mb-4">
               Sua generosidade vai transformar o Natal de uma criança especial.
             </p>
-            <p className="text-red-100">
+            <p className="text-white/80">
               Não é o quanto você dá, mas o quanto de amor você põe no dar.
             </p>
           </div>

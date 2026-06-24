@@ -15,7 +15,6 @@ export default function RedefinirSenhaPage() {
   const [resultado, setResultado] = useState<{ tipo: "sucesso" | "erro"; texto: string } | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  // Token ausente na URL
   useEffect(() => {
     if (!token) {
       setResultado({
@@ -42,13 +41,13 @@ export default function RedefinirSenhaPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-red-50 to-green-50 py-12">
+    <div className="min-h-screen bg-gradient-to-b from-orange-50 to-amber-50 py-12">
       <div className="container mx-auto px-4">
-        <div className="max-w-md mx-auto bg-white rounded-2xl shadow-xl border border-red-100 overflow-hidden">
+        <div className="max-w-md mx-auto bg-white rounded-[25px] shadow-xl border border-brand/20 overflow-hidden">
 
-          <div className="bg-red-600 text-white p-8">
+          <div className="bg-brand text-white p-8">
             <h1 className="text-2xl font-bold">Nova senha</h1>
-            <p className="mt-2 text-red-100 text-sm">
+            <p className="mt-2 text-white/80 text-sm">
               Escolha uma senha segura com pelo menos 6 caracteres.
             </p>
           </div>
@@ -56,14 +55,14 @@ export default function RedefinirSenhaPage() {
           <div className="p-8">
             {resultado?.tipo === "sucesso" ? (
               <div className="space-y-6 text-center">
-                <div className="text-5xl">✅</div>
+                <div className="text-5xl text-green-600">✓</div>
                 <p className="text-gray-700 font-medium">{resultado.texto}</p>
                 <p className="text-sm text-gray-500">
                   Redirecionando para o login...
                 </p>
                 <Link
                   href="/login"
-                  className="inline-block rounded-lg bg-green-600 px-6 py-3 font-semibold text-white hover:bg-green-700 transition-colors"
+                  className="inline-block rounded-full bg-brand border border-brand px-6 py-3 font-semibold text-white hover:bg-white hover:text-brand transition-colors"
                 >
                   Ir para o login
                 </Link>
@@ -83,7 +82,7 @@ export default function RedefinirSenhaPage() {
                     autoComplete="new-password"
                     placeholder="Mínimo 6 caracteres"
                     disabled={!token}
-                    className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:bg-gray-50"
+                    className="w-full rounded-full border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand disabled:bg-gray-50"
                   />
                 </div>
 
@@ -100,12 +99,12 @@ export default function RedefinirSenhaPage() {
                     autoComplete="new-password"
                     placeholder="Repita a senha"
                     disabled={!token}
-                    className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:bg-gray-50"
+                    className="w-full rounded-full border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand disabled:bg-gray-50"
                   />
                 </div>
 
                 {resultado?.tipo === "erro" && (
-                  <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                  <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
                     {resultado.texto}
                     {resultado.texto.includes("inválido") && (
                       <span>
@@ -121,7 +120,7 @@ export default function RedefinirSenhaPage() {
                 <button
                   type="submit"
                   disabled={isPending || !token}
-                  className="w-full rounded-lg bg-red-600 px-4 py-3 font-bold text-white hover:bg-red-700 transition-colors disabled:opacity-50"
+                  className="w-full rounded-full bg-brand border border-brand px-4 py-3 font-bold text-white hover:bg-white hover:text-brand transition-colors disabled:opacity-50"
                 >
                   {isPending ? "Salvando..." : "Redefinir senha"}
                 </button>

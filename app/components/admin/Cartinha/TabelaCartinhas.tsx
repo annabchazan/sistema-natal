@@ -77,7 +77,7 @@ export default function TabelaCartinhas({
                   {item.data_limite_entrega ? (
                     <span className={prazoVencido ? "text-red-600 font-semibold" : "text-gray-600"}>
                       {new Date(item.data_limite_entrega).toLocaleDateString("pt-BR")}
-                      {prazoVencido && " ⚠️"}
+                      {prazoVencido && " (!)"}
                     </span>
                   ) : (
                     <span className="text-gray-300">—</span>

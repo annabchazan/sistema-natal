@@ -41,7 +41,6 @@ export default function ListaCartinhasHome({
   const [isLoaded, setIsLoaded] = useState(false);
   const [cartinhas, setCartinhas] = useState<Cartinha[]>(cartinhasIniciais);
 
-  // Estados dos filtros
   const [filtroTag, setFiltroTag] = useState<string>("");
   const [filtroIdadeMin, setFiltroIdadeMin] = useState<string>("");
   const [filtroIdadeMax, setFiltroIdadeMax] = useState<string>("");
@@ -49,21 +48,19 @@ export default function ListaCartinhasHome({
 
   useEffect(() => {
     setIsLoaded(true);
-    // Atualizar o estado visual com base no carrinho
     const estado: { [key: number]: boolean } = {};
     cartinhas.forEach((c) => {
       estado[c.id] = temCartinha(c.id);
     });
     setCarrinhoAtualizado(estado);
-  }, [cartinhas]); // Adicionado dependência para cartinhas
+  }, [cartinhas]);
 
-  // Função para aplicar filtros
   const aplicarFiltros = async () => {
     setIsFiltering(true);
     try {
       const filtros: any = {};
 
-      if (filtroTag)     filtros.tag_id    = parseInt(filtroTag);
+      if (filtroTag)      filtros.tag_id    = parseInt(filtroTag);
       if (filtroIdadeMin) filtros.idade_min = parseInt(filtroIdadeMin);
       if (filtroIdadeMax) filtros.idade_max = parseInt(filtroIdadeMax);
 
@@ -74,7 +71,6 @@ export default function ListaCartinhasHome({
 
       setCartinhas(cartinhasFiltradas);
 
-      // Atualizar estado do carrinho para as cartinhas filtradas
       const estado: { [key: number]: boolean } = {};
       cartinhasFiltradas.forEach((c) => {
         estado[c.id] = temCartinha(c.id);
@@ -87,14 +83,12 @@ export default function ListaCartinhasHome({
     }
   };
 
-  // Função para limpar filtros
   const limparFiltros = async () => {
     setFiltroTag("");
     setFiltroIdadeMin("");
     setFiltroIdadeMax("");
     setCartinhas(cartinhasIniciais);
 
-    // Resetar estado do carrinho
     const estado: { [key: number]: boolean } = {};
     cartinhasIniciais.forEach((c) => {
       estado[c.id] = temCartinha(c.id);
@@ -117,11 +111,12 @@ export default function ListaCartinhasHome({
       }));
     }
   };
+
   return (
-    <div className="w-full min-h-screen bg-linear-to-br from-red-50 to-green-50 py-12 px-4">
+    <div className="w-full min-h-screen bg-linear-to-br from-orange-50 to-amber-50 py-12 px-4">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-4xl font-bold text-center text-red-700 mb-2">
-          🎄 Cartinhas de Natal 🎄
+        <h1 className="text-4xl font-bold text-center text-brand mb-2">
+          Cartinhas de Natal
         </h1>
         <p className="text-center text-gray-600 mb-8">
           {cartinhas.length} {cartinhas.length === 1 ? "cartinha" : "cartinhas"}{" "}
@@ -129,13 +124,12 @@ export default function ListaCartinhasHome({
         </p>
 
         {/* Filtros */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8 border-l-4 border-green-500">
+        <div className="bg-white rounded-[25px] shadow-md p-6 mb-8 border-l-4 border-brand">
           <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-            🔍 Filtrar Cartinhas
+            Filtrar Cartinhas
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {/* Filtro por Tag */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Categoria (Tag)
@@ -143,7 +137,7 @@ export default function ListaCartinhasHome({
               <select
                 value={filtroTag}
                 onChange={(e) => setFiltroTag(e.target.value)}
-                className="w-full p-2 border rounded-md bg-white"
+                className="w-full p-2 border rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-brand"
               >
                 <option value="">Todas as categorias</option>
                 {tags.map((tag) => (
@@ -154,7 +148,6 @@ export default function ListaCartinhasHome({
               </select>
             </div>
 
-            {/* Filtro por Idade Mínima */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Idade Mínima
@@ -166,11 +159,10 @@ export default function ListaCartinhasHome({
                 placeholder="Ex: 5"
                 min="0"
                 max="18"
-                className="w-full p-2 border rounded-md"
+                className="w-full p-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-brand"
               />
             </div>
 
-            {/* Filtro por Idade Máxima */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Idade Máxima
@@ -182,24 +174,23 @@ export default function ListaCartinhasHome({
                 placeholder="Ex: 12"
                 min="0"
                 max="18"
-                className="w-full p-2 border rounded-md"
+                className="w-full p-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-brand"
               />
             </div>
 
-            {/* Botões de Ação */}
             <div className="flex gap-2 items-end">
               <button
                 onClick={aplicarFiltros}
                 disabled={isFiltering}
-                className="flex-1 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-brand text-white border border-brand px-4 py-2 rounded-full font-semibold hover:bg-white hover:text-brand transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isFiltering ? "🔄 Filtrando..." : "🔍 Filtrar"}
+                {isFiltering ? "Filtrando..." : "Filtrar"}
               </button>
               <button
                 onClick={limparFiltros}
-                className="flex-1 bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"
+                className="flex-1 bg-white text-gray-600 border border-gray-300 px-4 py-2 rounded-full font-semibold hover:bg-gray-50 transition-colors"
               >
-                🗑️ Limpar
+                Limpar
               </button>
             </div>
           </div>
@@ -208,11 +199,11 @@ export default function ListaCartinhasHome({
         {cartinhas.length === 0 ? (
           <div className="text-center py-20">
             <p className="text-xl text-gray-500">
-              Nenhuma cartinha encontrada com os filtros aplicados 😢
+              Nenhuma cartinha encontrada com os filtros aplicados.
             </p>
             <button
               onClick={limparFiltros}
-              className="mt-4 bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors"
+              className="mt-4 bg-brand text-white border border-brand px-6 py-2 rounded-full font-semibold hover:bg-white hover:text-brand transition-colors"
             >
               Ver todas as cartinhas
             </button>
@@ -222,28 +213,26 @@ export default function ListaCartinhasHome({
             {cartinhas.map((cartinha) => (
               <div
                 key={cartinha.id}
-                className="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow p-6 border-l-4 border-red-500 relative"
+                className="bg-white rounded-[25px] shadow-lg hover:shadow-xl transition-shadow p-6 border-l-4 border-brand relative"
               >
-                {/* Badge do número sequencial */}
                 {cartinha.numero_sequencial !== undefined && (
-                  <div className="absolute top-3 right-3 bg-red-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-lg">
+                  <div className="absolute top-3 right-3 bg-brand text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-lg">
                     #{cartinha.numero_sequencial}
                   </div>
                 )}
 
-                {/* Foto da cartinha */}
                 {cartinha.foto_cartinha && (
                   <div className="mb-4 flex justify-center">
                     <img
                       src={cartinha.foto_cartinha}
                       alt={`Foto da cartinha de ${cartinha.nome_crianca}`}
-                      className="w-32 h-24 rounded-lg object-cover border-4 border-red-200 shadow-md"
+                      className="w-32 h-24 rounded-2xl object-cover border-4 border-orange-100 shadow-md"
                     />
                   </div>
                 )}
 
                 <div className="mb-4">
-                  <h2 className="text-2xl font-bold text-red-700 mb-2">
+                  <h2 className="text-2xl font-bold text-brand mb-2">
                     {cartinha.nome_crianca}
                   </h2>
                   <p className="text-sm text-gray-500">
@@ -252,13 +241,13 @@ export default function ListaCartinhasHome({
                   </p>
                   {cartinha.tag_nome && (
                     <p className="text-sm text-blue-600 mt-1">
-                      <span className="font-semibold">🏷️ Categoria:</span>{" "}
+                      <span className="font-semibold">Categoria:</span>{" "}
                       {cartinha.tag_nome}
                     </p>
                   )}
                   {cartinha.data_limite_entrega && (
                     <p className="text-sm text-orange-600 mt-1">
-                      <span className="font-semibold">📅 Entregar até:</span>{" "}
+                      <span className="font-semibold">Entregar até:</span>{" "}
                       {new Date(
                         cartinha.data_limite_entrega,
                       ).toLocaleDateString("pt-BR")}
@@ -273,29 +262,26 @@ export default function ListaCartinhasHome({
                   </p>
                 </div>
 
-                <div className="bg-green-50 p-3 rounded mb-4">
-                  <p className="text-green-800">
+                <div className="bg-orange-50 p-3 rounded-2xl mb-4">
+                  <p className="text-orange-800">
                     <span className="font-semibold">Presente desejado:</span>
                     <br />
                     {cartinha.presente_pedido}
                   </p>
                 </div>
 
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleApadrinhar(cartinha)}
-                    className={`flex-1 py-2 px-4 rounded font-semibold transition-all ${
-                      carrinhoAtualizado[cartinha.id]
-                        ? "bg-green-600 hover:bg-green-700 text-white"
-                        : "bg-red-600 hover:bg-red-700 text-white"
-                    }`}
-                  >
-                    {carrinhoAtualizado[cartinha.id]
-                      ? "✓ Apadrinhada"
-                      : "🎁 Apadrinhar"}
-                  </button>
-                </div>
-
+                <button
+                  onClick={() => handleApadrinhar(cartinha)}
+                  className={`w-full py-2 px-4 rounded-full font-semibold border transition-all ${
+                    carrinhoAtualizado[cartinha.id]
+                      ? "bg-green-600 border-green-600 text-white hover:bg-white hover:text-green-600"
+                      : "bg-brand border-brand text-white hover:bg-white hover:text-brand"
+                  }`}
+                >
+                  {carrinhoAtualizado[cartinha.id]
+                    ? "Apadrinhada"
+                    : "Apadrinhar"}
+                </button>
               </div>
             ))}
           </div>

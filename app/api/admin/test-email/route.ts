@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
       subject: "Teste — Sistema Natal Solidário",
       html: `
         <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px">
-          <h2 style="color:#dc2626">🎄 Teste de e-mail</h2>
+          <h2 style="color:#F8991D">Teste de e-mail</h2>
           <p>Se você recebeu esta mensagem, o Resend está funcionando corretamente!</p>
           <p><strong>Enviado para:</strong> ${usuario.email}</p>
           <p><strong>Remetente:</strong> ${fromName} &lt;${from}&gt;</p>

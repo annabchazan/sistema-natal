@@ -1,24 +1,20 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Poppins } from "next/font/google";
 import "./globals.css";
 import Header from "@/app/components/Header";
 import Footer from "@/app/components/Footer";
 import WhatsAppButton from "@/app/components/WhatsAppButton";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const poppins = Poppins({
+  variable: "--font-poppins",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
-  title: "Sistema Natal - Apadrinhamento de Cartinhas",
+  title: "Noelzinho Solidário - Apadrinhamento de Cartinhas",
   description:
-    "Conectando corações através do apadrinhamento de cartinhas de Natal. Faça a diferença na vida de uma criança este ano!",
+    "Uma iniciativa do Projeto Sempre Criança. Conectando padrinhos a crianças de Niterói e São Gonçalo através do apadrinhamento de cartinhas de Natal.",
 };
 
 export default function RootLayout({
@@ -29,10 +25,10 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
+        className={`${poppins.variable} antialiased min-h-screen flex flex-col`}
       >
         <Header />
-        <main className="flex-grow">{children}</main>
+        <main className="grow">{children}</main>
         <Footer />
         <WhatsAppButton />
       </body>

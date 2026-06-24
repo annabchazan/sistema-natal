@@ -19,7 +19,7 @@ export default function LoginPage() {
     setErro("");
 
     if (!emailValido(email)) {
-      setErro("Informe um e-mail valido.");
+      setErro("Informe um e-mail válido.");
       return;
     }
 
@@ -44,12 +44,12 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-red-50 to-green-50 py-12">
+    <div className="min-h-screen bg-linear-to-b from-orange-50 to-amber-50 py-12">
       <div className="container mx-auto px-4">
-        <div className="max-w-xl mx-auto bg-white rounded-2xl shadow-xl border border-red-100 overflow-hidden">
-          <div className="bg-red-600 text-white p-8">
+        <div className="max-w-xl mx-auto bg-white rounded-[25px] shadow-xl border border-brand/20 overflow-hidden">
+          <div className="bg-brand text-white p-8">
             <h1 className="text-3xl font-bold">Entrar</h1>
-            <p className="mt-2 text-red-100">
+            <p className="mt-2 text-white/80">
               Acesse sua conta para acompanhar seus dados e apadrinhamentos.
             </p>
           </div>
@@ -67,7 +67,7 @@ export default function LoginPage() {
                 type="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full rounded-full border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand"
                 placeholder="voce@exemplo.com"
                 autoComplete="email"
               />
@@ -85,14 +85,14 @@ export default function LoginPage() {
                 type="password"
                 value={senha}
                 onChange={(event) => setSenha(event.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full rounded-full border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand"
                 placeholder="Digite sua senha"
                 autoComplete="current-password"
               />
             </div>
 
             {erro && (
-              <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+              <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
                 {erro}
               </div>
             )}
@@ -100,7 +100,7 @@ export default function LoginPage() {
             <div className="text-right -mt-2">
               <Link
                 href="/esqueci-senha"
-                className="text-sm text-red-600 hover:text-red-700 hover:underline"
+                className="text-sm text-brand hover:text-amber-600 hover:underline"
               >
                 Esqueci minha senha
               </Link>
@@ -109,16 +109,16 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isPending}
-              className="w-full rounded-lg bg-green-600 px-4 py-3 text-lg font-bold text-white transition-colors hover:bg-green-700 disabled:bg-gray-400"
+              className="w-full rounded-full bg-brand border border-brand px-4 py-3 text-lg font-bold text-white transition-colors hover:bg-white hover:text-brand disabled:opacity-50"
             >
               {isPending ? "Entrando..." : "Entrar"}
             </button>
 
             <p className="text-center text-sm text-gray-600">
-              Ainda nao tem conta?{" "}
+              Ainda não tem conta?{" "}
               <Link
                 href="/cadastro"
-                className="font-semibold text-red-700 hover:text-red-800"
+                className="font-semibold text-brand hover:text-amber-600"
               >
                 Criar cadastro
               </Link>

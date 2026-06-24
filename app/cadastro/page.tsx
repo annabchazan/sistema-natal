@@ -57,14 +57,14 @@ export default function CadastroPage() {
 
     if (!telefoneEhCelular(telefone)) {
       setErro(
-        "Informe um celular valido com DDD. Telefones fixos nao sao aceitos.",
+        "Informe um celular válido com DDD. Telefones fixos não são aceitos.",
       );
       setSalvando(false);
       return;
     }
 
     if (!emailValido(email)) {
-      setErro("Informe um e-mail valido.");
+      setErro("Informe um e-mail válido.");
       setSalvando(false);
       return;
     }
@@ -76,7 +76,7 @@ export default function CadastroPage() {
     }
 
     if (senha !== confirmarSenha) {
-      setErro("A confirmacao de senha nao confere.");
+      setErro("A confirmação de senha não confere.");
       setSalvando(false);
       return;
     }
@@ -95,13 +95,13 @@ export default function CadastroPage() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-red-50 to-green-50 py-12">
+    <div className="min-h-screen bg-linear-to-b from-orange-50 to-amber-50 py-12">
       <div className="container mx-auto px-4">
-        <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl border border-red-100 overflow-hidden">
-          <div className="bg-red-600 text-white p-8">
-            <h1 className="text-3xl font-bold">Cadastro do Usuario</h1>
-            <p className="mt-2 text-red-100">
-              Preencha seus dados para acessar sua area no Sistema Natal.
+        <div className="max-w-2xl mx-auto bg-white rounded-[25px] shadow-xl border border-brand/20 overflow-hidden">
+          <div className="bg-brand text-white p-8">
+            <h1 className="text-3xl font-bold">Cadastro do Usuário</h1>
+            <p className="mt-2 text-white/80">
+              Preencha seus dados para acessar sua área no Noelzinho Solidário.
             </p>
           </div>
 
@@ -118,7 +118,7 @@ export default function CadastroPage() {
                 type="text"
                 value={formulario.nome}
                 onChange={(event) => handleChange("nome", event.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full rounded-full border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand"
                 placeholder="Digite seu nome completo"
                 autoComplete="name"
               />
@@ -138,12 +138,12 @@ export default function CadastroPage() {
                 onChange={(event) =>
                   handleChange("telefone", event.target.value)
                 }
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full rounded-full border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand"
                 placeholder="(11) 91234-5678"
                 autoComplete="tel"
               />
-              <p className="mt-2 text-sm text-gray-500">
-                Aceitamos apenas celular com DDD e nono digito.
+              <p className="mt-2 text-sm text-gray-500 pl-4">
+                Aceitamos apenas celular com DDD e nono dígito.
               </p>
             </div>
 
@@ -159,7 +159,7 @@ export default function CadastroPage() {
                 type="email"
                 value={formulario.email}
                 onChange={(event) => handleChange("email", event.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full rounded-full border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand"
                 placeholder="voce@exemplo.com"
                 autoComplete="email"
               />
@@ -177,7 +177,7 @@ export default function CadastroPage() {
                 type="password"
                 value={formulario.senha}
                 onChange={(event) => handleChange("senha", event.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full rounded-full border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand"
                 placeholder="Crie uma senha"
                 autoComplete="new-password"
               />
@@ -197,14 +197,14 @@ export default function CadastroPage() {
                 onChange={(event) =>
                   handleChange("confirmarSenha", event.target.value)
                 }
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full rounded-full border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand"
                 placeholder="Repita sua senha"
                 autoComplete="new-password"
               />
             </div>
 
             {erro && (
-              <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+              <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
                 {erro}
               </div>
             )}
@@ -212,16 +212,16 @@ export default function CadastroPage() {
             <button
               type="submit"
               disabled={salvando}
-              className="w-full rounded-lg bg-green-600 px-4 py-3 text-lg font-bold text-white transition-colors hover:bg-green-700 disabled:bg-gray-400"
+              className="w-full rounded-full bg-brand border border-brand px-4 py-3 text-lg font-bold text-white transition-colors hover:bg-white hover:text-brand disabled:opacity-50"
             >
               {salvando ? "Salvando..." : "Salvar cadastro"}
             </button>
 
             <p className="text-center text-sm text-gray-600">
-              Ja tem conta?{" "}
+              Já tem conta?{" "}
               <Link
                 href="/login"
-                className="font-semibold text-red-700 hover:text-red-800"
+                className="font-semibold text-brand hover:text-amber-600"
               >
                 Entrar
               </Link>

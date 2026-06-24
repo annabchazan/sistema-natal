@@ -92,18 +92,18 @@ export default async function UsuarioPage() {
   hoje.setHours(0, 0, 0, 0);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-red-50 to-green-50 py-12">
+    <div className="min-h-screen bg-gradient-to-b from-orange-50 to-amber-50 py-12">
       <div className="container mx-auto px-4 max-w-4xl">
 
-        <div className="bg-white rounded-2xl shadow-lg border border-green-100 overflow-hidden mb-8">
-          <div className="bg-green-600 text-white px-8 py-6 flex items-center justify-between">
+        <div className="bg-white rounded-[25px] shadow-lg border border-brand/20 overflow-hidden mb-8">
+          <div className="bg-brand text-white px-8 py-6 flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold">Olá, {usuario.nome.split(" ")[0]}!</h1>
-              <p className="text-green-100 text-sm mt-1">{usuario.email}</p>
+              <p className="text-white/80 text-sm mt-1">{usuario.email}</p>
             </div>
             <div className="text-right hidden sm:block">
               <p className="text-3xl font-bold">{cartinhas.length}</p>
-              <p className="text-green-100 text-sm">
+              <p className="text-white/80 text-sm">
                 cartinha{cartinhas.length !== 1 ? "s" : ""} apadrinhada{cartinhas.length !== 1 ? "s" : ""}
               </p>
             </div>
@@ -125,13 +125,13 @@ export default async function UsuarioPage() {
 
           {cartinhas.length === 0 ? (
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
-              <p className="text-5xl mb-4">🎄</p>
+              <p className="text-5xl mb-4 text-brand">♥</p>
               <p className="text-gray-500 text-lg mb-6">
                 Você ainda não apadrinhou nenhuma cartinha.
               </p>
               <Link
                 href="/"
-                className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-6 py-3 font-semibold text-white hover:bg-red-700 transition-colors"
+                className="inline-flex items-center gap-2 rounded-full bg-brand border border-brand px-6 py-3 font-semibold text-white hover:bg-white hover:text-brand transition-colors"
               >
                 Ver cartinhas disponíveis
               </Link>
@@ -168,14 +168,14 @@ export default async function UsuarioPage() {
               return (
                 <div
                   key={cartinha.id}
-                  className={`bg-white rounded-2xl shadow-sm border overflow-hidden transition-shadow hover:shadow-md ${
+                  className={`bg-white rounded-[25px] shadow-sm border overflow-hidden transition-shadow hover:shadow-md ${
                     cartinha.status === "entregue"
                       ? "border-emerald-200"
                       : cartinha.status === "cancelada"
                       ? "border-red-200 opacity-70"
                       : prazoVencido
                       ? "border-red-300"
-                      : "border-gray-100"
+                      : "border-brand/20"
                   }`}
                 >
                   <div className="p-6">
@@ -186,11 +186,11 @@ export default async function UsuarioPage() {
                           <img
                             src={cartinha.foto_cartinha}
                             alt={cartinha.nome_crianca}
-                            className="w-16 h-16 rounded-xl object-cover flex-shrink-0 border-2 border-red-100"
+                            className="w-16 h-16 rounded-xl object-cover flex-shrink-0 border-2 border-brand/20"
                           />
                         ) : (
-                          <div className="w-16 h-16 rounded-xl bg-red-50 border-2 border-red-100 flex items-center justify-center flex-shrink-0 text-2xl">
-                            🎁
+                          <div className="w-16 h-16 rounded-xl bg-orange-50 border-2 border-brand/20 flex items-center justify-center flex-shrink-0">
+                            <svg viewBox="0 0 24 24" fill="none" className="w-8 h-8 text-brand" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M21 11.25v8.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 1 0 9.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1 1 14.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" /></svg>
                           </div>
                         )}
 
@@ -252,9 +252,9 @@ export default async function UsuarioPage() {
                             }`}
                           >
                             {prazoVencido
-                              ? `⚠️ Prazo vencido (${formatarData(cartinha.data_limite_entrega)})`
+                              ? `Prazo vencido (${formatarData(cartinha.data_limite_entrega)})`
                               : prazoUrgente
-                              ? `⏰ ${diasRestantes === 0 ? "Prazo hoje" : `${diasRestantes} dia${diasRestantes !== 1 ? "s" : ""} para entregar`}`
+                              ? `${diasRestantes === 0 ? "Prazo hoje" : `${diasRestantes} dia${diasRestantes !== 1 ? "s" : ""} para entregar`}`
                               : `Entregar até ${formatarData(cartinha.data_limite_entrega)}`}
                           </span>
                         )}
@@ -275,7 +275,7 @@ export default async function UsuarioPage() {
           <div className="mt-8 text-center">
             <Link
               href="/"
-              className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-6 py-3 font-semibold text-white hover:bg-red-700 transition-colors"
+              className="inline-flex items-center gap-2 rounded-full bg-brand border border-brand px-6 py-3 font-semibold text-white hover:bg-white hover:text-brand transition-colors"
             >
               Apadrinhar mais cartinhas
             </Link>

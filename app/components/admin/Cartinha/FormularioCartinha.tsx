@@ -189,7 +189,7 @@ export default function FormularioCartinha({
           type="submit"
           className="w-full bg-red-600 text-white font-bold py-3 rounded-lg hover:bg-red-700 transition shadow-lg"
         >
-          {cartinha ? "💾 Salvar Alterações" : "🎁 Cadastrar Cartinha"}
+          {cartinha ? "Salvar Alterações" : "Cadastrar Cartinha"}
         </button>
 
         {state.message && (

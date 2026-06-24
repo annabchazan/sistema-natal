@@ -30,7 +30,6 @@ export default function FormularioEditarPerfil({ usuario }: Props) {
       novaSenha:  (data.get("novaSenha") as string) || undefined,
     };
 
-    // Valida confirmação de senha no client antes de mandar
     const confirmar = (data.get("confirmarSenha") as string) || "";
     if (input.novaSenha && input.novaSenha !== confirmar) {
       setMensagem({ tipo: "erro", texto: "A nova senha e a confirmação não coincidem." });
@@ -49,15 +48,14 @@ export default function FormularioEditarPerfil({ usuario }: Props) {
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-      {/* Cabeçalho — clicável para abrir/fechar */}
+    <div className="bg-white rounded-[25px] shadow-sm border border-gray-100 overflow-hidden">
       <button
         type="button"
         onClick={() => {
           setAberto((v) => !v);
           setMensagem(null);
         }}
-        className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50 transition-colors"
+        className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-orange-50 transition-colors"
       >
         <span className="font-semibold text-gray-700">Editar meus dados</span>
         <span className={`text-gray-400 transition-transform duration-200 ${aberto ? "rotate-180" : ""}`}>
@@ -68,7 +66,6 @@ export default function FormularioEditarPerfil({ usuario }: Props) {
       {aberto && (
         <form onSubmit={handleSubmit} className="px-6 pb-6 space-y-5 border-t border-gray-100 pt-5">
 
-          {/* Dados pessoais */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -79,7 +76,7 @@ export default function FormularioEditarPerfil({ usuario }: Props) {
                 type="text"
                 required
                 defaultValue={usuario.nome}
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300"
+                className="w-full rounded-full border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
               />
             </div>
             <div>
@@ -91,7 +88,7 @@ export default function FormularioEditarPerfil({ usuario }: Props) {
                 type="tel"
                 required
                 defaultValue={usuario.telefone}
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300"
+                className="w-full rounded-full border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
               />
             </div>
           </div>
@@ -105,23 +102,22 @@ export default function FormularioEditarPerfil({ usuario }: Props) {
               type="email"
               required
               defaultValue={usuario.email}
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300"
+              className="w-full rounded-full border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
             />
           </div>
 
-          {/* Toggle de troca de senha */}
           <div className="border-t border-gray-100 pt-4">
             <button
               type="button"
               onClick={() => setAlterarSenha((v) => !v)}
-              className="text-sm text-red-600 hover:underline font-medium"
+              className="text-sm text-brand hover:underline font-medium"
             >
               {alterarSenha ? "Cancelar troca de senha" : "Alterar senha"}
             </button>
           </div>
 
           {alterarSenha && (
-            <div className="space-y-4 rounded-xl bg-gray-50 border border-gray-200 p-4">
+            <div className="space-y-4 rounded-[25px] bg-gray-50 border border-gray-200 p-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Senha atual
@@ -130,7 +126,7 @@ export default function FormularioEditarPerfil({ usuario }: Props) {
                   name="senhaAtual"
                   type="password"
                   autoComplete="current-password"
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300"
+                  className="w-full rounded-full border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
                 />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -143,7 +139,7 @@ export default function FormularioEditarPerfil({ usuario }: Props) {
                     type="password"
                     autoComplete="new-password"
                     minLength={6}
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300"
+                    className="w-full rounded-full border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
                   />
                 </div>
                 <div>
@@ -154,7 +150,7 @@ export default function FormularioEditarPerfil({ usuario }: Props) {
                     name="confirmarSenha"
                     type="password"
                     autoComplete="new-password"
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300"
+                    className="w-full rounded-full border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
                   />
                 </div>
               </div>
@@ -162,10 +158,9 @@ export default function FormularioEditarPerfil({ usuario }: Props) {
             </div>
           )}
 
-          {/* Feedback */}
           {mensagem && (
             <div
-              className={`rounded-lg px-4 py-3 text-sm font-medium ${
+              className={`rounded-2xl px-4 py-3 text-sm font-medium ${
                 mensagem.tipo === "sucesso"
                   ? "bg-green-50 text-green-700 border border-green-200"
                   : "bg-red-50 text-red-700 border border-red-200"
@@ -175,19 +170,18 @@ export default function FormularioEditarPerfil({ usuario }: Props) {
             </div>
           )}
 
-          {/* Botões */}
           <div className="flex gap-3 justify-end pt-1">
             <button
               type="button"
               onClick={() => setAberto(false)}
-              className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+              className="rounded-full border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={isPending}
-              className="rounded-lg bg-red-600 px-5 py-2 text-sm font-bold text-white hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-full bg-brand border border-brand px-5 py-2 text-sm font-bold text-white hover:bg-white hover:text-brand transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isPending ? "Salvando..." : "Salvar alterações"}
             </button>

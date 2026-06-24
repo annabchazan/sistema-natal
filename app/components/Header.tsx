@@ -77,18 +77,17 @@ export default function Header() {
 
   return (
     <>
-      <header className="bg-red-600 text-white shadow-lg sticky top-0 z-40">
+      <header className="bg-brand text-white shadow-lg sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-3xl">🎄</span>
-            <h1 className="text-2xl font-bold">Sistema Natal</h1>
+            <h1 className="text-2xl font-bold">Noelzinho Solidário</h1>
           </div>
 
           <div className="flex items-center gap-3">
             <div className="relative z-50">
               <button
                 onClick={() => setIsUserMenuOpen((prev) => !prev)}
-                className="flex items-center justify-center bg-red-700 hover:bg-red-800 w-12 h-12 rounded-lg transition-colors"
+                className="flex items-center justify-center bg-amber-600 hover:bg-amber-700 w-12 h-12 rounded-full transition-colors"
                 aria-label={usuario ? "Abrir area do usuario" : "Abrir menu de acesso"}
               >
                 <svg
@@ -107,10 +106,10 @@ export default function Header() {
               </button>
 
               {isUserMenuOpen && (
-                <div className="absolute right-0 mt-2 w-56 rounded-xl bg-white text-gray-800 shadow-2xl border border-red-100 p-2">
+                <div className="absolute right-0 mt-2 w-56 rounded-[25px] bg-white text-gray-800 shadow-2xl border border-brand/20 p-2">
                   <button
                     onClick={handleAbrirAreaUsuario}
-                    className="w-full text-left px-4 py-3 rounded-lg hover:bg-red-50 transition-colors"
+                    className="w-full text-left px-4 py-3 rounded-2xl hover:bg-orange-50 transition-colors"
                   >
                     <p className="font-semibold">
                       {usuario ? "Ver área do usuário" : "Cadastrar"}
@@ -126,7 +125,7 @@ export default function Header() {
                     <Link
                       href="/admin"
                       onClick={() => setIsUserMenuOpen(false)}
-                      className="block w-full text-left px-4 py-3 rounded-lg hover:bg-red-50 transition-colors"
+                      className="block w-full text-left px-4 py-3 rounded-2xl hover:bg-orange-50 transition-colors"
                     >
                       <p className="font-semibold">Painel admin</p>
                       <p className="text-sm text-gray-500">
@@ -139,7 +138,7 @@ export default function Header() {
                     <Link
                       href="/login"
                       onClick={() => setIsUserMenuOpen(false)}
-                      className="block w-full text-left px-4 py-3 rounded-lg hover:bg-red-50 transition-colors"
+                      className="block w-full text-left px-4 py-3 rounded-2xl hover:bg-orange-50 transition-colors"
                     >
                       <p className="font-semibold">Entrar</p>
                       <p className="text-sm text-gray-500">
@@ -152,7 +151,7 @@ export default function Header() {
                     <button
                       onClick={handleLogout}
                       disabled={isLoggingOut}
-                      className="w-full text-left px-4 py-3 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-60"
+                      className="w-full text-left px-4 py-3 rounded-2xl hover:bg-orange-50 transition-colors disabled:opacity-60"
                     >
                       <p className="font-semibold">
                         {isLoggingOut ? "Saindo..." : "Sair"}
@@ -168,9 +167,8 @@ export default function Header() {
 
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="relative flex items-center gap-2 bg-red-700 hover:bg-red-800 px-4 py-2 rounded-lg transition-colors"
+              className="relative flex items-center gap-2 bg-amber-600 hover:bg-amber-700 px-4 py-2 rounded-full transition-colors"
             >
-              <span className="text-2xl">🎁</span>
               <span className="font-semibold">
                 {cartinhas.length > 0 ? cartinhas.length : "Carrinho"}
               </span>
@@ -185,9 +183,9 @@ export default function Header() {
       </header>
 
       {isOpen && (
-        <div className="fixed right-0 top-20 bg-white rounded-b-lg shadow-2xl border border-gray-200 w-96 max-h-96 flex flex-col z-50">
-          <div className="bg-red-600 text-white p-4 flex items-center justify-between">
-            <h3 className="text-lg font-bold">Cartinhas Apadrinhadas 🎄</h3>
+        <div className="fixed right-0 top-20 bg-white rounded-b-[25px] shadow-2xl border border-gray-200 w-96 max-h-96 flex flex-col z-50">
+          <div className="bg-brand text-white p-4 flex items-center justify-between">
+            <h3 className="text-lg font-bold">Cartinhas Apadrinhadas</h3>
             <button
               onClick={() => setIsOpen(false)}
               className="text-white hover:text-gray-200 text-xl"
@@ -205,11 +203,11 @@ export default function Header() {
               {cartinhas.map((cartinha) => (
                 <div
                   key={cartinha.id}
-                  className="border border-gray-200 rounded-lg p-3 bg-gray-50 hover:bg-gray-100 transition-colors"
+                  className="border border-gray-200 rounded-[25px] p-3 bg-gray-50 hover:bg-gray-100 transition-colors"
                 >
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
-                      <h4 className="font-bold text-red-700">
+                      <h4 className="font-bold text-brand">
                         {cartinha.nome_crianca}
                       </h4>
                       <p className="text-xs text-gray-600 mt-1">
@@ -221,7 +219,7 @@ export default function Header() {
                     </div>
                     <button
                       onClick={() => removerCartinha(cartinha.id)}
-                      className="ml-2 text-red-500 hover:text-red-700 font-bold"
+                      className="ml-2 text-brand hover:text-amber-600 font-bold"
                     >
                       ×
                     </button>
@@ -235,19 +233,19 @@ export default function Header() {
             <div className="border-t p-4 space-y-2">
               <div className="flex justify-between items-center mb-2">
                 <span className="font-bold">Total:</span>
-                <span className="text-lg font-bold text-red-600">
+                <span className="text-lg font-bold text-brand">
                   {cartinhas.length} cartinha{cartinhas.length !== 1 ? "s" : ""}
                 </span>
               </div>
               <button
                 onClick={handleIrParaCheckout}
-                className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded font-semibold transition-colors"
+                className="w-full bg-brand text-white border border-brand py-2 rounded-full font-semibold hover:bg-white hover:text-brand transition-colors"
               >
-                🎄 Ir para Checkout
+                Ir para Checkout
               </button>
               <button
                 onClick={() => limparCarrinho()}
-                className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 rounded font-semibold transition-colors"
+                className="w-full bg-white text-gray-600 border border-gray-200 py-2 rounded-full font-semibold hover:bg-gray-50 transition-colors"
               >
                 Limpar Carrinho
               </button>
