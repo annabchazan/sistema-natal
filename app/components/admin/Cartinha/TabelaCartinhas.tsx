@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { excluirCartinha } from "@/app/actions/cartinhas";
 
 const STATUS_CONFIG: Record<string, { label: string; classes: string }> = {
@@ -22,6 +23,11 @@ export default function TabelaCartinhas({
   onEdit: (cartinha: any) => void;
   canManage: boolean;
 }) {
+  const ITENS_POR_PAGINA = 20;
+  const [paginaAtual, setPaginaAtual] = useState(1);
+  const totalPaginas = Math.ceil(dados.length / ITENS_POR_PAGINA);
+  const dadosPaginados = dados.slice((paginaAtual - 1) * ITENS_POR_PAGINA, paginaAtual * ITENS_POR_PAGINA);
+
   const handleExcluir = async (id: number) => {
     if (confirm("Deseja realmente apagar esta cartinha?")) {
       const res = await excluirCartinha(id);
@@ -44,7 +50,7 @@ export default function TabelaCartinhas({
           </tr>
         </thead>
         <tbody>
-          {dados.map((item) => {
+          {dadosPaginados.map((item) => {
             const statusInfo = STATUS_CONFIG[item.status] ?? {
               label: item.status,
               classes: "bg-gray-100 text-gray-700",
@@ -112,6 +118,27 @@ export default function TabelaCartinhas({
           )}
         </tbody>
       </table>
+      {totalPaginas > 1 && (
+        <div className="flex items-center justify-between px-4 py-3 border-t text-sm text-gray-600">
+          <span>{dados.length} registros — Página {paginaAtual} de {totalPaginas}</span>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setPaginaAtual((p) => Math.max(1, p - 1))}
+              disabled={paginaAtual === 1}
+              className="px-4 py-1.5 rounded-full border border-gray-300 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              Anterior
+            </button>
+            <button
+              onClick={() => setPaginaAtual((p) => Math.min(totalPaginas, p + 1))}
+              disabled={paginaAtual === totalPaginas}
+              className="px-4 py-1.5 rounded-full border border-gray-300 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              Próxima
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

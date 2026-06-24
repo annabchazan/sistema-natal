@@ -2,6 +2,7 @@
 
 import { useCarrinhoApadrinhamento } from "@/app/hooks/useCarrinhoApadrinhamento";
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import {
   listarCartinhasFiltradas,
   listarCartinhas,
@@ -38,16 +39,16 @@ export default function ListaCartinhasHome({
   const [carrinhoAtualizado, setCarrinhoAtualizado] = useState<{
     [key: number]: boolean;
   }>({});
-  const [isLoaded, setIsLoaded] = useState(false);
   const [cartinhas, setCartinhas] = useState<Cartinha[]>(cartinhasIniciais);
 
   const [filtroTag, setFiltroTag] = useState<string>("");
   const [filtroIdadeMin, setFiltroIdadeMin] = useState<string>("");
   const [filtroIdadeMax, setFiltroIdadeMax] = useState<string>("");
   const [isFiltering, setIsFiltering] = useState(false);
+  const [paginaAtual, setPaginaAtual] = useState(1);
+  const ITENS_POR_PAGINA = 12;
 
   useEffect(() => {
-    setIsLoaded(true);
     const estado: { [key: number]: boolean } = {};
     cartinhas.forEach((c) => {
       estado[c.id] = temCartinha(c.id);
@@ -70,6 +71,7 @@ export default function ListaCartinhasHome({
         : cartinhasIniciais;
 
       setCartinhas(cartinhasFiltradas);
+      setPaginaAtual(1);
 
       const estado: { [key: number]: boolean } = {};
       cartinhasFiltradas.forEach((c) => {
@@ -88,6 +90,7 @@ export default function ListaCartinhasHome({
     setFiltroIdadeMin("");
     setFiltroIdadeMax("");
     setCartinhas(cartinhasIniciais);
+    setPaginaAtual(1);
 
     const estado: { [key: number]: boolean } = {};
     cartinhasIniciais.forEach((c) => {
@@ -209,8 +212,9 @@ export default function ListaCartinhasHome({
             </button>
           </div>
         ) : (
+          <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {cartinhas.map((cartinha) => (
+            {cartinhas.slice((paginaAtual - 1) * ITENS_POR_PAGINA, paginaAtual * ITENS_POR_PAGINA).map((cartinha) => (
               <div
                 key={cartinha.id}
                 className="bg-white rounded-[25px] shadow-lg hover:shadow-xl transition-shadow p-6 border-l-4 border-brand relative"
@@ -223,10 +227,12 @@ export default function ListaCartinhasHome({
 
                 {cartinha.foto_cartinha && (
                   <div className="mb-4 flex justify-center">
-                    <img
+                    <Image
                       src={cartinha.foto_cartinha}
                       alt={`Foto da cartinha de ${cartinha.nome_crianca}`}
-                      className="w-32 h-24 rounded-2xl object-cover border-4 border-orange-100 shadow-md"
+                      width={128}
+                      height={96}
+                      className="rounded-2xl object-cover border-4 border-orange-100 shadow-md"
                     />
                   </div>
                 )}
@@ -285,6 +291,29 @@ export default function ListaCartinhasHome({
               </div>
             ))}
           </div>
+
+          {cartinhas.length > ITENS_POR_PAGINA && (
+            <div className="flex items-center justify-center gap-4 mt-10">
+              <button
+                onClick={() => setPaginaAtual((p) => Math.max(1, p - 1))}
+                disabled={paginaAtual === 1}
+                className="px-5 py-2 rounded-full border border-brand text-brand font-semibold hover:bg-brand hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                Anterior
+              </button>
+              <span className="text-gray-600 text-sm">
+                Página {paginaAtual} de {Math.ceil(cartinhas.length / ITENS_POR_PAGINA)}
+              </span>
+              <button
+                onClick={() => setPaginaAtual((p) => Math.min(Math.ceil(cartinhas.length / ITENS_POR_PAGINA), p + 1))}
+                disabled={paginaAtual === Math.ceil(cartinhas.length / ITENS_POR_PAGINA)}
+                className="px-5 py-2 rounded-full border border-brand text-brand font-semibold hover:bg-brand hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                Próxima
+              </button>
+            </div>
+          )}
+          </>
         )}
       </div>
     </div>

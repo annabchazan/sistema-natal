@@ -82,11 +82,9 @@ Páginas a revisar:
 
 ## Prioridade Baixa / Futuro
 
-### Paginação nas listagens
-Admin e home carregam todas as cartinhas sem limite. Com 500 registros já impacta.
-
-- Home (`/`): paginação ou scroll infinito no grid de cartinhas
-- Admin: paginação na tabela de cartinhas (as demais tabelas são menores)
+### ~~Paginação nas listagens~~ ✅ Feito
+- Home (`/`): 12 cartinhas por página, reseta ao filtrar — `ListaCartinhasHome.tsx`
+- Admin: 20 linhas por página com contador de registros — `TabelaCartinhas.tsx`
 
 ### Índices no banco
 Adicionar em `database_updates.sql` após validar em produção:
