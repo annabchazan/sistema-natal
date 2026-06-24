@@ -86,14 +86,9 @@ Páginas a revisar:
 - Home (`/`): 12 cartinhas por página, reseta ao filtrar — `ListaCartinhasHome.tsx`
 - Admin: 20 linhas por página com contador de registros — `TabelaCartinhas.tsx`
 
-### Índices no banco
-Adicionar em `database_updates.sql` após validar em produção:
-
-```sql
-ALTER TABLE cartinhas ADD INDEX idx_status (status);
-ALTER TABLE cartinhas ADD INDEX idx_instituicao (instituicao_id);
-ALTER TABLE cartinhas ADD INDEX idx_apadrinhado_por (apadrinhado_por_usuario_id);
-```
+### ~~Índices no banco~~ ✅ Feito
+- `idx_cartinhas_status` já criado na `migration_v2.sql`
+- `idx_cartinhas_instituicao` e `idx_cartinhas_apadrinhado_por` adicionados em `migration_v5.sql`
 
 ### Terceiro nível de admin (Master)
 Mencionado na entrevista como nível exclusivo para gerenciar permissões.
