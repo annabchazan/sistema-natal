@@ -4,6 +4,7 @@ import ConfirmacaoApadrinhamento from "@/emails/ConfirmacaoApadrinhamento";
 import RecuperacaoSenha from "@/emails/RecuperacaoSenha";
 import LembreteEntrega from "@/emails/LembreteEntrega";
 import PresenteEntregue from "@/emails/PresenteEntregue";
+import CancelamentoApadrinamento from "@/emails/CancelamentoApadrinamento";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -112,6 +113,44 @@ export async function enviarLembreteEntrega({
     return { ok: true };
   } catch (err) {
     console.error(`Erro ao enviar lembrete ${tipo}:`, err);
+    return { ok: false };
+  }
+}
+
+export async function enviarCancelamentoApadrinamento({
+  nomePadrinho,
+  emailPadrinho,
+  nomeCrianca,
+  presentePedido,
+  numeroSequencial,
+}: {
+  nomePadrinho: string;
+  emailPadrinho: string;
+  nomeCrianca: string;
+  presentePedido: string;
+  numeroSequencial: number | null;
+}) {
+  const urlSite = process.env.NEXT_PUBLIC_URL ?? "http://localhost:3000";
+  try {
+    const { error } = await resend.emails.send({
+      from: FROM,
+      to: emailPadrinho,
+      subject: `Apadrinhamento de ${nomeCrianca} cancelado`,
+      react: createElement(CancelamentoApadrinamento, {
+        nomePadrinho,
+        nomeCrianca,
+        presentePedido,
+        numeroSequencial,
+        urlSite,
+      }),
+    });
+    if (error) {
+      console.error("Resend erro (cancelamento):", error);
+      return { ok: false };
+    }
+    return { ok: true };
+  } catch (err) {
+    console.error("Erro ao enviar e-mail de cancelamento:", err);
     return { ok: false };
   }
 }

@@ -201,12 +201,13 @@ finalizarApadrinamento() em cartinhas.ts
 ### Prioridade Baixa / Futuro
 
 - [ ] **Terceiro nível de admin (Master)**: `admin_role` ENUM com `master`, `full`, `editor`
-- [ ] **Paginação nas listagens**: admin e home carregam tudo sem limite
+- [x] **Paginação nas listagens**: home e admin paginados — **feito**
 - [x] **Dashboard admin com métricas**: cards por status, total de padrinhos, % entregues, barra de progresso e alerta de prazos vencidos — **feito**
-- [ ] **Índices no banco**: `idx_cartinhas_status`, `idx_cartinhas_instituicao`, `idx_cartinhas_apadrinhado_por`
+- [x] **Índices no banco**: `idx_cartinhas_status`, `idx_cartinhas_instituicao`, `idx_cartinhas_apadrinhado_por` — **feito**
 - [ ] **Impressão de crachá**: mencionado na entrevista como "a verificar"
 - [x] **Notificação quando entregue**: e-mail disparado em `salvarCartinha()` ao detectar transição para `entregue`. Template `emails/PresenteEntregue.tsx` — **feito**
-- [ ] **Exclusão de conta (LGPD)**: obrigatório legalmente
+- [x] **Exclusão de conta (LGPD)**: botão na `/usuario`. Cancela apadrinhamentos ativos, preserva histórico, remove dados. Bloqueia se cartinha estiver em estágio avançado — **feito**
+- [ ] **Integração WhatsApp**: envio de mensagens automáticas para padrinhos (lembrete de entrega, agradecimento pós-entrega, aviso de cancelamento). Avaliar Evolution API ou Z-API como gateway. Requer número de WhatsApp Business dedicado à campanha.
 
 ---
 

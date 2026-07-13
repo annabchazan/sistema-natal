@@ -83,7 +83,7 @@ export default async function UsuarioPage() {
        c.foto_cartinha,
        i.nome_instituicao
      FROM cartinhas c
-     JOIN instituicoes i ON c.instituicao_id = i.id
+     LEFT JOIN instituicoes i ON c.instituicao_id = i.id
      WHERE c.apadrinhado_por_usuario_id = ?
      ORDER BY c.data_apadrinamento DESC`,
     [usuario.id],
@@ -207,7 +207,7 @@ export default async function UsuarioPage() {
                             )}
                           </div>
                           <p className="text-sm text-gray-500">
-                            {cartinha.nome_instituicao}
+                            {cartinha.nome_instituicao ?? "Instituição removida"}
                           </p>
                           <p className="text-sm text-gray-700 mt-1">
                             <span className="font-medium">Presente:</span>{" "}

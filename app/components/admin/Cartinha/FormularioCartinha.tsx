@@ -56,6 +56,8 @@ export default function FormularioCartinha({
               name="idade"
               type="number"
               required
+              min={1}
+              max={17}
               className="w-full p-2 border rounded-md"
               defaultValue={cartinha?.idade ?? ""}
             />

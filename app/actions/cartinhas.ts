@@ -3,7 +3,7 @@ import crypto from "crypto";
 import db from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { getUsuarioAutenticado, validarPermissaoAdmin } from "@/lib/auth";
-import { enviarConfirmacaoApadrinhamento, enviarNotificacaoEntrega } from "@/lib/email";
+import { enviarConfirmacaoApadrinhamento, enviarNotificacaoEntrega, enviarCancelamentoApadrinamento } from "@/lib/email";
 
 export interface CartinhaState {
   success: boolean;
@@ -249,13 +249,18 @@ export async function listarCartinhasFiltradas(filtros: {
       query += " AND c.tag_id = ?";
       params.push(filtros.tag_id);
     }
-    if (filtros.idade_min !== undefined) {
+    const idadeMin = filtros.idade_min;
+    const idadeMax = filtros.idade_max;
+    const minFinal = idadeMin !== undefined && idadeMax !== undefined && idadeMin > idadeMax ? idadeMax : idadeMin;
+    const maxFinal = idadeMin !== undefined && idadeMax !== undefined && idadeMin > idadeMax ? idadeMin : idadeMax;
+
+    if (minFinal !== undefined) {
       query += " AND c.idade >= ?";
-      params.push(filtros.idade_min);
+      params.push(minFinal);
     }
-    if (filtros.idade_max !== undefined) {
+    if (maxFinal !== undefined) {
       query += " AND c.idade <= ?";
-      params.push(filtros.idade_max);
+      params.push(maxFinal);
     }
 
     query += " ORDER BY c.id DESC";
@@ -366,7 +371,7 @@ export async function cancelarApadrinamento(
   try {
     // Só cancela se a cartinha for do usuário e ainda estiver como 'apadrinhada'
     const [rows]: any = await db.query(
-      `SELECT id FROM cartinhas
+      `SELECT id, nome_crianca, presente_pedido, numero_sequencial FROM cartinhas
        WHERE id = ? AND apadrinhado_por_usuario_id = ? AND status = 'apadrinhada'
        LIMIT 1`,
       [cartinhaId, usuario.id],
@@ -379,6 +384,8 @@ export async function cancelarApadrinamento(
       };
     }
 
+    const cartinha = rows[0];
+
     await db.query(
       `UPDATE cartinhas
        SET status = 'disponivel',
@@ -387,6 +394,14 @@ export async function cancelarApadrinamento(
        WHERE id = ?`,
       [cartinhaId],
     );
+
+    enviarCancelamentoApadrinamento({
+      nomePadrinho:     usuario.nome,
+      emailPadrinho:    usuario.email,
+      nomeCrianca:      cartinha.nome_crianca,
+      presentePedido:   cartinha.presente_pedido,
+      numeroSequencial: cartinha.numero_sequencial,
+    }).catch((err) => console.error("Falha no e-mail de cancelamento:", err));
 
     revalidatePath("/usuario");
     revalidatePath("/");
