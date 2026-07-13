@@ -137,9 +137,10 @@ export default function TabelaUsuariosAdmin({
                       }
                       className="w-full p-2 border border-gray-300 rounded-lg disabled:bg-gray-100"
                     >
-                      <option value="editor">Admin editor</option>
-                      <option value="full">Admin completo</option>
-                      <option value="master">Admin master</option>
+                      <option value="editor">Editor — só edita</option>
+                      <option value="full">Gerente — edita, cria e exclui</option>
+                      <option value="master">Super Adm — tudo, mais gerenciar usuários</option>
+
                     </select>
                   </td>
                   <td className="px-4 py-4 text-right">

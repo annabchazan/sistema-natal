@@ -132,13 +132,13 @@ database_updates.sql  # Migrações manuais (histórico de ALTER TABLE)
 - **admin**: acesso ao painel `/admin`
 
 ### Papéis de admin (`admin_role`)
-| Papel | Pode criar/excluir | Pode editar | Pode gerenciar usuários/permissões |
-|-------|-------------------|-------------|------------------------|
-| `master` | Sim | Sim | Sim (exclusivo) |
-| `full` | Sim | Sim | Não |
-| `editor` | Não | Sim | Não |
+| Papel (banco) | Rótulo exibido | Pode criar/excluir | Pode editar | Pode gerenciar usuários/permissões |
+|-------|-------------------|-------------|------------------------|------------------------|
+| `master` | Super Adm | Sim | Sim | Sim (exclusivo) |
+| `full` | Gerente | Sim | Sim | Não |
+| `editor` | Editor | Não | Sim | Não |
 
-> Implementado: `master` é o nível exclusivo com poder de gerenciar permissões (aba "Usuários", promover/rebaixar admins). `full` continua podendo criar/editar/excluir cartinhas, instituições, tags e pontos de entrega. Requer `migration_v6.sql` aplicada e pelo menos um usuário promovido manualmente a `master` (ver script).
+> Implementado: `master` (rótulo "Super Adm") é o nível exclusivo com poder de gerenciar permissões (aba "Usuários", promover/rebaixar admins). `full` (rótulo "Gerente") continua podendo criar/editar/excluir cartinhas, instituições, tags e pontos de entrega. Os valores no banco (`master`/`full`/`editor`) não mudaram — só os rótulos exibidos na interface. Requer `migration_v6.sql` aplicada e pelo menos um usuário promovido manualmente a `master` (ver script).
 
 ### Funções de permissão em `lib/auth.ts`
 - `requireAdminAccess()` — redireciona se não for admin
