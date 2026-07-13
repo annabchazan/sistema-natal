@@ -4,6 +4,7 @@ import { getUsuarioAutenticado } from "@/lib/auth";
 import db from "@/lib/db";
 import FormularioEditarPerfil from "@/app/components/usuario/FormularioEditarPerfil";
 import BotaoCancelarApadrinamento from "@/app/components/usuario/BotaoCancelarApadrinamento";
+import BotaoExcluirConta from "@/app/components/usuario/BotaoExcluirConta";
 
 // Ordem do fluxo para a barra de progresso (estados especiais ficam fora)
 const FLUXO = ["apadrinhada", "conferida", "embrulhado", "entregue"] as const;
@@ -281,6 +282,13 @@ export default async function UsuarioPage() {
             </Link>
           </div>
         )}
+
+        <div className="mt-12 border-t border-red-100 pt-6 text-center">
+          <p className="text-xs text-gray-400 mb-2">
+            Ao excluir sua conta, seus dados serão removidos permanentemente.
+          </p>
+          <BotaoExcluirConta />
+        </div>
 
       </div>
     </div>

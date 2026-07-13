@@ -328,6 +328,64 @@ export async function atualizarPerfil(input: {
   }
 }
 
+export async function excluirConta(): Promise<AuthActionState> {
+  const usuario = await getUsuarioAutenticado();
+  if (!usuario) {
+    return { success: false, message: "Você precisa estar logado." };
+  }
+
+  if (usuario.tipo === "admin") {
+    return {
+      success: false,
+      message: "Contas de administrador não podem ser excluídas por aqui. Entre em contato com a equipe.",
+    };
+  }
+
+  try {
+    const [emAndamento]: any = await db.query(
+      `SELECT COUNT(*) as total FROM cartinhas
+       WHERE apadrinhado_por_usuario_id = ?
+       AND status IN ('conferida', 'embrulhado', 'carente', 'reapadrinhado')`,
+      [usuario.id],
+    );
+
+    if ((emAndamento?.[0]?.total ?? 0) > 0) {
+      return {
+        success: false,
+        message:
+          "Você tem cartinhas em andamento (conferidas, embrulhadas ou em processo). Entre em contato com a equipe antes de excluir sua conta.",
+      };
+    }
+
+    await db.query(
+      `UPDATE cartinhas
+       SET status = 'disponivel', apadrinhado_por_usuario_id = NULL, data_apadrinamento = NULL
+       WHERE apadrinhado_por_usuario_id = ? AND status = 'apadrinhada'`,
+      [usuario.id],
+    );
+
+    await db.query(
+      "UPDATE cartinhas SET apadrinhado_por_usuario_id = NULL WHERE apadrinhado_por_usuario_id = ?",
+      [usuario.id],
+    );
+
+    try {
+      await db.query("DELETE FROM lembretes_enviados WHERE usuario_id = ?", [usuario.id]);
+    } catch {
+      // tabela pode não existir em ambientes antigos
+    }
+
+    await db.query("DELETE FROM usuarios WHERE id = ?", [usuario.id]);
+    await limparSessao();
+    revalidatePath("/");
+
+    return { success: true, message: "Conta excluída com sucesso.", redirectTo: "/" };
+  } catch (error) {
+    console.error("Erro ao excluir conta:", error);
+    return { success: false, message: "Não foi possível excluir sua conta. Tente novamente." };
+  }
+}
+
 export async function atualizarPermissoesUsuario(input: {
   usuarioId: number;
   tipo: "admin" | "padrinho";
