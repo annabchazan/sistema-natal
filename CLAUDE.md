@@ -132,18 +132,20 @@ database_updates.sql  # Migrações manuais (histórico de ALTER TABLE)
 - **admin**: acesso ao painel `/admin`
 
 ### Papéis de admin (`admin_role`)
-| Papel | Pode criar/excluir | Pode editar | Pode gerenciar usuários |
+| Papel | Pode criar/excluir | Pode editar | Pode gerenciar usuários/permissões |
 |-------|-------------------|-------------|------------------------|
-| `full` | Sim | Sim | Sim |
+| `master` | Sim | Sim | Sim (exclusivo) |
+| `full` | Sim | Sim | Não |
 | `editor` | Não | Sim | Não |
 
-> A entrevista menciona 3 níveis (Master, Completo, Limitado). Hoje temos 2. Master seria um nível acima de `full` com poder exclusivo de gerenciar permissões. A ser implementado.
+> Implementado: `master` é o nível exclusivo com poder de gerenciar permissões (aba "Usuários", promover/rebaixar admins). `full` continua podendo criar/editar/excluir cartinhas, instituições, tags e pontos de entrega. Requer `migration_v6.sql` aplicada e pelo menos um usuário promovido manualmente a `master` (ver script).
 
 ### Funções de permissão em `lib/auth.ts`
 - `requireAdminAccess()` — redireciona se não for admin
-- `adminPodeCriarOuExcluir(usuario)` — retorna bool
+- `adminPodeCriarOuExcluir(usuario)` — retorna bool (`full` ou `master`)
 - `adminPodeEditar(usuario)` — retorna bool
-- `validarPermissaoAdmin("manage" | "edit")` — retorna `{ ok, message, usuario }`
+- `adminPodeGerenciarPermissoes(usuario)` — retorna bool (exclusivo de `master`)
+- `validarPermissaoAdmin("manage" | "edit" | "users")` — retorna `{ ok, message, usuario }`
 
 ---
 
@@ -200,7 +202,7 @@ finalizarApadrinamento() em cartinhas.ts
 
 ### Prioridade Baixa / Futuro
 
-- [ ] **Terceiro nível de admin (Master)**: `admin_role` ENUM com `master`, `full`, `editor`
+- [x] **Terceiro nível de admin (Master)**: `admin_role` ENUM com `master`, `full`, `editor`. `master` exclusivo para gerenciar permissões (`adminPodeGerenciarPermissoes()`, `validarPermissaoAdmin("users")`). Requer `migration_v6.sql` — **feito** (falta promover manualmente um usuário a `master` em produção)
 - [x] **Paginação nas listagens**: home e admin paginados — **feito**
 - [x] **Dashboard admin com métricas**: cards por status, total de padrinhos, % entregues, barra de progresso e alerta de prazos vencidos — **feito**
 - [x] **Índices no banco**: `idx_cartinhas_status`, `idx_cartinhas_instituicao`, `idx_cartinhas_apadrinhado_por` — **feito**
@@ -251,7 +253,7 @@ CRON_SECRET=<string aleatória longa>   # protege GET /api/cron/lembretes
 
 ### Popular o banco
 Executar `database_updates.sql` no MySQL após criar o schema base.
-Em seguida, executar as migrations na ordem: `migration_v2.sql` (status extras) → `migration_v3.sql` (recuperação de senha) → `migration_v4.sql` (tabela `lembretes_enviados`).
+Em seguida, executar as migrations na ordem: `migration_v2.sql` (status extras) → `migration_v3.sql` (recuperação de senha) → `migration_v4.sql` (tabela `lembretes_enviados`) → `migration_v5.sql` (índices) → `migration_v6.sql` (nível de admin `master` — não esquecer de promover um usuário manualmente após aplicar).
 
 ---
 

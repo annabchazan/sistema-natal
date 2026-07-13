@@ -37,7 +37,7 @@ interface CadastroAdminInput {
   email: string;
   senha: string;
   tipo: "admin" | "padrinho";
-  admin_role: "full" | "editor" | null;
+  admin_role: "master" | "full" | "editor" | null;
 }
 
 export async function cadastrarUsuario(
@@ -116,7 +116,7 @@ export async function buscarUsuarioAutenticado() {
 export async function cadastrarUsuarioAdmin(
   input: CadastroAdminInput,
 ): Promise<AuthActionState> {
-  const permissao = await validarPermissaoAdmin("manage");
+  const permissao = await validarPermissaoAdmin("users");
   if (!permissao.ok) {
     return { success: false, message: permissao.message };
   }
@@ -389,9 +389,9 @@ export async function excluirConta(): Promise<AuthActionState> {
 export async function atualizarPermissoesUsuario(input: {
   usuarioId: number;
   tipo: "admin" | "padrinho";
-  admin_role: "full" | "editor" | null;
+  admin_role: "master" | "full" | "editor" | null;
 }): Promise<AuthActionState> {
-  const permissao = await validarPermissaoAdmin("manage");
+  const permissao = await validarPermissaoAdmin("users");
   if (!permissao.ok) {
     return { success: false, message: permissao.message };
   }
@@ -415,7 +415,7 @@ export async function atualizarPermissoesUsuario(input: {
       | {
           id: number;
           tipo: "admin" | "padrinho";
-          admin_role: "full" | "editor" | null;
+          admin_role: "master" | "full" | "editor" | null;
         }
       | undefined;
 
@@ -425,10 +425,10 @@ export async function atualizarPermissoesUsuario(input: {
 
     const vaiPerderAcessoAdmin =
       usuarioAtual.tipo === "admin" && input.tipo !== "admin";
-    const vaiPerderNivelFull =
+    const vaiPerderNivelMaster =
       usuarioAtual.tipo === "admin" &&
-      usuarioAtual.admin_role === "full" &&
-      (input.tipo !== "admin" || adminRole !== "full");
+      usuarioAtual.admin_role === "master" &&
+      (input.tipo !== "admin" || adminRole !== "master");
 
     if (permissao.usuario.id === input.usuarioId && vaiPerderAcessoAdmin) {
       return {
@@ -437,23 +437,23 @@ export async function atualizarPermissoesUsuario(input: {
       };
     }
 
-    if (permissao.usuario.id === input.usuarioId && vaiPerderNivelFull) {
+    if (permissao.usuario.id === input.usuarioId && vaiPerderNivelMaster) {
       return {
         success: false,
-        message: "Voce nao pode rebaixar seu proprio usuario de admin completo.",
+        message: "Voce nao pode rebaixar seu proprio usuario de admin master.",
       };
     }
 
-    if (vaiPerderNivelFull) {
-      const [fullAdmins]: any = await db.query(
-        "SELECT COUNT(*) as total FROM usuarios WHERE tipo = 'admin' AND admin_role = 'full' AND id <> ?",
+    if (vaiPerderNivelMaster) {
+      const [masterAdmins]: any = await db.query(
+        "SELECT COUNT(*) as total FROM usuarios WHERE tipo = 'admin' AND admin_role = 'master' AND id <> ?",
         [input.usuarioId],
       );
 
-      if ((fullAdmins?.[0]?.total ?? 0) === 0) {
+      if ((masterAdmins?.[0]?.total ?? 0) === 0) {
         return {
           success: false,
-          message: "Precisa existir pelo menos um administrador completo no sistema.",
+          message: "Precisa existir pelo menos um administrador master no sistema.",
         };
       }
     }

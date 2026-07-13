@@ -10,7 +10,7 @@ interface UsuarioItem {
   telefone: string;
   email: string;
   tipo: "admin" | "padrinho";
-  admin_role: "full" | "editor" | null;
+  admin_role: "master" | "full" | "editor" | null;
 }
 
 export default function TabelaUsuariosAdmin({
@@ -132,13 +132,14 @@ export default function TabelaUsuariosAdmin({
                       disabled={draft.tipo !== "admin"}
                       onChange={(event) =>
                         updateDraft(usuario.id, {
-                          admin_role: event.target.value as "full" | "editor",
+                          admin_role: event.target.value as "master" | "full" | "editor",
                         })
                       }
                       className="w-full p-2 border border-gray-300 rounded-lg disabled:bg-gray-100"
                     >
                       <option value="editor">Admin editor</option>
                       <option value="full">Admin completo</option>
+                      <option value="master">Admin master</option>
                     </select>
                   </td>
                   <td className="px-4 py-4 text-right">

@@ -11,7 +11,7 @@ export default function FormularioUsuarioAdmin() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [tipo, setTipo] = useState<"admin" | "padrinho">("padrinho");
-  const [adminRole, setAdminRole] = useState<"full" | "editor">("editor");
+  const [adminRole, setAdminRole] = useState<"master" | "full" | "editor">("editor");
   const [mensagem, setMensagem] = useState("");
   const [erro, setErro] = useState("");
   const [isPending, startTransition] = useTransition();
@@ -101,13 +101,14 @@ export default function FormularioUsuarioAdmin() {
           <select
             value={adminRole}
             onChange={(event) =>
-              setAdminRole(event.target.value as "full" | "editor")
+              setAdminRole(event.target.value as "master" | "full" | "editor")
             }
             disabled={tipo !== "admin"}
             className="w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-red-500 disabled:bg-gray-100"
           >
             <option value="editor">Admin editor</option>
             <option value="full">Admin completo</option>
+            <option value="master">Admin master</option>
           </select>
         </div>
 

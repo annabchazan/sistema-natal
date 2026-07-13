@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import db from "@/lib/db";
 
 export type TipoUsuario = "admin" | "padrinho";
-export type AdminRole = "full" | "editor";
+export type AdminRole = "master" | "full" | "editor";
 
 export interface UsuarioAutenticado {
   id: number;
@@ -126,13 +126,22 @@ export function usuarioEhAdmin(usuario: UsuarioAutenticado | null | undefined) {
 export function adminPodeCriarOuExcluir(
   usuario: UsuarioAutenticado | null | undefined,
 ) {
-  return usuarioEhAdmin(usuario) && usuario?.admin_role === "full";
+  return (
+    usuarioEhAdmin(usuario) &&
+    (usuario?.admin_role === "full" || usuario?.admin_role === "master")
+  );
 }
 
 export function adminPodeEditar(
   usuario: UsuarioAutenticado | null | undefined,
 ) {
   return usuarioEhAdmin(usuario);
+}
+
+export function adminPodeGerenciarPermissoes(
+  usuario: UsuarioAutenticado | null | undefined,
+) {
+  return usuarioEhAdmin(usuario) && usuario?.admin_role === "master";
 }
 
 export async function requireUsuarioAutenticado() {
@@ -160,7 +169,7 @@ export async function requireAdminAccess() {
 }
 
 export async function validarPermissaoAdmin(
-  permissao: "edit" | "manage",
+  permissao: "edit" | "manage" | "users",
 ): Promise<{ ok: true; usuario: UsuarioAutenticado } | { ok: false; message: string }> {
   const usuario = await getUsuarioAutenticado();
 
@@ -183,6 +192,13 @@ export async function validarPermissaoAdmin(
       ok: false,
       message:
         "Seu perfil pode editar registros existentes, mas nao pode cadastrar nem remover.",
+    };
+  }
+
+  if (permissao === "users" && !adminPodeGerenciarPermissoes(usuario)) {
+    return {
+      ok: false,
+      message: "Apenas administradores master podem gerenciar usuarios e permissoes.",
     };
   }
 

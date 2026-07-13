@@ -9,7 +9,7 @@ import FormularioUsuarioAdmin from "../components/admin/Usuario/FormularioUsuari
 import TabelaUsuariosAdmin from "../components/admin/Usuario/TabelaUsuariosAdmin";
 import ExportarIndex from "../components/admin/Exportar";
 import DashboardMetricas from "../components/admin/DashboardMetricas";
-import { adminPodeCriarOuExcluir, requireAdminAccess } from "@/lib/auth";
+import { adminPodeCriarOuExcluir, adminPodeGerenciarPermissoes, requireAdminAccess } from "@/lib/auth";
 
 interface AdminProps {
   searchParams: Promise<{ tab?: string }>;
@@ -18,6 +18,7 @@ interface AdminProps {
 export default async function AdminPage({ searchParams }: AdminProps) {
   const usuario = await requireAdminAccess();
   const canManage = adminPodeCriarOuExcluir(usuario);
+  const canManageUsers = adminPodeGerenciarPermissoes(usuario);
   const { tab } = await searchParams;
   const abaAtiva = tab || "cartinhas";
 
@@ -59,7 +60,7 @@ export default async function AdminPage({ searchParams }: AdminProps) {
     { id: "tags",        label: "Tags",              icon: "Tags" },
     { id: "pontos",      label: "Pontos de Entrega", icon: "Pontos" },
     { id: "exportar",    label: "Exportar",          icon: "Exportar" },
-    ...(canManage
+    ...(canManageUsers
       ? [{ id: "usuarios", label: "Usuários", icon: "Usuários" }]
       : []),
   ];
@@ -108,7 +109,13 @@ export default async function AdminPage({ searchParams }: AdminProps) {
                 {abas.find((a) => a.id === abaAtiva)?.label}
               </h1>
               <p className="text-sm text-gray-500 mt-1">
-                Logado como {usuario.nome} ({canManage ? "admin completo" : "admin editor"})
+                Logado como {usuario.nome} ({
+                  usuario.admin_role === "master"
+                    ? "admin master"
+                    : usuario.admin_role === "full"
+                      ? "admin completo"
+                      : "admin editor"
+                })
               </p>
             </div>
           </div>
@@ -151,7 +158,7 @@ export default async function AdminPage({ searchParams }: AdminProps) {
 
           {abaAtiva === "exportar" && <ExportarIndex />}
 
-          {abaAtiva === "usuarios" && canManage && (
+          {abaAtiva === "usuarios" && canManageUsers && (
             <div className="space-y-8">
               <FormularioUsuarioAdmin />
               <TabelaUsuariosAdmin dados={usuarios} />

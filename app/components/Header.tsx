@@ -11,7 +11,7 @@ interface UsuarioMenu {
   nome: string;
   email: string;
   tipo: "admin" | "padrinho";
-  admin_role?: "full" | "editor" | null;
+  admin_role?: "master" | "full" | "editor" | null;
 }
 
 export default function Header() {

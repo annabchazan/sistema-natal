@@ -90,13 +90,12 @@ Páginas a revisar:
 - `idx_cartinhas_status` já criado na `migration_v2.sql`
 - `idx_cartinhas_instituicao` e `idx_cartinhas_apadrinhado_por` adicionados em `migration_v5.sql`
 
-### Terceiro nível de admin (Master)
-Mencionado na entrevista como nível exclusivo para gerenciar permissões.
-
-- Adicionar `master` ao ENUM `admin_role` em migração nova
-- `master` pode promover/rebaixar outros admins (hoje só `full` pode)
-- `full` perde a capacidade de gerenciar permissões (passa a ser exclusiva do `master`)
-- Atualizar `validarPermissaoAdmin()` e as verificações no painel
+### ~~Terceiro nível de admin (Master)~~ ✅ Feito
+- `master` adicionado ao ENUM `admin_role` (`migration_v6.sql`)
+- `master` é o único nível que pode promover/rebaixar outros admins (`adminPodeGerenciarPermissoes()`)
+- `full` perdeu a capacidade de gerenciar permissões, mas continua podendo criar/editar/excluir cartinhas, instituições, tags e pontos de entrega
+- `validarPermissaoAdmin()` ganhou o valor `"users"`; aba "Usuários" no painel agora é gated por `canManageUsers`
+- **Pendente:** aplicar `migration_v6.sql` em produção e promover manualmente um admin existente a `master` (senão ninguém acessa a aba Usuários)
 
 ### Exclusão de conta (LGPD)
 Obrigatório por lei para sistemas com dados de usuários brasileiros.

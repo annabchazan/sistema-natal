@@ -15,18 +15,20 @@ vi.mock("@/lib/auth", () => ({
 vi.mock("@/lib/email", () => ({
   enviarConfirmacaoApadrinhamento: vi.fn().mockResolvedValue({ ok: true }),
   enviarNotificacaoEntrega: vi.fn().mockResolvedValue({ ok: true }),
+  enviarCancelamentoApadrinamento: vi.fn().mockResolvedValue({ ok: true }),
 }));
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 import db from "@/lib/db";
 import { getUsuarioAutenticado } from "@/lib/auth";
-import { enviarConfirmacaoApadrinhamento } from "@/lib/email";
+import { enviarConfirmacaoApadrinhamento, enviarCancelamentoApadrinamento } from "@/lib/email";
 import { finalizarApadrinamento, cancelarApadrinamento } from "@/app/actions/cartinhas";
 
 const mockDb = db as any;
 const mockGetUsuario = getUsuarioAutenticado as any;
 const mockEnviarConfirmacao = enviarConfirmacaoApadrinhamento as any;
+const mockEnviarCancelamento = enviarCancelamentoApadrinamento as any;
 
 const usuarioFake = { id: 1, nome: "Padrinho Teste", email: "padrinho@teste.com", tipo: "padrinho" };
 
@@ -126,6 +128,7 @@ describe("cancelarApadrinamento", () => {
 
   it("cancela e volta status para disponivel quando tudo ok", async () => {
     mockGetUsuario.mockResolvedValue(usuarioFake);
+    mockEnviarCancelamento.mockResolvedValue({ ok: true });
     mockDb.query
       .mockResolvedValueOnce([[{ id: 1 }]])      // SELECT — cartinha encontrada
       .mockResolvedValueOnce([{ affectedRows: 1 }]); // UPDATE
