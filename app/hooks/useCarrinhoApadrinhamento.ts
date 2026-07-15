@@ -14,11 +14,15 @@ export function useCarrinhoApadrinhamento() {
   const [cartinhas, setCartinhas] = useState<CartinhaApadrinada[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Carrega do localStorage quando o componente monta
+  // Carrega do localStorage quando o componente monta.
+  // localStorage não existe no server, então o carrinho precisa começar vazio
+  // (igual no server e na primeira renderização do client) e só ser preenchido
+  // depois, aqui, para não gerar mismatch de hidratação.
   useEffect(() => {
     const saved = localStorage.getItem("carrinhoApadrinhamento");
     if (saved) {
       try {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setCartinhas(JSON.parse(saved));
       } catch (error) {
         console.error("Erro ao carregar cartinhas:", error);

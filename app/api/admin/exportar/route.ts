@@ -1,6 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import db from "@/lib/db";
 import { getUsuarioAutenticado, usuarioEhAdmin } from "@/lib/auth";
+import type { RowDataPacket } from "mysql2/promise";
+
+interface ExportacaoRow extends RowDataPacket {
+  numero_sequencial: number;
+  nome_crianca: string;
+  idade: number;
+  nome_instituicao: string | null;
+  status: string;
+  presente_pedido: string;
+  data_limite_entrega: string | Date | null;
+  data_apadrinamento: string | Date | null;
+  padrinho_nome: string | null;
+  padrinho_telefone: string | null;
+  padrinho_email: string | null;
+}
+
+type ValorCelula = string | number | null | undefined;
 
 const STATUS_LABEL: Record<string, string> = {
   disponivel:    "Disponível",
@@ -15,12 +32,12 @@ const STATUS_LABEL: Record<string, string> = {
 
 const STATUS_VALIDOS = new Set(Object.keys(STATUS_LABEL));
 
-function formatarData(valor: any): string {
+function formatarData(valor: string | Date | null): string {
   if (!valor) return "";
   return new Date(valor).toLocaleDateString("pt-BR");
 }
 
-function formatarDataHora(valor: any): string {
+function formatarDataHora(valor: string | Date | null): string {
   if (!valor) return "";
   return new Date(valor).toLocaleString("pt-BR", {
     day: "2-digit", month: "2-digit", year: "numeric",
@@ -28,7 +45,7 @@ function formatarDataHora(valor: any): string {
   });
 }
 
-function celula(valor: any): string {
+function celula(valor: ValorCelula): string {
   if (valor === null || valor === undefined) return "";
   const str = String(valor);
   if (str.includes(",") || str.includes('"') || str.includes("\n")) {
@@ -37,13 +54,13 @@ function celula(valor: any): string {
   return str;
 }
 
-function linha(campos: any[]): string {
+function linha(campos: ValorCelula[]): string {
   return campos.map(celula).join(",");
 }
 
 // Mapa de todas as colunas disponíveis:
 // chave → { cabeçalho para o CSV, função que extrai o valor de uma linha do banco }
-const COLUNA_MAP: Record<string, { header: string; valor: (row: any) => any }> = {
+const COLUNA_MAP: Record<string, { header: string; valor: (row: ExportacaoRow) => ValorCelula }> = {
   numero:              { header: "Número",                valor: (r) => r.numero_sequencial ?? "" },
   nome_crianca:        { header: "Nome da Criança",        valor: (r) => r.nome_crianca },
   idade:               { header: "Idade",                  valor: (r) => r.idade },
@@ -102,7 +119,7 @@ export async function GET(req: NextRequest) {
       LEFT JOIN usuarios u    ON c.apadrinhado_por_usuario_id = u.id
     `;
 
-    const params: any[] = [];
+    const params: string[] = [];
     if (filtrarStatus) {
       const placeholders = statusFiltro.map(() => "?").join(",");
       query += ` WHERE c.status IN (${placeholders})`;
@@ -111,11 +128,11 @@ export async function GET(req: NextRequest) {
 
     query += " ORDER BY c.numero_sequencial ASC, c.id ASC";
 
-    const [rows]: any = await db.query(query, params);
+    const [rows] = await db.query<ExportacaoRow[]>(query, params);
 
     // Monta o CSV apenas com as colunas escolhidas
     const cabecalho = linha(colunas.map((k) => COLUNA_MAP[k].header));
-    const linhasCSV = (rows as any[]).map((row) =>
+    const linhasCSV = rows.map((row) =>
       linha(colunas.map((k) => COLUNA_MAP[k].valor(row)))
     );
 

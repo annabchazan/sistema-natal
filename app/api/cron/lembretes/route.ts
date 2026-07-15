@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import db from "@/lib/db";
 import { enviarLembreteEntrega } from "@/lib/email";
+import type { RowDataPacket } from "mysql2/promise";
 
 // Vercel injeta o CRON_SECRET automaticamente no header Authorization.
 // Em chamadas manuais/testes, passe: Authorization: Bearer <CRON_SECRET>
@@ -11,7 +12,7 @@ function autorizacaoValida(req: NextRequest): boolean {
   return header === `Bearer ${secret}`;
 }
 
-interface CartinhaLembrete {
+interface CartinhaLembrete extends RowDataPacket {
   id: number;
   nome_crianca: string;
   presente_pedido: string;
@@ -28,7 +29,7 @@ export async function GET(req: NextRequest) {
 
   try {
     // Cartinhas com prazo em exatamente 10 dias, sem lembrete '10d' enviado
-    const [em10dias]: any = await db.query(`
+    const [em10dias] = await db.query<CartinhaLembrete[]>(`
       SELECT
         c.id, c.nome_crianca, c.presente_pedido,
         c.data_limite_entrega, c.numero_sequencial,
@@ -44,7 +45,7 @@ export async function GET(req: NextRequest) {
     `);
 
     // Cartinhas com prazo vencido (qualquer dia passado), sem lembrete 'vencido' enviado
-    const [vencidas]: any = await db.query(`
+    const [vencidas] = await db.query<CartinhaLembrete[]>(`
       SELECT
         c.id, c.nome_crianca, c.presente_pedido,
         c.data_limite_entrega, c.numero_sequencial,
@@ -89,15 +90,15 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    await processarLote(em10dias as CartinhaLembrete[], "10d");
-    await processarLote(vencidas as CartinhaLembrete[], "vencido");
+    await processarLote(em10dias, "10d");
+    await processarLote(vencidas, "vencido");
 
     console.log(`[cron/lembretes] enviados=${resultados.enviados} falhas=${resultados.falhas}`);
 
     return NextResponse.json({
       ok: true,
-      em10dias: (em10dias as any[]).length,
-      vencidas: (vencidas as any[]).length,
+      em10dias: em10dias.length,
+      vencidas: vencidas.length,
       ...resultados,
     });
   } catch (err) {

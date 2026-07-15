@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { excluirCartinha } from "@/app/actions/cartinhas";
+import type { CartinhaItem } from "./types";
 
 const STATUS_CONFIG: Record<string, { label: string; classes: string }> = {
   disponivel:    { label: "Disponível",    classes: "bg-green-100 text-green-700" },
@@ -19,8 +20,8 @@ export default function TabelaCartinhas({
   onEdit,
   canManage,
 }: {
-  dados: any[];
-  onEdit: (cartinha: any) => void;
+  dados: CartinhaItem[];
+  onEdit: (cartinha: CartinhaItem) => void;
   canManage: boolean;
 }) {
   const ITENS_POR_PAGINA = 20;

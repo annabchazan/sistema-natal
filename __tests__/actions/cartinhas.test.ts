@@ -25,14 +25,24 @@ import { getUsuarioAutenticado } from "@/lib/auth";
 import { enviarConfirmacaoApadrinhamento, enviarCancelamentoApadrinamento } from "@/lib/email";
 import { finalizarApadrinamento, cancelarApadrinamento } from "@/app/actions/cartinhas";
 
-const mockDb = db as any;
-const mockGetUsuario = getUsuarioAutenticado as any;
-const mockEnviarConfirmacao = enviarConfirmacaoApadrinhamento as any;
-const mockEnviarCancelamento = enviarCancelamentoApadrinamento as any;
+const mockDb = db as unknown as {
+  query: ReturnType<typeof vi.fn>;
+  getConnection: ReturnType<typeof vi.fn>;
+};
+const mockGetUsuario = vi.mocked(getUsuarioAutenticado);
+const mockEnviarConfirmacao = vi.mocked(enviarConfirmacaoApadrinhamento);
+const mockEnviarCancelamento = vi.mocked(enviarCancelamentoApadrinamento);
 
-const usuarioFake = { id: 1, nome: "Padrinho Teste", email: "padrinho@teste.com", tipo: "padrinho" };
+const usuarioFake = {
+  id: 1,
+  nome: "Padrinho Teste",
+  telefone: "21999999999",
+  email: "padrinho@teste.com",
+  tipo: "padrinho" as const,
+  admin_role: null,
+};
 
-function mockConexao(queryResults: any[] = []) {
+function mockConexao(queryResults: unknown[] = []) {
   let chamada = 0;
   const conn = {
     beginTransaction: vi.fn(),

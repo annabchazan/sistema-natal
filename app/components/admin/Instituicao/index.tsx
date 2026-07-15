@@ -3,9 +3,10 @@
 import { useState } from "react";
 import FormularioInstituicao from "./FormularioInstituicao";
 import TabelaInstituicoes from "./TabelaInstituicoes";
+import type { InstituicaoItem } from "./types";
 
 interface Props {
-  instituicoes: any[];
+  instituicoes: InstituicaoItem[];
   canManage: boolean;
 }
 
@@ -14,11 +15,11 @@ export default function InstituicoesIndex({
   canManage,
 }: Props) {
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
-  const [instituicaoEmEdicao, setInstituicaoEmEdicao] = useState<any | null>(
+  const [instituicaoEmEdicao, setInstituicaoEmEdicao] = useState<InstituicaoItem | null>(
     null,
   );
 
-  const abrirEdicao = (instituicao: any) => {
+  const abrirEdicao = (instituicao: InstituicaoItem) => {
     setInstituicaoEmEdicao(instituicao);
     setMostrarFormulario(true);
   };

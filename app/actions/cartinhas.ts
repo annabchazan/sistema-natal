@@ -4,10 +4,66 @@ import db from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { getUsuarioAutenticado, validarPermissaoAdmin } from "@/lib/auth";
 import { enviarConfirmacaoApadrinhamento, enviarNotificacaoEntrega, enviarCancelamentoApadrinamento } from "@/lib/email";
+import type { RowDataPacket } from "mysql2/promise";
 
 export interface CartinhaState {
   success: boolean;
   message: string;
+}
+
+export interface FiltrosCartinhas {
+  tag_id?: number;
+  idade_min?: number;
+  idade_max?: number;
+}
+
+interface CartinhaComTagRow extends RowDataPacket {
+  id: number;
+  nome_crianca: string;
+  idade: number;
+  texto_cartinha: string;
+  presente_pedido: string;
+  instituicao_id: number;
+  tag_id: number | null;
+  numero_sequencial: number;
+  foto_cartinha: string | null;
+  data_limite_entrega: string | null;
+  status: string;
+  data_apadrinamento: string | null;
+  apadrinhado_por_usuario_id: number | null;
+  tag_nome: string | null;
+}
+
+interface CartinhaAnteriorRow extends RowDataPacket {
+  status: string;
+  nome_crianca: string;
+  presente_pedido: string;
+  numero_sequencial: number;
+  padrinho_nome: string | null;
+  padrinho_email: string | null;
+}
+
+interface CartinhaIdRow extends RowDataPacket {
+  id: number;
+}
+
+interface CartinhaEmailRow extends RowDataPacket {
+  nome_crianca: string;
+  presente_pedido: string;
+  data_limite_entrega: string | null;
+  numero_sequencial: number;
+}
+
+interface UsuarioEmailRow extends RowDataPacket {
+  nome: string;
+  email: string;
+}
+
+interface CartinhaCancelamentoRow extends RowDataPacket {
+  id: number;
+  nome_crianca: string;
+  presente_pedido: string;
+  numero_sequencial: number;
 }
 
 const STATUS_PERMITIDOS = [
@@ -67,14 +123,22 @@ async function uploadToCloudinary(file: File): Promise<string | null> {
 }
 
 // --- GERAR NÚMERO SEQUENCIAL POR INSTITUIÇÃO ---
+interface BaseVagasRow extends RowDataPacket {
+  base: number;
+}
+
+interface ContagemCartinhasRow extends RowDataPacket {
+  total: number;
+}
+
 async function gerarNumeroSequencial(instituicao_id: number): Promise<number> {
   try {
-    const [[baseRows], [countRows]]: any = await Promise.all([
-      db.query(
+    const [[baseRows], [countRows]] = await Promise.all([
+      db.query<BaseVagasRow[]>(
         "SELECT COALESCE(SUM(quantidade_vagas), 0) AS base FROM instituicoes WHERE id < ?",
         [instituicao_id],
       ),
-      db.query(
+      db.query<ContagemCartinhasRow[]>(
         "SELECT COUNT(*) AS total FROM cartinhas WHERE instituicao_id = ?",
         [instituicao_id],
       ),
@@ -134,7 +198,7 @@ export async function salvarCartinha(
 
     if (id) {
       // Captura status anterior e dados do padrinho antes de atualizar
-      const [anterior]: any = await db.query(
+      const [anterior] = await db.query<CartinhaAnteriorRow[]>(
         `SELECT c.status, c.nome_crianca, c.presente_pedido, c.numero_sequencial,
                 u.nome AS padrinho_nome, u.email AS padrinho_email
          FROM cartinhas c
@@ -163,7 +227,7 @@ export async function salvarCartinha(
         const padrinho = anterior?.[0];
         if (padrinho?.padrinho_email) {
           enviarNotificacaoEntrega({
-            nomePadrinho:     padrinho.padrinho_nome,
+            nomePadrinho:     padrinho.padrinho_nome ?? "",
             emailPadrinho:    padrinho.padrinho_email,
             nomeCrianca:      padrinho.nome_crianca,
             presentePedido:   padrinho.presente_pedido,
@@ -214,16 +278,16 @@ export async function excluirCartinha(id: number): Promise<CartinhaState> {
 }
 
 // --- LISTAR CARTINHAS DISPONÍVEIS (home pública) ---
-export async function listarCartinhas() {
+export async function listarCartinhas(): Promise<CartinhaComTagRow[]> {
   try {
-    const [cartinhas] = await db.query(
+    const [cartinhas] = await db.query<CartinhaComTagRow[]>(
       `SELECT c.*, t.nome as tag_nome
        FROM cartinhas c
        LEFT JOIN tags t ON c.tag_id = t.id
        WHERE c.status = 'disponivel'
        ORDER BY c.id DESC`,
     );
-    return cartinhas as any[];
+    return cartinhas;
   } catch (err) {
     console.error("Erro ao listar cartinhas:", err);
     return [];
@@ -231,11 +295,9 @@ export async function listarCartinhas() {
 }
 
 // --- LISTAR COM FILTROS (home pública) ---
-export async function listarCartinhasFiltradas(filtros: {
-  tag_id?: number;
-  idade_min?: number;
-  idade_max?: number;
-}) {
+export async function listarCartinhasFiltradas(
+  filtros: FiltrosCartinhas,
+): Promise<CartinhaComTagRow[]> {
   try {
     let query = `
       SELECT c.*, t.nome as tag_nome
@@ -243,7 +305,7 @@ export async function listarCartinhasFiltradas(filtros: {
       LEFT JOIN tags t ON c.tag_id = t.id
       WHERE c.status = 'disponivel'
     `;
-    const params: any[] = [];
+    const params: (string | number)[] = [];
 
     if (filtros.tag_id !== undefined && filtros.tag_id !== null) {
       query += " AND c.tag_id = ?";
@@ -264,8 +326,8 @@ export async function listarCartinhasFiltradas(filtros: {
     }
 
     query += " ORDER BY c.id DESC";
-    const [cartinhas] = await db.query(query, params);
-    return cartinhas as any[];
+    const [cartinhas] = await db.query<CartinhaComTagRow[]>(query, params);
+    return cartinhas;
   } catch (err) {
     console.error("Erro ao listar cartinhas filtradas:", err);
     return [];
@@ -298,7 +360,7 @@ export async function finalizarApadrinamento(
 
     const placeholders = cartas_ids.map(() => "?").join(",");
 
-    const [disponiveis]: any = await conn.query(
+    const [disponiveis] = await conn.query<CartinhaIdRow[]>(
       `SELECT id FROM cartinhas
        WHERE id IN (${placeholders}) AND status = 'disponivel'
        FOR UPDATE`,
@@ -325,13 +387,13 @@ export async function finalizarApadrinamento(
     await conn.commit();
 
     // Feito após o commit para não atrasar nem bloquear a transação.
-    const [[cartinhasEmail], [usuarioEmail]]: any = await Promise.all([
-      db.query(
+    const [[cartinhasEmail], [usuarioEmail]] = await Promise.all([
+      db.query<CartinhaEmailRow[]>(
         `SELECT nome_crianca, presente_pedido, data_limite_entrega, numero_sequencial
          FROM cartinhas WHERE id IN (${placeholders})`,
         cartas_ids,
       ),
-      db.query("SELECT nome, email FROM usuarios WHERE id = ? LIMIT 1", [usuario.id]),
+      db.query<UsuarioEmailRow[]>("SELECT nome, email FROM usuarios WHERE id = ? LIMIT 1", [usuario.id]),
     ]);
 
     if (usuarioEmail?.[0]?.email) {
@@ -370,7 +432,7 @@ export async function cancelarApadrinamento(
 
   try {
     // Só cancela se a cartinha for do usuário e ainda estiver como 'apadrinhada'
-    const [rows]: any = await db.query(
+    const [rows] = await db.query<CartinhaCancelamentoRow[]>(
       `SELECT id, nome_crianca, presente_pedido, numero_sequencial FROM cartinhas
        WHERE id = ? AND apadrinhado_por_usuario_id = ? AND status = 'apadrinhada'
        LIMIT 1`,

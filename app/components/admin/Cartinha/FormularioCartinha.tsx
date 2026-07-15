@@ -3,12 +3,12 @@
 import { useActionState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { salvarCartinha, CartinhaState } from "@/app/actions/cartinhas";
-import { Instituicao, Tag } from "@/app/admin/cartinhas/page";
+import type { CartinhaItem, InstituicaoOption, TagOption } from "./types";
 
 interface FormProps {
-  instituicoes: Instituicao[];
-  tags: Tag[];
-  cartinha?: any;
+  instituicoes: InstituicaoOption[];
+  tags: TagOption[];
+  cartinha?: CartinhaItem | null;
   onSuccess?: () => void;
 }
 const initialState: CartinhaState = { success: false, message: "" };
@@ -106,7 +106,7 @@ export default function FormularioCartinha({
               <option value="">Selecione uma instituição</option>
               {instituicoes.map((inst) => (
                 <option key={inst.id} value={inst.id}>
-                  {inst.nome}
+                  {inst.nome_instituicao}
                 </option>
               ))}
             </select>

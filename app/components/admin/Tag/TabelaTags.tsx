@@ -2,14 +2,15 @@
 
 import { excluirTag } from "@/app/actions/tags";
 import { useRouter } from "next/navigation";
+import type { TagItem } from "./types";
 
 export default function TabelaTags({
   dados,
   onEdit,
   canManage,
 }: {
-  dados: any[];
-  onEdit: (item: any) => void;
+  dados: TagItem[];
+  onEdit: (item: TagItem) => void;
   canManage: boolean;
 }) {
   const router = useRouter();

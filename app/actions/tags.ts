@@ -3,10 +3,16 @@
 import db from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { validarPermissaoAdmin } from "@/lib/auth";
+import type { RowDataPacket } from "mysql2/promise";
 
 export interface TagsState {
   success: boolean;
   message: string;
+}
+
+export interface TagRow extends RowDataPacket {
+  id: number;
+  nome: string;
 }
 
 export async function salvarTag(
@@ -72,12 +78,12 @@ export async function excluirTag(id: number): Promise<TagsState> {
   }
 }
 
-export async function listarTags() {
+export async function listarTags(): Promise<TagRow[]> {
   try {
-    const [tags] = await db.query(
+    const [tags] = await db.query<TagRow[]>(
       "SELECT id, nome FROM tags ORDER BY nome ASC",
     );
-    return tags as any[];
+    return tags;
   } catch (err) {
     console.error("Erro ao listar tags:", err);
     return [];

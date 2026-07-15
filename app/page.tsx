@@ -1,7 +1,4 @@
-import {
-  listarCartinhas,
-  listarCartinhasFiltradas,
-} from "@/app/actions/cartinhas";
+import { listarCartinhas } from "@/app/actions/cartinhas";
 import { listarTags } from "@/app/actions/tags";
 import { listarPontosEntrega } from "@/app/actions/pontosEntrega";
 import ListaCartinhasHome from "@/app/components/ListaCartinhasHome";

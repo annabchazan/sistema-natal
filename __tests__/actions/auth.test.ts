@@ -21,13 +21,13 @@ import { getUsuarioAutenticado, validarSenha, gerarHashSenha } from "@/lib/auth"
 import { enviarEmailRecuperacaoSenha } from "@/lib/email";
 import { redefinirSenha, atualizarPerfil, solicitarRecuperacaoSenha } from "@/app/actions/auth";
 
-const mockDb = db as any;
-const mockGetUsuario = getUsuarioAutenticado as any;
-const mockValidarSenha = validarSenha as any;
-const mockGerarHash = gerarHashSenha as any;
-const mockEnviarRecuperacao = enviarEmailRecuperacaoSenha as any;
+const mockDb = db as unknown as { query: ReturnType<typeof vi.fn> };
+const mockGetUsuario = vi.mocked(getUsuarioAutenticado);
+const mockValidarSenha = vi.mocked(validarSenha);
+const mockGerarHash = vi.mocked(gerarHashSenha);
+const mockEnviarRecuperacao = vi.mocked(enviarEmailRecuperacaoSenha);
 
-const usuarioFake = { id: 1, nome: "Padrinho", telefone: "21999999999", email: "padrinho@teste.com", tipo: "padrinho" };
+const usuarioFake = { id: 1, nome: "Padrinho", telefone: "21999999999", email: "padrinho@teste.com", tipo: "padrinho" as const, admin_role: null };
 
 beforeEach(() => vi.resetAllMocks());
 

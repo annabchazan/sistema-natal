@@ -3,10 +3,18 @@
 import db from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { validarPermissaoAdmin } from "@/lib/auth";
+import type { RowDataPacket } from "mysql2/promise";
 
 export interface PontoEntregaState {
   success: boolean;
   message: string;
+}
+
+export interface PontoEntregaRow extends RowDataPacket {
+  id: number;
+  nome_local: string;
+  endereco: string;
+  horario: string;
 }
 
 export async function salvarPontoEntrega(
@@ -87,12 +95,12 @@ export async function excluirPontoEntrega(
   }
 }
 
-export async function listarPontosEntrega() {
+export async function listarPontosEntrega(): Promise<PontoEntregaRow[]> {
   try {
-    const [pontos] = await db.query(
+    const [pontos] = await db.query<PontoEntregaRow[]>(
       "SELECT * FROM pontos_entrega ORDER BY nome_local ASC",
     );
-    return pontos as any[];
+    return pontos;
   } catch (err) {
     console.error("Erro ao listar pontos de entrega:", err);
     return [];

@@ -2,14 +2,15 @@
 
 import { excluirPontoEntrega } from "@/app/actions/pontosEntrega";
 import { useRouter } from "next/navigation";
+import type { PontoEntregaItem } from "./types";
 
 export default function TabelaPontosEntrega({
   dados,
   onEdit,
   canManage,
 }: {
-  dados: any[];
-  onEdit: (item: any) => void;
+  dados: PontoEntregaItem[];
+  onEdit: (item: PontoEntregaItem) => void;
   canManage: boolean;
 }) {
   const router = useRouter();

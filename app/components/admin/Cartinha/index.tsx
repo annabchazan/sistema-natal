@@ -3,11 +3,12 @@
 import { useState } from "react";
 import FormularioCartinha from "./FormularioCartinha";
 import TabelaCartinhas from "./TabelaCartinhas";
+import type { CartinhaItem, InstituicaoOption, TagOption } from "./types";
 
 interface Props {
-  instituicoes: any[];
-  tags: any[];
-  cartinhas: any[];
+  instituicoes: InstituicaoOption[];
+  tags: TagOption[];
+  cartinhas: CartinhaItem[];
   canManage: boolean;
 }
 
@@ -18,9 +19,9 @@ export default function CartinhasIndex({
   canManage,
 }: Props) {
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
-  const [cartinhaEmEdicao, setCartinhaEmEdicao] = useState<any | null>(null);
+  const [cartinhaEmEdicao, setCartinhaEmEdicao] = useState<CartinhaItem | null>(null);
 
-  const abrirFormularioEdicao = (cartinha: any) => {
+  const abrirFormularioEdicao = (cartinha: CartinhaItem) => {
     setCartinhaEmEdicao(cartinha);
     setMostrarFormulario(true);
   };

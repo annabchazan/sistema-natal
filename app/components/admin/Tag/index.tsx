@@ -3,18 +3,19 @@
 import { useState } from "react";
 import FormularioTags from "./FormularioTag";
 import TabelaTags from "./TabelaTags";
+import type { TagItem } from "./types";
 
 export default function TagsIndex({
   tags,
   canManage,
 }: {
-  tags: any[];
+  tags: TagItem[];
   canManage: boolean;
 }) {
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
-  const [tagEmEdicao, setTagEmEdicao] = useState<any | null>(null);
+  const [tagEmEdicao, setTagEmEdicao] = useState<TagItem | null>(null);
 
-  const abrirEdicao = (tag: any) => {
+  const abrirEdicao = (tag: TagItem) => {
     setTagEmEdicao(tag);
     setMostrarFormulario(true);
   };

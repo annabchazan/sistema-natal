@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import {
   listarCartinhasFiltradas,
-  listarCartinhas,
+  type FiltrosCartinhas,
 } from "@/app/actions/cartinhas";
 
 interface Cartinha {
@@ -54,12 +54,12 @@ export default function ListaCartinhasHome({
       estado[c.id] = temCartinha(c.id);
     });
     setCarrinhoAtualizado(estado);
-  }, [cartinhas]);
+  }, [cartinhas, temCartinha]);
 
   const aplicarFiltros = async () => {
     setIsFiltering(true);
     try {
-      const filtros: any = {};
+      const filtros: FiltrosCartinhas = {};
 
       if (filtroTag)      filtros.tag_id    = parseInt(filtroTag);
       if (filtroIdadeMin) filtros.idade_min = parseInt(filtroIdadeMin);

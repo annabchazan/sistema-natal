@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { redefinirSenha } from "@/app/actions/auth";
 
@@ -12,17 +12,13 @@ export default function RedefinirSenhaPage() {
 
   const [novaSenha, setNovaSenha] = useState("");
   const [confirmar, setConfirmar] = useState("");
-  const [resultado, setResultado] = useState<{ tipo: "sucesso" | "erro"; texto: string } | null>(null);
+  const [resultado, setResultado] = useState<{ tipo: "sucesso" | "erro"; texto: string } | null>(
+    () =>
+      token
+        ? null
+        : { tipo: "erro", texto: "Link inválido. Solicite uma nova redefinição de senha." },
+  );
   const [isPending, startTransition] = useTransition();
-
-  useEffect(() => {
-    if (!token) {
-      setResultado({
-        tipo: "erro",
-        texto: "Link inválido. Solicite uma nova redefinição de senha.",
-      });
-    }
-  }, [token]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

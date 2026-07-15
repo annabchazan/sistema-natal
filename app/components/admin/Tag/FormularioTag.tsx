@@ -3,12 +3,13 @@
 import { salvarTag } from "@/app/actions/tags";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect } from "react";
+import type { TagItem } from "./types";
 
 export default function FormularioTags({
   tag,
   onCancel,
 }: {
-  tag?: any | null;
+  tag?: TagItem | null;
   onCancel?: () => void;
 }) {
   const router = useRouter();

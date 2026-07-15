@@ -2,14 +2,15 @@
 
 import { excluirInstituicao } from "@/app/actions/instituicoes";
 import { useRouter } from "next/navigation";
+import type { InstituicaoItem } from "./types";
 
 export default function TabelaInstituicoes({
   dados,
   onEdit,
   canManage,
 }: {
-  dados: any[];
-  onEdit: (item: any) => void;
+  dados: InstituicaoItem[];
+  onEdit: (item: InstituicaoItem) => void;
   canManage: boolean;
 }) {
   const router = useRouter();

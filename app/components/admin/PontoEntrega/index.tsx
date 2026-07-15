@@ -3,18 +3,19 @@
 import { useState } from "react";
 import FormularioPontoEntrega from "./FormularioPontoEntrega";
 import TabelaPontosEntrega from "./TabelaPontosEntrega";
+import type { PontoEntregaItem } from "./types";
 
 export default function PontosEntregaIndex({
   pontosEntrega,
   canManage,
 }: {
-  pontosEntrega: any[];
+  pontosEntrega: PontoEntregaItem[];
   canManage: boolean;
 }) {
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
-  const [pontoEmEdicao, setPontoEmEdicao] = useState<any | null>(null);
+  const [pontoEmEdicao, setPontoEmEdicao] = useState<PontoEntregaItem | null>(null);
 
-  const abrirEdicao = (ponto: any) => {
+  const abrirEdicao = (ponto: PontoEntregaItem) => {
     setPontoEmEdicao(ponto);
     setMostrarFormulario(true);
   };

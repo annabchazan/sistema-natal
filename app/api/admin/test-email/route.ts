@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { getUsuarioAutenticado, usuarioEhAdmin } from "@/lib/auth";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   const usuario = await getUsuarioAutenticado();
   if (!usuario || !usuarioEhAdmin(usuario)) {
     return NextResponse.json({ erro: "Acesso negado" }, { status: 403 });
@@ -64,11 +64,11 @@ export async function GET(req: NextRequest) {
       resend_id: data?.id,
       diagnostico,
     });
-  } catch (err: any) {
+  } catch (err) {
     return NextResponse.json({
       ok: false,
       etapa: "exceção",
-      mensagem: err?.message ?? "Erro desconhecido",
+      mensagem: err instanceof Error ? err.message : "Erro desconhecido",
       diagnostico,
     });
   }

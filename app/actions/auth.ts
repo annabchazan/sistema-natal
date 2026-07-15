@@ -9,9 +9,35 @@ import {
   limparSessao,
   validarPermissaoAdmin,
   validarSenha,
+  type AdminRole,
 } from "@/lib/auth";
 import { enviarEmailRecuperacaoSenha } from "@/lib/email";
 import { revalidatePath } from "next/cache";
+import type { ResultSetHeader, RowDataPacket } from "mysql2/promise";
+
+interface UsuarioIdRow extends RowDataPacket {
+  id: number;
+}
+
+interface UsuarioLoginRow extends RowDataPacket {
+  id: number;
+  senha: string;
+  tipo: "admin" | "padrinho";
+}
+
+interface UsuarioSenhaRow extends RowDataPacket {
+  senha: string;
+}
+
+interface UsuarioPermissaoRow extends RowDataPacket {
+  id: number;
+  tipo: "admin" | "padrinho";
+  admin_role: AdminRole | null;
+}
+
+interface ContagemRow extends RowDataPacket {
+  total: number;
+}
 
 export interface AuthActionState {
   success: boolean;
@@ -49,7 +75,7 @@ export async function cadastrarUsuario(
   const senha = input.senha;
 
   try {
-    const [existentes]: any = await db.query(
+    const [existentes] = await db.query<UsuarioIdRow[]>(
       "SELECT id FROM usuarios WHERE email = ? LIMIT 1",
       [email],
     );
@@ -59,7 +85,7 @@ export async function cadastrarUsuario(
     }
 
     const senhaHash = gerarHashSenha(senha);
-    const [resultado]: any = await db.query(
+    const [resultado] = await db.query<ResultSetHeader>(
       "INSERT INTO usuarios (nome, telefone, email, senha, tipo) VALUES (?, ?, ?, ?, 'padrinho')",
       [nome, telefone, email, senhaHash],
     );
@@ -79,7 +105,7 @@ export async function loginUsuario(input: LoginInput): Promise<AuthActionState> 
   const senha = input.senha;
 
   try {
-    const [rows]: any = await db.query(
+    const [rows] = await db.query<UsuarioLoginRow[]>(
       "SELECT id, senha, tipo FROM usuarios WHERE email = ? LIMIT 1",
       [email],
     );
@@ -143,7 +169,7 @@ export async function cadastrarUsuarioAdmin(
   }
 
   try {
-    const [existentes]: any = await db.query(
+    const [existentes] = await db.query<UsuarioIdRow[]>(
       "SELECT id FROM usuarios WHERE email = ? LIMIT 1",
       [email],
     );
@@ -179,7 +205,7 @@ export async function solicitarRecuperacaoSenha(
   }
 
   try {
-    const [rows]: any = await db.query(
+    const [rows] = await db.query<UsuarioIdRow[]>(
       "SELECT id FROM usuarios WHERE email = ? LIMIT 1",
       [emailNormalizado],
     );
@@ -223,7 +249,7 @@ export async function redefinirSenha(
   }
 
   try {
-    const [rows]: any = await db.query(
+    const [rows] = await db.query<UsuarioIdRow[]>(
       `SELECT id FROM usuarios
        WHERE reset_token = ? AND reset_token_expiry > NOW()
        LIMIT 1`,
@@ -275,7 +301,7 @@ export async function atualizarPerfil(input: {
 
   // Verifica se o novo e-mail já está em uso por outro usuário
   if (email !== usuario.email) {
-    const [existentes]: any = await db.query(
+    const [existentes] = await db.query<UsuarioIdRow[]>(
       "SELECT id FROM usuarios WHERE email = ? AND id <> ? LIMIT 1",
       [email, usuario.id],
     );
@@ -290,7 +316,7 @@ export async function atualizarPerfil(input: {
     if (!input.senhaAtual) {
       return { success: false, message: "Informe sua senha atual para alterá-la." };
     }
-    const [rows]: any = await db.query(
+    const [rows] = await db.query<UsuarioSenhaRow[]>(
       "SELECT senha FROM usuarios WHERE id = ? LIMIT 1",
       [usuario.id],
     );
@@ -342,7 +368,7 @@ export async function excluirConta(): Promise<AuthActionState> {
   }
 
   try {
-    const [emAndamento]: any = await db.query(
+    const [emAndamento] = await db.query<ContagemRow[]>(
       `SELECT COUNT(*) as total FROM cartinhas
        WHERE apadrinhado_por_usuario_id = ?
        AND status IN ('conferida', 'embrulhado', 'carente', 'reapadrinhado')`,
@@ -406,18 +432,12 @@ export async function atualizarPermissoesUsuario(input: {
   }
 
   try {
-    const [rows]: any = await db.query(
+    const [rows] = await db.query<UsuarioPermissaoRow[]>(
       "SELECT id, tipo, admin_role FROM usuarios WHERE id = ? LIMIT 1",
       [input.usuarioId],
     );
 
-    const usuarioAtual = rows?.[0] as
-      | {
-          id: number;
-          tipo: "admin" | "padrinho";
-          admin_role: "master" | "full" | "editor" | null;
-        }
-      | undefined;
+    const usuarioAtual = rows?.[0];
 
     if (!usuarioAtual) {
       return { success: false, message: "Usuario nao encontrado." };
@@ -440,12 +460,12 @@ export async function atualizarPermissoesUsuario(input: {
     if (permissao.usuario.id === input.usuarioId && vaiPerderNivelMaster) {
       return {
         success: false,
-        message: "Voce nao pode rebaixar seu proprio usuario de admin master.",
+        message: "Voce nao pode rebaixar seu proprio usuario de Super Adm.",
       };
     }
 
     if (vaiPerderNivelMaster) {
-      const [masterAdmins]: any = await db.query(
+      const [masterAdmins] = await db.query<ContagemRow[]>(
         "SELECT COUNT(*) as total FROM usuarios WHERE tipo = 'admin' AND admin_role = 'master' AND id <> ?",
         [input.usuarioId],
       );
@@ -453,7 +473,7 @@ export async function atualizarPermissoesUsuario(input: {
       if ((masterAdmins?.[0]?.total ?? 0) === 0) {
         return {
           success: false,
-          message: "Precisa existir pelo menos um administrador master no sistema.",
+          message: "Precisa existir pelo menos um Super Adm no sistema.",
         };
       }
     }

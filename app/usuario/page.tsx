@@ -1,10 +1,24 @@
 import Link from "next/link";
+import Image from "next/image";
 import { redirect } from "next/navigation";
 import { getUsuarioAutenticado } from "@/lib/auth";
 import db from "@/lib/db";
 import FormularioEditarPerfil from "@/app/components/usuario/FormularioEditarPerfil";
 import BotaoCancelarApadrinamento from "@/app/components/usuario/BotaoCancelarApadrinamento";
 import BotaoExcluirConta from "@/app/components/usuario/BotaoExcluirConta";
+import type { RowDataPacket } from "mysql2/promise";
+
+interface CartinhaUsuarioRow extends RowDataPacket {
+  id: number;
+  nome_crianca: string;
+  presente_pedido: string;
+  numero_sequencial: number | null;
+  status: string;
+  data_limite_entrega: string | null;
+  data_apadrinamento: string | null;
+  foto_cartinha: string | null;
+  nome_instituicao: string | null;
+}
 
 // Ordem do fluxo para a barra de progresso (estados especiais ficam fora)
 const FLUXO = ["apadrinhada", "conferida", "embrulhado", "entregue"] as const;
@@ -19,7 +33,7 @@ const STATUS_INFO: Record<string, { label: string; cor: string; mensagem: string
   cancelada:     { label: "Cancelada",     cor: "bg-red-400",     mensagem: "Este apadrinhamento foi cancelado." },
 };
 
-function formatarData(data: any): string {
+function formatarData(data: string | Date | null): string {
   if (!data) return "";
   return new Date(data).toLocaleDateString("pt-BR", {
     day: "2-digit",
@@ -30,7 +44,7 @@ function formatarData(data: any): string {
 }
 
 function BarraProgresso({ status }: { status: string }) {
-  const indiceAtual = FLUXO.indexOf(status as any);
+  const indiceAtual = FLUXO.indexOf(status as (typeof FLUXO)[number]);
   const estaNoFluxo = indiceAtual !== -1;
 
   if (!estaNoFluxo) return null;
@@ -76,7 +90,7 @@ export default async function UsuarioPage() {
   const usuario = await getUsuarioAutenticado();
   if (!usuario) redirect("/login");
 
-  const [cartinhas]: any = await db.query(
+  const [cartinhas] = await db.query<CartinhaUsuarioRow[]>(
     `SELECT
        c.id, c.nome_crianca, c.presente_pedido, c.numero_sequencial,
        c.status, c.data_limite_entrega, c.data_apadrinamento,
@@ -138,7 +152,7 @@ export default async function UsuarioPage() {
               </Link>
             </div>
           ) : (
-            cartinhas.map((cartinha: any) => {
+            cartinhas.map((cartinha) => {
               const info = STATUS_INFO[cartinha.status] ?? {
                 label: cartinha.status,
                 cor: "bg-gray-400",
@@ -184,9 +198,11 @@ export default async function UsuarioPage() {
                       <div className="flex items-start gap-4">
                           {cartinha.foto_cartinha &&
                         !cartinha.foto_cartinha.startsWith("data:") ? (
-                          <img
+                          <Image
                             src={cartinha.foto_cartinha}
                             alt={cartinha.nome_crianca}
+                            width={64}
+                            height={64}
                             className="w-16 h-16 rounded-xl object-cover flex-shrink-0 border-2 border-brand/20"
                           />
                         ) : (

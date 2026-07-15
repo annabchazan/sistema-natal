@@ -3,12 +3,13 @@
 import { salvarPontoEntrega } from "@/app/actions/pontosEntrega";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect } from "react";
+import type { PontoEntregaItem } from "./types";
 
 export default function FormularioPontoEntrega({
   ponto,
   onCancel,
 }: {
-  ponto?: any | null;
+  ponto?: PontoEntregaItem | null;
   onCancel?: () => void;
 }) {
   const router = useRouter();

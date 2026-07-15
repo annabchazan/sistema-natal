@@ -39,7 +39,11 @@ export default function ExportarIndex() {
   function toggleStatus(key: string) {
     setStatusSelecionados((prev) => {
       const next = new Set(prev);
-      next.has(key) ? next.delete(key) : next.add(key);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
       return next;
     });
   }
@@ -47,7 +51,11 @@ export default function ExportarIndex() {
   function toggleColuna(key: string) {
     setColunasSelecionadas((prev) => {
       const next = new Set(prev);
-      next.has(key) ? next.delete(key) : next.add(key);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
       return next;
     });
   }

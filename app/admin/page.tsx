@@ -9,10 +9,65 @@ import FormularioUsuarioAdmin from "../components/admin/Usuario/FormularioUsuari
 import TabelaUsuariosAdmin from "../components/admin/Usuario/TabelaUsuariosAdmin";
 import ExportarIndex from "../components/admin/Exportar";
 import DashboardMetricas from "../components/admin/DashboardMetricas";
-import { adminPodeCriarOuExcluir, adminPodeGerenciarPermissoes, requireAdminAccess } from "@/lib/auth";
+import {
+  adminPodeCriarOuExcluir,
+  adminPodeGerenciarPermissoes,
+  requireAdminAccess,
+  type AdminRole,
+} from "@/lib/auth";
+import type { TagRow } from "@/app/actions/tags";
+import type { PontoEntregaRow } from "@/app/actions/pontosEntrega";
+import type { RowDataPacket } from "mysql2/promise";
 
 interface AdminProps {
   searchParams: Promise<{ tab?: string }>;
+}
+
+interface CartinhaAdminRow extends RowDataPacket {
+  id: number;
+  nome_crianca: string;
+  idade: number;
+  texto_cartinha: string;
+  presente_pedido: string;
+  instituicao_id: number;
+  tag_id: number | null;
+  numero_sequencial: number;
+  foto_cartinha: string | null;
+  data_limite_entrega: string | null;
+  status: string;
+  data_apadrinamento: string | null;
+  apadrinhado_por_usuario_id: number | null;
+  nome_instituicao: string;
+}
+
+interface InstituicaoRow extends RowDataPacket {
+  id: number;
+  nome_instituicao: string;
+  contato: string;
+  responsavel: string;
+  quantidade_vagas: number;
+}
+
+interface UsuarioAdminRow extends RowDataPacket {
+  id: number;
+  nome: string;
+  telefone: string;
+  email: string;
+  tipo: "admin" | "padrinho";
+  admin_role: AdminRole | null;
+}
+
+interface StatusCountRow extends RowDataPacket {
+  status: string;
+  total: number;
+}
+
+interface TotalPadrinhosRow extends RowDataPacket {
+  totalPadrinhos: number;
+}
+
+interface TotalVencidasRow extends RowDataPacket {
+  totalVencidas: number;
 }
 
 export default async function AdminPage({ searchParams }: AdminProps) {
@@ -31,20 +86,20 @@ export default async function AdminPage({ searchParams }: AdminProps) {
     [statusRows],
     [[{ totalPadrinhos }]],
     [[{ totalVencidas }]],
-  ]: any = await Promise.all([
-    db.query(`
+  ] = await Promise.all([
+    db.query<CartinhaAdminRow[]>(`
       SELECT cartinhas.*, instituicoes.nome_instituicao
       FROM cartinhas
       INNER JOIN instituicoes ON cartinhas.instituicao_id = instituicoes.id
       ORDER BY cartinhas.id DESC
     `),
-    db.query("SELECT id, nome_instituicao, contato, responsavel, quantidade_vagas FROM instituicoes"),
-    db.query("SELECT id, nome_local, endereco, horario FROM pontos_entrega"),
-    db.query("SELECT id, nome FROM tags"),
-    db.query("SELECT id, nome, telefone, email, tipo, admin_role FROM usuarios ORDER BY nome ASC"),
-    db.query("SELECT status, COUNT(*) as total FROM cartinhas GROUP BY status"),
-    db.query("SELECT COUNT(*) as totalPadrinhos FROM usuarios WHERE tipo = 'padrinho'"),
-    db.query(`SELECT COUNT(*) as totalVencidas FROM cartinhas
+    db.query<InstituicaoRow[]>("SELECT id, nome_instituicao, contato, responsavel, quantidade_vagas FROM instituicoes"),
+    db.query<PontoEntregaRow[]>("SELECT id, nome_local, endereco, horario FROM pontos_entrega"),
+    db.query<TagRow[]>("SELECT id, nome FROM tags"),
+    db.query<UsuarioAdminRow[]>("SELECT id, nome, telefone, email, tipo, admin_role FROM usuarios ORDER BY nome ASC"),
+    db.query<StatusCountRow[]>("SELECT status, COUNT(*) as total FROM cartinhas GROUP BY status"),
+    db.query<TotalPadrinhosRow[]>("SELECT COUNT(*) as totalPadrinhos FROM usuarios WHERE tipo = 'padrinho'"),
+    db.query<TotalVencidasRow[]>(`SELECT COUNT(*) as totalVencidas FROM cartinhas
               WHERE data_limite_entrega < CURDATE()
                 AND status NOT IN ('entregue', 'cancelada')`),
   ]);
@@ -111,10 +166,10 @@ export default async function AdminPage({ searchParams }: AdminProps) {
               <p className="text-sm text-gray-500 mt-1">
                 Logado como {usuario.nome} ({
                   usuario.admin_role === "master"
-                    ? "admin master"
+                    ? "Super Adm"
                     : usuario.admin_role === "full"
-                      ? "admin completo"
-                      : "admin editor"
+                      ? "Gerente"
+                      : "Editor"
                 })
               </p>
             </div>
@@ -160,6 +215,14 @@ export default async function AdminPage({ searchParams }: AdminProps) {
 
           {abaAtiva === "usuarios" && canManageUsers && (
             <div className="space-y-8">
+              <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700">
+                <p className="font-semibold text-gray-800 mb-2">O que cada nível pode fazer</p>
+                <ul className="space-y-1">
+                  <li><span className="font-semibold">Editor</span> — edita cartinhas, instituições, tags e pontos de entrega já cadastrados. Não pode criar, excluir, nem ver esta aba.</li>
+                  <li><span className="font-semibold">Gerente</span> — além de editar, pode criar e excluir cartinhas, instituições, tags e pontos de entrega. Não vê esta aba.</li>
+                  <li><span className="font-semibold">Super Adm</span> — único que acessa esta aba: cadastra admins e muda o nível de qualquer um. Também pode tudo que o Gerente faz.</li>
+                </ul>
+              </div>
               <FormularioUsuarioAdmin />
               <TabelaUsuariosAdmin dados={usuarios} />
             </div>

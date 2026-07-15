@@ -3,12 +3,13 @@
 import { salvarInstituicao } from "@/app/actions/instituicoes";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect } from "react";
+import type { InstituicaoItem } from "./types";
 
 export default function FormularioInstituicao({
   instituicao,
   onCancel,
 }: {
-  instituicao?: any | null;
+  instituicao?: InstituicaoItem | null;
   onCancel?: () => void;
 }) {
   const router = useRouter();

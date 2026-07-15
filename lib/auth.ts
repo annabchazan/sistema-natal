@@ -2,6 +2,7 @@ import { createHmac, randomBytes, scryptSync, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import db from "@/lib/db";
+import type { RowDataPacket } from "mysql2/promise";
 
 export type TipoUsuario = "admin" | "padrinho";
 export type AdminRole = "master" | "full" | "editor";
@@ -14,6 +15,8 @@ export interface UsuarioAutenticado {
   tipo: TipoUsuario;
   admin_role: AdminRole | null;
 }
+
+interface UsuarioRow extends RowDataPacket, UsuarioAutenticado {}
 
 export const SESSION_COOKIE = "sistema_natal_session";
 const SESSION_MAX_AGE = 60 * 60 * 24 * 7;
@@ -102,7 +105,7 @@ export async function limparSessao() {
   cookieStore.delete(SESSION_COOKIE);
 }
 
-export async function getUsuarioAutenticado() {
+export async function getUsuarioAutenticado(): Promise<UsuarioAutenticado | null> {
   const cookieStore = await cookies();
   const valorSessao = cookieStore.get(SESSION_COOKIE)?.value;
   const usuarioId = lerUsuarioIdDaSessao(valorSessao);
@@ -111,12 +114,12 @@ export async function getUsuarioAutenticado() {
     return null;
   }
 
-  const [rows]: any = await db.query(
+  const [rows] = await db.query<UsuarioRow[]>(
     "SELECT id, nome, telefone, email, tipo, admin_role FROM usuarios WHERE id = ? LIMIT 1",
     [usuarioId],
   );
 
-  return (rows?.[0] as UsuarioAutenticado | undefined) || null;
+  return rows[0] ?? null;
 }
 
 export function usuarioEhAdmin(usuario: UsuarioAutenticado | null | undefined) {
@@ -198,7 +201,7 @@ export async function validarPermissaoAdmin(
   if (permissao === "users" && !adminPodeGerenciarPermissoes(usuario)) {
     return {
       ok: false,
-      message: "Apenas administradores master podem gerenciar usuarios e permissoes.",
+      message: "Apenas Super Adm pode gerenciar usuarios e permissoes.",
     };
   }
 
