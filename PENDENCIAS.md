@@ -111,12 +111,46 @@ Mencionado na entrevista, ainda não validado se será implementado.
 
 ---
 
-## Decisões Abertas com o Cliente
+## Decisões Respondidas pelo Cliente (2026-07-20)
 
-| Decisão | Contexto |
-|---------|----------|
-| Limite de cartinhas por padrinho | Sugestão: 3 por campanha. Confirmar. |
-| Fluxo de reapadrinhamento | Zera padrinho e volta para `disponivel`, ou fica como `reapadrinhado` separado? |
-| O padrinho original é notificado no cancelamento? | Define se precisa de template de e-mail adicional. |
-| Formato do crachá | Se implementar: PDF? Impressão direta? Gerado pelo admin ou pelo padrinho? |
-| Política de retenção de dados (LGPD) | Quantos anos manter histórico de apadrinhamentos após a campanha? |
+Respostas de Gabi (responsável pelo projeto) às perguntas pendentes.
+
+| Decisão | Resposta do cliente | Status |
+|---------|---------------------|--------|
+| Limite de cartinhas por padrinho | **20 está bom.** Empresas que apadrinham em volume recebem uma instituição inteira por fora do site, então não passa pelo limite. | ✅ Confirmado — nenhuma mudança de código necessária |
+| Histórico de desistência | **Querem sim** um registro de quem desistiu e quando (histórico completo, não só uma marcação simples). Cliente perguntou se a desistência ocorre no fechamento do carrinho ou depois da "compra" — resposta: só existe desistência **depois** da confirmação (`cancelarApadrinamento()`); abandono de carrinho antes disso é só localStorage e não precisa de rastro. | 🔧 A implementar — ver item novo abaixo |
+| Aviso de desistência por e-mail | **Sim.** Notificar `cartinhas@semprecrianca.org` sempre que um padrinho desistir depois de confirmado. | 🔧 A implementar — ver item novo abaixo |
+| Formato do crachá | Exemplo enviado pelo cliente (Google Drive). Crianças com necessidade especial (PCD ou alergia alimentar) têm crachá **impresso em neon**, com **observação no verso**. Ainda não definido se geração é no admin ou automática. | ⏳ Aguardando análise do exemplo enviado — ver item no backlog |
+| Retenção de dados (LGPD) | **6 meses** após o fim da campanha. Depois disso, o cliente migra os dados relevantes para o Mailchimp (banco de dados geral deles) por conta própria. | 🔧 A implementar — ver item novo abaixo |
+| WhatsApp — CNPJ | `12.629.489/0001-44` | ✅ Recebido |
+| WhatsApp — número dedicado | Cliente ainda vai definir internamente quem fica com essa função (não pode ser um número institucional já em uso). | ⏳ Bloqueado — aguardando definição interna do cliente |
+| WhatsApp — aprovação dos templates | Ainda não respondido nesta rodada. | ⏳ Pendente |
+| Domínio | Vão usar subdomínio do site atual. Cliente vai conversar com o responsável pelo DNS. | ⏳ Aguardando registro DNS do lado do cliente |
+
+---
+
+## Novos Itens de Backlog (a partir das respostas acima)
+
+### Histórico de desistência de apadrinhamento
+- Hoje `cancelarApadrinamento()` só zera `apadrinhado_por_usuario_id` e volta o status — não fica rastro de quem desistiu.
+- Cliente quer histórico completo (quem, qual cartinha, quando), não só uma flag booleana.
+- Precisa: nova tabela (ex.: `desistencias`) gravando `cartinha_id`, `usuario_id`, `nome_crianca`/`numero_sequencial` (snapshot), `data_desistencia`. Gravar dentro da mesma transação do `UPDATE` em `cancelarApadrinamento()`.
+- Consultável futuramente numa aba do admin ("Desistências") ou export CSV.
+
+### Notificar equipe por e-mail no cancelamento
+- Adicionar envio para `cartinhas@semprecrianca.org` dentro de `cancelarApadrinamento()`, junto ao e-mail que já vai pro padrinho (`enviarCancelamentoApadrinamento` em `lib/email.ts`).
+- Pode reaproveitar o mesmo template ou criar um mais simples voltado à equipe.
+
+### Retenção de dados (LGPD) — 6 meses pós-campanha
+- Não existe hoje o conceito de "fim de campanha" no schema — precisa decidir onde registrar essa data (nova tabela `campanhas`? campo de config?).
+- Job (cron ou manual) que, 6 meses após o fim da campanha, anonimiza/remove dados pessoais de apadrinhamento (nome do padrinho, e-mail, telefone), mantendo dados agregados se necessário.
+- Cliente faz a exportação para o Mailchimp por fora — sistema não precisa integrar com Mailchimp.
+
+### Crachá especial (PCD / alergia alimentar)
+- Exemplo de crachá enviado pelo cliente via Google Drive (não acessado ainda — ver link na conversa).
+- Regular: crachá padrão. Especial: impresso em **neon**, com **observação** (tipo de necessidade/alergia) no verso.
+- ✅ **Feito**: campo `necessidade_especial` (BOOLEAN) + `observacao_especial` (TEXT) em `cartinhas` (`migration_v7.sql`). Checkbox + textarea condicional em `FormularioCartinha.tsx`. Indicador "Crachá neon" na `TabelaCartinhas.tsx`.
+- **Falta**: aplicar `migration_v7.sql` no banco. E decidir/implementar a geração do crachá em si — layout visual (regular vs. neon), se é PDF ou impressão direta, e se é gerado manualmente pelo admin ou automaticamente.
+
+### WhatsApp — desbloqueado parcialmente
+- CNPJ recebido: `12.629.489/0001-44`. Falta o cliente definir o número dedicado antes de seguir com o cadastro no Meta Business Manager.

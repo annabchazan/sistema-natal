@@ -11,6 +11,8 @@ export interface CartinhaItem {
   foto_cartinha?: string | null;
   data_limite_entrega?: string | null;
   status: string;
+  necessidade_especial?: boolean;
+  observacao_especial?: string | null;
 }
 
 export interface InstituicaoOption {

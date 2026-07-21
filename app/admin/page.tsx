@@ -37,6 +37,8 @@ interface CartinhaAdminRow extends RowDataPacket {
   status: string;
   data_apadrinamento: string | null;
   apadrinhado_por_usuario_id: number | null;
+  necessidade_especial: boolean;
+  observacao_especial: string | null;
   nome_instituicao: string;
 }
 

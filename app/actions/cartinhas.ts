@@ -31,6 +31,8 @@ interface CartinhaComTagRow extends RowDataPacket {
   status: string;
   data_apadrinamento: string | null;
   apadrinhado_por_usuario_id: number | null;
+  necessidade_especial: boolean;
+  observacao_especial: string | null;
   tag_nome: string | null;
 }
 
@@ -165,6 +167,10 @@ export async function salvarCartinha(
   const tag_id = tag_id_raw === "" ? null : tag_id_raw;
   const foto_cartinha = formData.get("foto_cartinha") as File | null;
   const data_limite_entrega = formData.get("data_limite_entrega") as string;
+  const necessidade_especial = formData.get("necessidade_especial") === "on";
+  const observacao_especial = necessidade_especial
+    ? ((formData.get("observacao_especial") as string) || null)
+    : null;
   const statusRaw = (formData.get("status") as string) || "disponivel";
   const status: StatusCartinha = STATUS_PERMITIDOS.includes(statusRaw as StatusCartinha)
     ? (statusRaw as StatusCartinha)
@@ -213,12 +219,14 @@ export async function salvarCartinha(
          SET nome_crianca = ?, idade = ?, texto_cartinha = ?, presente_pedido = ?,
              instituicao_id = ?, tag_id = ?,
              foto_cartinha = COALESCE(?, foto_cartinha),
-             data_limite_entrega = ?, status = ?
+             data_limite_entrega = ?, status = ?,
+             necessidade_especial = ?, observacao_especial = ?
          WHERE id = ?`,
         [
           nome_crianca, idade, texto_cartinha, presente_pedido,
           instituicao_id, tag_id, fotoPath,
-          data_limite_entrega || null, status, Number(id),
+          data_limite_entrega || null, status,
+          necessidade_especial, observacao_especial, Number(id),
         ],
       );
 
@@ -241,12 +249,14 @@ export async function salvarCartinha(
         `INSERT INTO cartinhas
            (nome_crianca, idade, texto_cartinha, presente_pedido,
             instituicao_id, tag_id, numero_sequencial,
-            foto_cartinha, data_limite_entrega, status)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            foto_cartinha, data_limite_entrega, status,
+            necessidade_especial, observacao_especial)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           nome_crianca, idade, texto_cartinha, presente_pedido,
           instituicao_id, tag_id, numeroSequencial,
           fotoPath, data_limite_entrega || null, status,
+          necessidade_especial, observacao_especial,
         ],
       );
     }

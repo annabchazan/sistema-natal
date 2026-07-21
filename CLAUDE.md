@@ -91,6 +91,8 @@ database_updates.sql  # Migrações manuais (histórico de ALTER TABLE)
 | status | ENUM | ver estados abaixo |
 | data_apadrinamento | DATETIME NULL | preenchido em `finalizarApadrinamento()` |
 | apadrinhado_por_usuario_id | INT FK NULL | FK para usuarios.id |
+| necessidade_especial | BOOLEAN | default FALSE. Indica PCD ou alergia alimentar — define se o crachá é impresso em neon (`migration_v7.sql`) |
+| observacao_especial | TEXT NULL | detalhe da condição (ex: "Alergia a amendoim"), impresso no verso do crachá quando `necessidade_especial = true` |
 
 > Não existe (e não deve existir) coluna `apadrinada` — era um campo legado que foi removido. O `status` é a única fonte de verdade.
 
@@ -196,7 +198,8 @@ finalizarApadrinamento() em cartinhas.ts
 - [x] **E-mail de confirmação pós-apadrinhamento**: enviado via Resend após `finalizarApadrinamento()`. Template em `emails/ConfirmacaoApadrinhamento.tsx`, cliente em `lib/email.ts` — **feito**
 - [x] **Lembretes automáticos**: cron diário às 9h via Vercel (`vercel.json`). Rota `GET /api/cron/lembretes` protegida por `CRON_SECRET`. Templates em `emails/LembreteEntrega.tsx`. Controle de duplicatas em `lembretes_enviados` (`migration_v4.sql`) — **feito**
 - [x] **Cancelar apadrinhamento**: padrinho cancela da área dele enquanto status for `apadrinhada`. Cartinha volta para `disponivel`. Action `cancelarApadrinamento()` em `cartinhas.ts` — **feito**
-- [x] **Limite de cartinhas por padrinho**: 20 por checkout, validado em `finalizarApadrinamento()` — **feito**
+  - [ ] **Pendente (confirmado com cliente em 2026-07-20)**: gravar histórico de quem desistiu e quando (nova tabela, ex. `desistencias`), e notificar `cartinhas@semprecrianca.org` por e-mail a cada cancelamento — ver `PENDENCIAS.md`
+- [x] **Limite de cartinhas por padrinho**: 20 por checkout, validado em `finalizarApadrinamento()` — **feito** (confirmado com cliente em 2026-07-20, sem necessidade de alterar)
 - [x] **Recuperação de senha**: fluxo completo via e-mail (Resend). Páginas `/esqueci-senha` e `/redefinir-senha`. Requer `migration_v3.sql` aplicada — **feito**
 - [x] **Limpar localStorage no logout**: `limparCarrinho()` chamado em `handleLogout()` no Header — **feito**
 
@@ -206,10 +209,11 @@ finalizarApadrinamento() em cartinhas.ts
 - [x] **Paginação nas listagens**: home e admin paginados — **feito**
 - [x] **Dashboard admin com métricas**: cards por status, total de padrinhos, % entregues, barra de progresso e alerta de prazos vencidos — **feito**
 - [x] **Índices no banco**: `idx_cartinhas_status`, `idx_cartinhas_instituicao`, `idx_cartinhas_apadrinhado_por` — **feito**
-- [ ] **Impressão de crachá**: mencionado na entrevista como "a verificar"
+- [ ] **Impressão de crachá**: confirmado com cliente em 2026-07-20 — existe crachá especial (PCD/alergia alimentar), impresso em neon, com observação no verso. Schema pronto: colunas `necessidade_especial` (BOOLEAN) e `observacao_especial` (TEXT) em `cartinhas` (`migration_v7.sql`), checkbox + textarea no `FormularioCartinha.tsx`, indicador "Crachá neon" na `TabelaCartinhas.tsx` do admin. **Falta**: a geração do crachá em si (PDF/layout de impressão, manual pelo admin ou automática). Ver `PENDENCIAS.md`
 - [x] **Notificação quando entregue**: e-mail disparado em `salvarCartinha()` ao detectar transição para `entregue`. Template `emails/PresenteEntregue.tsx` — **feito**
 - [x] **Exclusão de conta (LGPD)**: botão na `/usuario`. Cancela apadrinhamentos ativos, preserva histórico, remove dados. Bloqueia se cartinha estiver em estágio avançado — **feito**
-- [ ] **Integração WhatsApp**: envio de mensagens automáticas para padrinhos (lembrete de entrega, agradecimento pós-entrega, aviso de cancelamento). Avaliar Evolution API ou Z-API como gateway. Requer número de WhatsApp Business dedicado à campanha.
+- [ ] **Política de retenção de dados (LGPD)**: confirmado com cliente em 2026-07-20 — manter histórico de apadrinhamento por **6 meses** após o fim da campanha; depois disso o cliente migra o que precisar para o Mailchimp por fora. Falta implementar: onde registrar a data de fim de campanha e o job de anonimização/remoção.
+- [ ] **Integração WhatsApp**: envio de mensagens automáticas para padrinhos (lembrete de entrega, agradecimento pós-entrega, aviso de cancelamento). Plataforma escolhida: WhatsApp Cloud API (Meta). CNPJ da organização recebido do cliente (`12.629.489/0001-44`) em 2026-07-20. Falta o cliente definir o número dedicado (não pode ser número institucional já em uso) antes de seguir com o cadastro no Meta Business Manager.
 
 ---
 
@@ -219,6 +223,7 @@ finalizarApadrinamento() em cartinhas.ts
 - ~~Typo `"✓ Apadinhada"`~~ — **corrigido para "Apadrinhada"**
 - ~~Textos sem acento no Header e admin~~ — **corrigidos**
 - [ ] **Revisão geral de layout**: passar por todas as páginas (home, checkout, usuário, admin, login, cadastro, esqueci/redefinir senha) e alinhar visual, espaçamentos e responsividade antes de ir a produção
+- [ ] **Auditoria Lighthouse / acessibilidade**: rodar Lighthouse (performance, acessibilidade, SEO, boas práticas) nas páginas principais (home, checkout, usuário, admin) e corrigir os achados — contraste de cores, labels/alt text, navegação por teclado, tamanho de imagens, etc. Antes de ir a produção
 
 ---
 
@@ -253,7 +258,7 @@ CRON_SECRET=<string aleatória longa>   # protege GET /api/cron/lembretes
 
 ### Popular o banco
 Executar `database_updates.sql` no MySQL após criar o schema base.
-Em seguida, executar as migrations na ordem: `migration_v2.sql` (status extras) → `migration_v3.sql` (recuperação de senha) → `migration_v4.sql` (tabela `lembretes_enviados`) → `migration_v5.sql` (índices) → `migration_v6.sql` (nível de admin `master` — não esquecer de promover um usuário manualmente após aplicar).
+Em seguida, executar as migrations na ordem: `migration_v2.sql` (status extras) → `migration_v3.sql` (recuperação de senha) → `migration_v4.sql` (tabela `lembretes_enviados`) → `migration_v5.sql` (índices) → `migration_v6.sql` (nível de admin `master` — não esquecer de promover um usuário manualmente após aplicar) → `migration_v7.sql` (campos `necessidade_especial`/`observacao_especial` para o crachá).
 
 ---
 

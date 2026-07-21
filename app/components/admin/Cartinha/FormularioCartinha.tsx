@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { salvarCartinha, CartinhaState } from "@/app/actions/cartinhas";
 import type { CartinhaItem, InstituicaoOption, TagOption } from "./types";
@@ -20,6 +20,9 @@ export default function FormularioCartinha({
 }: FormProps) {
   const [state, formAction] = useActionState(salvarCartinha, initialState);
   const router = useRouter();
+  const [necessidadeEspecial, setNecessidadeEspecial] = useState(
+    cartinha?.necessidade_especial ?? false,
+  );
 
   useEffect(() => {
     if (state.success) {
@@ -185,6 +188,37 @@ export default function FormularioCartinha({
               Controle interno — não aparece para o padrinho.
             </p>
           </div>
+        </div>
+
+        <div className="border rounded-md p-4 bg-amber-50/50">
+          <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+            <input
+              type="checkbox"
+              name="necessidade_especial"
+              className="accent-red-600 h-4 w-4"
+              checked={necessidadeEspecial}
+              onChange={(e) => setNecessidadeEspecial(e.target.checked)}
+            />
+            Criança PCD ou com alergia/condição especial
+          </label>
+          <p className="text-xs text-gray-500 mt-1 ml-6">
+            Marque para imprimir o crachá em neon com a observação no verso.
+          </p>
+
+          {necessidadeEspecial && (
+            <div className="mt-3 ml-6">
+              <label className="block text-sm font-medium text-gray-700">
+                Observação (impressa no verso do crachá)
+              </label>
+              <textarea
+                name="observacao_especial"
+                rows={2}
+                className="w-full p-2 border rounded-md"
+                placeholder="Ex: Alergia a amendoim e leite / Cadeira de rodas"
+                defaultValue={cartinha?.observacao_especial ?? ""}
+              ></textarea>
+            </div>
+          )}
         </div>
 
         <button

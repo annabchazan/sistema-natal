@@ -72,6 +72,14 @@ export default function TabelaCartinhas({
                 <td className="px-6 py-4 font-medium text-gray-900">
                   {item.nome_crianca}
                   <span className="text-gray-400 font-normal"> ({item.idade} anos)</span>
+                  {item.necessidade_especial && (
+                    <span
+                      title={item.observacao_especial || "Necessidade especial"}
+                      className="ml-2 px-2 py-0.5 rounded-full text-xs font-bold bg-lime-200 text-lime-800"
+                    >
+                      Crachá neon
+                    </span>
+                  )}
                 </td>
                 <td className="px-6 py-4">{item.presente_pedido}</td>
                 <td className="px-6 py-4">{item.nome_instituicao}</td>
