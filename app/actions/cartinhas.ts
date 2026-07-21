@@ -3,7 +3,7 @@ import crypto from "crypto";
 import db from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { getUsuarioAutenticado, validarPermissaoAdmin } from "@/lib/auth";
-import { enviarConfirmacaoApadrinhamento, enviarNotificacaoEntrega, enviarCancelamentoApadrinamento } from "@/lib/email";
+import { enviarConfirmacaoApadrinhamento, enviarNotificacaoEntrega, enviarCancelamentoApadrinamento, enviarAvisoDesistenciaEquipe } from "@/lib/email";
 import type { RowDataPacket } from "mysql2/promise";
 
 export interface CartinhaState {
@@ -440,16 +440,20 @@ export async function cancelarApadrinamento(
     return { success: false, message: "Você precisa estar logado." };
   }
 
+  const conn = await db.getConnection();
   try {
+    await conn.beginTransaction();
+
     // Só cancela se a cartinha for do usuário e ainda estiver como 'apadrinhada'
-    const [rows] = await db.query<CartinhaCancelamentoRow[]>(
+    const [rows] = await conn.query<CartinhaCancelamentoRow[]>(
       `SELECT id, nome_crianca, presente_pedido, numero_sequencial FROM cartinhas
        WHERE id = ? AND apadrinhado_por_usuario_id = ? AND status = 'apadrinhada'
-       LIMIT 1`,
+       FOR UPDATE`,
       [cartinhaId, usuario.id],
     );
 
     if (!rows?.length) {
+      await conn.rollback();
       return {
         success: false,
         message: "Não foi possível cancelar. A cartinha já está em processamento ou não pertence a você.",
@@ -458,7 +462,7 @@ export async function cancelarApadrinamento(
 
     const cartinha = rows[0];
 
-    await db.query(
+    await conn.query(
       `UPDATE cartinhas
        SET status = 'disponivel',
            apadrinhado_por_usuario_id = NULL,
@@ -466,6 +470,14 @@ export async function cancelarApadrinamento(
        WHERE id = ?`,
       [cartinhaId],
     );
+
+    await conn.query(
+      `INSERT INTO desistencias (cartinha_id, usuario_id, nome_crianca, numero_sequencial)
+       VALUES (?, ?, ?, ?)`,
+      [cartinhaId, usuario.id, cartinha.nome_crianca, cartinha.numero_sequencial],
+    );
+
+    await conn.commit();
 
     enviarCancelamentoApadrinamento({
       nomePadrinho:     usuario.nome,
@@ -475,12 +487,22 @@ export async function cancelarApadrinamento(
       numeroSequencial: cartinha.numero_sequencial,
     }).catch((err) => console.error("Falha no e-mail de cancelamento:", err));
 
+    enviarAvisoDesistenciaEquipe({
+      nomePadrinho:     usuario.nome,
+      emailPadrinho:    usuario.email,
+      nomeCrianca:      cartinha.nome_crianca,
+      numeroSequencial: cartinha.numero_sequencial,
+    }).catch((err) => console.error("Falha no aviso de desistência para a equipe:", err));
+
     revalidatePath("/usuario");
     revalidatePath("/");
 
     return { success: true, message: "Apadrinhamento cancelado. A cartinha voltou para a lista." };
   } catch (err) {
+    await conn.rollback();
     console.error("Erro ao cancelar apadrinamento:", err);
     return { success: false, message: "Erro ao cancelar. Tente novamente." };
+  } finally {
+    conn.release();
   }
 }

@@ -44,6 +44,15 @@ Complementar o lembrete por e-mail com mensagem no WhatsApp do padrinho, usando 
 ### ~~"ID: {cartinha.id}" visível nos cards da home~~ ✅ Feito
 - Removido de `ListaCartinhasHome.tsx`
 
+### ~~Loop infinito ao carregar a home (Maximum update depth exceeded)~~ ✅ Feito
+- `temCartinha()` em `useCarrinhoApadrinhamento.ts` era recriada a cada render; o `useEffect` de `ListaCartinhasHome.tsx` dependia dela e reexecutava infinitamente
+- Corrigido envolvendo `temCartinha` em `useCallback` com dependência em `cartinhas` (estado interno do hook)
+
+### Fotos quebradas de cartinhas antigas (`/uploads/...` 404)
+Duas cartinhas no banco (dev) têm `foto_cartinha` apontando para `/uploads/cartinha_...` — caminho local de uma versão antiga do código, antes da integração com Cloudinary (`public/uploads` só tem `.gitkeep`, os arquivos nunca existiram neste ambiente). O código atual não escreve mais nesse caminho (só Cloudinary ou base64), então não é um bug ativo — é dado legado.
+
+- [ ] Conferir depois: `SELECT id, nome_crianca, foto_cartinha FROM cartinhas WHERE foto_cartinha LIKE '/uploads/%';` e reeditar essas cartinhas no admin (reupload) ou limpar o campo (`UPDATE cartinhas SET foto_cartinha = NULL WHERE foto_cartinha LIKE '/uploads/%';`)
+
 ### Revisão geral de layout e responsividade
 Passar por todas as páginas e alinhar visual, espaçamentos e responsividade antes do lançamento.
 
@@ -131,15 +140,14 @@ Respostas de Gabi (responsável pelo projeto) às perguntas pendentes.
 
 ## Novos Itens de Backlog (a partir das respostas acima)
 
-### Histórico de desistência de apadrinhamento
-- Hoje `cancelarApadrinamento()` só zera `apadrinhado_por_usuario_id` e volta o status — não fica rastro de quem desistiu.
-- Cliente quer histórico completo (quem, qual cartinha, quando), não só uma flag booleana.
-- Precisa: nova tabela (ex.: `desistencias`) gravando `cartinha_id`, `usuario_id`, `nome_crianca`/`numero_sequencial` (snapshot), `data_desistencia`. Gravar dentro da mesma transação do `UPDATE` em `cancelarApadrinamento()`.
-- Consultável futuramente numa aba do admin ("Desistências") ou export CSV.
+### ~~Histórico de desistência de apadrinhamento~~ ✅ Feito
+- Nova tabela `desistencias` (`migration_v8.sql`): `cartinha_id`, `usuario_id`, `nome_crianca`/`numero_sequencial` (snapshot), `data_desistencia`.
+- `cancelarApadrinamento()` agora roda em transação (`beginTransaction` + `SELECT ... FOR UPDATE`, igual `finalizarApadrinamento()`): atualiza a cartinha e grava a linha em `desistencias` atomicamente.
+- **Falta**: aplicar `migration_v8.sql` no banco. Consulta futura via SQL direta por enquanto (`SELECT * FROM desistencias ORDER BY data_desistencia DESC`) — aba dedicada no admin fica pra depois, se for útil.
 
-### Notificar equipe por e-mail no cancelamento
-- Adicionar envio para `cartinhas@semprecrianca.org` dentro de `cancelarApadrinamento()`, junto ao e-mail que já vai pro padrinho (`enviarCancelamentoApadrinamento` em `lib/email.ts`).
-- Pode reaproveitar o mesmo template ou criar um mais simples voltado à equipe.
+### ~~Notificar equipe por e-mail no cancelamento~~ ✅ Feito
+- `enviarAvisoDesistenciaEquipe()` em `lib/email.ts`, chamada dentro de `cancelarApadrinamento()` após o commit, para `cartinhas@semprecrianca.org`.
+- Template dedicado `emails/AvisoDesistenciaEquipe.tsx` (mais simples que o e-mail do padrinho).
 
 ### Retenção de dados (LGPD) — 6 meses pós-campanha
 - Não existe hoje o conceito de "fim de campanha" no schema — precisa decidir onde registrar essa data (nova tabela `campanhas`? campo de config?).

@@ -5,10 +5,12 @@ import RecuperacaoSenha from "@/emails/RecuperacaoSenha";
 import LembreteEntrega from "@/emails/LembreteEntrega";
 import PresenteEntregue from "@/emails/PresenteEntregue";
 import CancelamentoApadrinamento from "@/emails/CancelamentoApadrinamento";
+import AvisoDesistenciaEquipe from "@/emails/AvisoDesistenciaEquipe";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const FROM = `${process.env.EMAIL_FROM_NAME ?? "Natal Solidário"} <${process.env.EMAIL_FROM ?? "onboarding@resend.dev"}>`;
+const EMAIL_EQUIPE_CARTINHAS = "cartinhas@semprecrianca.org";
 
 interface CartinhaEmail {
   nome_crianca: string;
@@ -151,6 +153,40 @@ export async function enviarCancelamentoApadrinamento({
     return { ok: true };
   } catch (err) {
     console.error("Erro ao enviar e-mail de cancelamento:", err);
+    return { ok: false };
+  }
+}
+
+export async function enviarAvisoDesistenciaEquipe({
+  nomePadrinho,
+  emailPadrinho,
+  nomeCrianca,
+  numeroSequencial,
+}: {
+  nomePadrinho: string;
+  emailPadrinho: string;
+  nomeCrianca: string;
+  numeroSequencial: number | null;
+}) {
+  try {
+    const { error } = await resend.emails.send({
+      from: FROM,
+      to: EMAIL_EQUIPE_CARTINHAS,
+      subject: `Desistência: ${nomeCrianca}${numeroSequencial != null ? ` (#${numeroSequencial})` : ""}`,
+      react: createElement(AvisoDesistenciaEquipe, {
+        nomePadrinho,
+        emailPadrinho,
+        nomeCrianca,
+        numeroSequencial,
+      }),
+    });
+    if (error) {
+      console.error("Resend erro (aviso desistência equipe):", error);
+      return { ok: false };
+    }
+    return { ok: true };
+  } catch (err) {
+    console.error("Erro ao enviar aviso de desistência para a equipe:", err);
     return { ok: false };
   }
 }

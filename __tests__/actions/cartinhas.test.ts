@@ -16,13 +16,14 @@ vi.mock("@/lib/email", () => ({
   enviarConfirmacaoApadrinhamento: vi.fn().mockResolvedValue({ ok: true }),
   enviarNotificacaoEntrega: vi.fn().mockResolvedValue({ ok: true }),
   enviarCancelamentoApadrinamento: vi.fn().mockResolvedValue({ ok: true }),
+  enviarAvisoDesistenciaEquipe: vi.fn().mockResolvedValue({ ok: true }),
 }));
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 import db from "@/lib/db";
 import { getUsuarioAutenticado } from "@/lib/auth";
-import { enviarConfirmacaoApadrinhamento, enviarCancelamentoApadrinamento } from "@/lib/email";
+import { enviarConfirmacaoApadrinhamento, enviarCancelamentoApadrinamento, enviarAvisoDesistenciaEquipe } from "@/lib/email";
 import { finalizarApadrinamento, cancelarApadrinamento } from "@/app/actions/cartinhas";
 
 const mockDb = db as unknown as {
@@ -32,6 +33,7 @@ const mockDb = db as unknown as {
 const mockGetUsuario = vi.mocked(getUsuarioAutenticado);
 const mockEnviarConfirmacao = vi.mocked(enviarConfirmacaoApadrinhamento);
 const mockEnviarCancelamento = vi.mocked(enviarCancelamentoApadrinamento);
+const mockEnviarAvisoEquipe = vi.mocked(enviarAvisoDesistenciaEquipe);
 
 const usuarioFake = {
   id: 1,
@@ -129,21 +131,26 @@ describe("cancelarApadrinamento", () => {
 
   it("rejeita quando cartinha não pertence ao usuário ou status não é apadrinhada", async () => {
     mockGetUsuario.mockResolvedValue(usuarioFake);
-    // SELECT retorna vazio — cartinha não encontrada com os critérios
-    mockDb.query.mockResolvedValue([[]]);
+    // SELECT ... FOR UPDATE retorna vazio — cartinha não encontrada com os critérios
+    const conn = mockConexao([[[]]]);
     const res = await cancelarApadrinamento(99);
     expect(res.success).toBe(false);
     expect(res.message).toMatch(/não foi possível cancelar/i);
+    expect(conn.rollback).toHaveBeenCalled();
   });
 
   it("cancela e volta status para disponivel quando tudo ok", async () => {
     mockGetUsuario.mockResolvedValue(usuarioFake);
     mockEnviarCancelamento.mockResolvedValue({ ok: true });
-    mockDb.query
-      .mockResolvedValueOnce([[{ id: 1 }]])      // SELECT — cartinha encontrada
-      .mockResolvedValueOnce([{ affectedRows: 1 }]); // UPDATE
+    mockEnviarAvisoEquipe.mockResolvedValue({ ok: true });
+    const conn = mockConexao([
+      [[{ id: 1, nome_crianca: "Ana", presente_pedido: "Boneca", numero_sequencial: 1 }]], // SELECT ... FOR UPDATE
+      [{ affectedRows: 1 }], // UPDATE cartinhas
+      [{ insertId: 1 }],     // INSERT INTO desistencias
+    ]);
     const res = await cancelarApadrinamento(1);
     expect(res.success).toBe(true);
     expect(res.message).toMatch(/cancelado/i);
+    expect(conn.commit).toHaveBeenCalled();
   });
 });

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 interface CartinhaApadrinada {
   id: number;
@@ -56,9 +56,10 @@ export function useCarrinhoApadrinhamento() {
     setCartinhas([]);
   };
 
-  const temCartinha = (id: number) => {
-    return cartinhas.some((c) => c.id === id);
-  };
+  const temCartinha = useCallback(
+    (id: number) => cartinhas.some((c) => c.id === id),
+    [cartinhas],
+  );
 
   return {
     cartinhas,

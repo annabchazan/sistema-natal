@@ -117,6 +117,18 @@ database_updates.sql  # Migrações manuais (histórico de ALTER TABLE)
 
 > Tags são usadas para categorizar cartinhas na home. **Menino/Menina são gerenciados como tags** — não existe campo `genero` separado. Isso foi uma decisão consciente do projeto.
 
+### `desistencias`
+| Campo | Tipo | Notas |
+|-------|------|-------|
+| id | INT PK AI | |
+| cartinha_id | INT FK | referencia `cartinhas.id` |
+| usuario_id | INT FK | referencia `usuarios.id` — quem desistiu |
+| nome_crianca | VARCHAR(100) | snapshot no momento da desistência |
+| numero_sequencial | INT NULL | snapshot |
+| data_desistencia | DATETIME | default `CURRENT_TIMESTAMP` |
+
+> Histórico de quem desistiu de um apadrinhamento (confirmado com cliente em 2026-07-20). Gravada dentro da mesma transação de `cancelarApadrinamento()` (`migration_v8.sql`).
+
 ### `pontos_entrega`
 | Campo | Tipo |
 |-------|------|
@@ -197,8 +209,8 @@ finalizarApadrinamento() em cartinhas.ts
 
 - [x] **E-mail de confirmação pós-apadrinhamento**: enviado via Resend após `finalizarApadrinamento()`. Template em `emails/ConfirmacaoApadrinhamento.tsx`, cliente em `lib/email.ts` — **feito**
 - [x] **Lembretes automáticos**: cron diário às 9h via Vercel (`vercel.json`). Rota `GET /api/cron/lembretes` protegida por `CRON_SECRET`. Templates em `emails/LembreteEntrega.tsx`. Controle de duplicatas em `lembretes_enviados` (`migration_v4.sql`) — **feito**
-- [x] **Cancelar apadrinhamento**: padrinho cancela da área dele enquanto status for `apadrinhada`. Cartinha volta para `disponivel`. Action `cancelarApadrinamento()` em `cartinhas.ts` — **feito**
-  - [ ] **Pendente (confirmado com cliente em 2026-07-20)**: gravar histórico de quem desistiu e quando (nova tabela, ex. `desistencias`), e notificar `cartinhas@semprecrianca.org` por e-mail a cada cancelamento — ver `PENDENCIAS.md`
+- [x] **Cancelar apadrinhamento**: padrinho cancela da área dele enquanto status for `apadrinhada`. Cartinha volta para `disponivel`. Action `cancelarApadrinamento()` em `cartinhas.ts`, agora em transação (`beginTransaction` + `SELECT ... FOR UPDATE`) — **feito**
+  - [x] **Histórico de desistência + aviso à equipe** (confirmado com cliente em 2026-07-20): tabela `desistencias` (`migration_v8.sql`) grava quem desistiu, de qual cartinha e quando, dentro da mesma transação. E-mail para `cartinhas@semprecrianca.org` via `enviarAvisoDesistenciaEquipe()` — **feito** (falta aplicar `migration_v8.sql` em produção)
 - [x] **Limite de cartinhas por padrinho**: 20 por checkout, validado em `finalizarApadrinamento()` — **feito** (confirmado com cliente em 2026-07-20, sem necessidade de alterar)
 - [x] **Recuperação de senha**: fluxo completo via e-mail (Resend). Páginas `/esqueci-senha` e `/redefinir-senha`. Requer `migration_v3.sql` aplicada — **feito**
 - [x] **Limpar localStorage no logout**: `limparCarrinho()` chamado em `handleLogout()` no Header — **feito**
@@ -258,7 +270,7 @@ CRON_SECRET=<string aleatória longa>   # protege GET /api/cron/lembretes
 
 ### Popular o banco
 Executar `database_updates.sql` no MySQL após criar o schema base.
-Em seguida, executar as migrations na ordem: `migration_v2.sql` (status extras) → `migration_v3.sql` (recuperação de senha) → `migration_v4.sql` (tabela `lembretes_enviados`) → `migration_v5.sql` (índices) → `migration_v6.sql` (nível de admin `master` — não esquecer de promover um usuário manualmente após aplicar) → `migration_v7.sql` (campos `necessidade_especial`/`observacao_especial` para o crachá).
+Em seguida, executar as migrations na ordem: `migration_v2.sql` (status extras) → `migration_v3.sql` (recuperação de senha) → `migration_v4.sql` (tabela `lembretes_enviados`) → `migration_v5.sql` (índices) → `migration_v6.sql` (nível de admin `master` — não esquecer de promover um usuário manualmente após aplicar) → `migration_v7.sql` (campos `necessidade_especial`/`observacao_especial` para o crachá) → `migration_v8.sql` (tabela `desistencias`).
 
 ---
 
