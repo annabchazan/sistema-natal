@@ -77,7 +77,7 @@ export default function Header() {
 
   return (
     <>
-      <header className="bg-brand text-white shadow-lg sticky top-0 z-40">
+      <header className="bg-brand text-white shadow-lg sticky top-0 z-40 print:hidden">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold">Noelzinho Solidário</h1>

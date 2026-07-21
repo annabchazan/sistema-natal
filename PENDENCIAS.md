@@ -48,6 +48,11 @@ Complementar o lembrete por e-mail com mensagem no WhatsApp do padrinho, usando 
 - `temCartinha()` em `useCarrinhoApadrinhamento.ts` era recriada a cada render; o `useEffect` de `ListaCartinhasHome.tsx` dependia dela e reexecutava infinitamente
 - Corrigido envolvendo `temCartinha` em `useCallback` com dependência em `cartinhas` (estado interno do hook)
 
+### `useSearchParams()` sem Suspense boundary em `/login`
+Descoberto rodando `next build` (`npx next build`) pra validar a página de crachás: o build de produção falha ao prerenderizar `/login` — `useSearchParams()` precisa estar dentro de um `<Suspense>` boundary. Não impede o `next dev`, mas quebra `npm run build`/deploy.
+
+- [ ] Envolver o componente que usa `useSearchParams()` em `/login` com `<Suspense>` (ver https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout)
+
 ### Fotos quebradas de cartinhas antigas (`/uploads/...` 404)
 Duas cartinhas no banco (dev) têm `foto_cartinha` apontando para `/uploads/cartinha_...` — caminho local de uma versão antiga do código, antes da integração com Cloudinary (`public/uploads` só tem `.gitkeep`, os arquivos nunca existiram neste ambiente). O código atual não escreve mais nesse caminho (só Cloudinary ou base64), então não é um bug ativo — é dado legado.
 
@@ -154,11 +159,12 @@ Respostas de Gabi (responsável pelo projeto) às perguntas pendentes.
 - Job (cron ou manual) que, 6 meses após o fim da campanha, anonimiza/remove dados pessoais de apadrinhamento (nome do padrinho, e-mail, telefone), mantendo dados agregados se necessário.
 - Cliente faz a exportação para o Mailchimp por fora — sistema não precisa integrar com Mailchimp.
 
-### Crachá especial (PCD / alergia alimentar)
-- Exemplo de crachá enviado pelo cliente via Google Drive (não acessado ainda — ver link na conversa).
-- Regular: crachá padrão. Especial: impresso em **neon**, com **observação** (tipo de necessidade/alergia) no verso.
-- ✅ **Feito**: campo `necessidade_especial` (BOOLEAN) + `observacao_especial` (TEXT) em `cartinhas` (`migration_v7.sql`). Checkbox + textarea condicional em `FormularioCartinha.tsx`. Indicador "Crachá neon" na `TabelaCartinhas.tsx`.
-- **Falta**: aplicar `migration_v7.sql` no banco. E decidir/implementar a geração do crachá em si — layout visual (regular vs. neon), se é PDF ou impressão direta, e se é gerado manualmente pelo admin ou automaticamente.
+### ~~Crachá especial (PCD / alergia alimentar)~~ ✅ Feito
+- Campo `necessidade_especial` (BOOLEAN) + `observacao_especial` (TEXT) em `cartinhas` (`migration_v7.sql`). Checkbox + textarea condicional em `FormularioCartinha.tsx`. Indicador "Crachá neon" na `TabelaCartinhas.tsx`.
+- Nova aba **Crachás** no admin (`app/components/admin/Cracha/`): filtra por instituição, seleciona cartinhas e abre `/admin/crachas/imprimir?ids=...` — página HTML com CSS de impressão (`@page`, grid 2x2, `page-break-after`), sem depender de biblioteca de PDF (o admin usa Ctrl+P / "Salvar como PDF" do navegador).
+- Logo da organização em `public/logo-sempre-crianca.png` (recebida do cliente em 2026-07-20).
+- Crachás com `necessidade_especial`: card da frente vem destacado (borda/fundo verde-limão, texto "ESPECIAL — imprimir em neon") e é seguido, na mesma folha, por um segundo card com a observação — pensado pra equipe cortar e colar no verso do crachá físico impresso em papel neon (não é impressão duplex automática, que seria frágil de depender do driver da impressora).
+- Header/Footer/WhatsAppButton ganharam `print:hidden` pra não aparecerem na folha impressa.
 
 ### WhatsApp — desbloqueado parcialmente
 - CNPJ recebido: `12.629.489/0001-44`. Falta o cliente definir o número dedicado antes de seguir com o cadastro no Meta Business Manager.

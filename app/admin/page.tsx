@@ -8,6 +8,7 @@ import PontosEntregaIndex from "../components/admin/PontoEntrega";
 import FormularioUsuarioAdmin from "../components/admin/Usuario/FormularioUsuarioAdmin";
 import TabelaUsuariosAdmin from "../components/admin/Usuario/TabelaUsuariosAdmin";
 import ExportarIndex from "../components/admin/Exportar";
+import CrachasIndex from "../components/admin/Cracha";
 import DashboardMetricas from "../components/admin/DashboardMetricas";
 import {
   adminPodeCriarOuExcluir,
@@ -116,6 +117,7 @@ export default async function AdminPage({ searchParams }: AdminProps) {
     { id: "instituicoes", label: "Instituições",     icon: "Instituições" },
     { id: "tags",        label: "Tags",              icon: "Tags" },
     { id: "pontos",      label: "Pontos de Entrega", icon: "Pontos" },
+    { id: "crachas",     label: "Crachás",           icon: "Crachás" },
     { id: "exportar",    label: "Exportar",          icon: "Exportar" },
     ...(canManageUsers
       ? [{ id: "usuarios", label: "Usuários", icon: "Usuários" }]
@@ -211,6 +213,10 @@ export default async function AdminPage({ searchParams }: AdminProps) {
               pontosEntrega={pontosEntrega}
               canManage={canManage}
             />
+          )}
+
+          {abaAtiva === "crachas" && (
+            <CrachasIndex cartinhas={cartinhas} instituicoes={instituicoes} />
           )}
 
           {abaAtiva === "exportar" && <ExportarIndex />}

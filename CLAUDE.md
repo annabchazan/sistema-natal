@@ -34,8 +34,9 @@ app/
 │   └── pontosEntrega.ts
 ├── admin/            # Painel administrativo (protegido por middleware)
 │   ├── layout.tsx    # Verifica acesso admin
-│   ├── page.tsx      # Painel com abas: cartinhas, instituicoes, tags, pontos, usuarios
+│   ├── page.tsx      # Painel com abas: cartinhas, instituicoes, tags, pontos, crachas, exportar, usuarios
 │   ├── cartinhas/    # Página dedicada ao formulário de cartinha
+│   ├── crachas/imprimir/  # Página de impressão dos crachás (HTML + CSS de impressão, sem lib de PDF)
 │   └── tags/
 ├── components/
 │   ├── admin/        # Componentes do painel admin (Form + Tabela por entidade)
@@ -221,7 +222,7 @@ finalizarApadrinamento() em cartinhas.ts
 - [x] **Paginação nas listagens**: home e admin paginados — **feito**
 - [x] **Dashboard admin com métricas**: cards por status, total de padrinhos, % entregues, barra de progresso e alerta de prazos vencidos — **feito**
 - [x] **Índices no banco**: `idx_cartinhas_status`, `idx_cartinhas_instituicao`, `idx_cartinhas_apadrinhado_por` — **feito**
-- [ ] **Impressão de crachá**: confirmado com cliente em 2026-07-20 — existe crachá especial (PCD/alergia alimentar), impresso em neon, com observação no verso. Schema pronto: colunas `necessidade_especial` (BOOLEAN) e `observacao_especial` (TEXT) em `cartinhas` (`migration_v7.sql`), checkbox + textarea no `FormularioCartinha.tsx`, indicador "Crachá neon" na `TabelaCartinhas.tsx` do admin. **Falta**: a geração do crachá em si (PDF/layout de impressão, manual pelo admin ou automática). Ver `PENDENCIAS.md`
+- [x] **Impressão de crachá**: confirmado com cliente em 2026-07-20 — **feito**. Aba "Crachás" no admin (`app/components/admin/Cracha/`) filtra por instituição e seleciona cartinhas; botão abre `/admin/crachas/imprimir?ids=...`, página HTML com CSS de impressão (grid 2x2, `@page`, sem lib de PDF). Crachás com `necessidade_especial` saem destacados e com um card de observação extra na mesma folha, pra colar no verso do crachá físico em papel neon. Logo em `public/logo-sempre-crianca.png`.
 - [x] **Notificação quando entregue**: e-mail disparado em `salvarCartinha()` ao detectar transição para `entregue`. Template `emails/PresenteEntregue.tsx` — **feito**
 - [x] **Exclusão de conta (LGPD)**: botão na `/usuario`. Cancela apadrinhamentos ativos, preserva histórico, remove dados. Bloqueia se cartinha estiver em estágio avançado — **feito**
 - [ ] **Política de retenção de dados (LGPD)**: confirmado com cliente em 2026-07-20 — manter histórico de apadrinhamento por **6 meses** após o fim da campanha; depois disso o cliente migra o que precisar para o Mailchimp por fora. Falta implementar: onde registrar a data de fim de campanha e o job de anonimização/remoção.
