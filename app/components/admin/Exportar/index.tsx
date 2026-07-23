@@ -113,28 +113,28 @@ export default function ExportarIndex() {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-xl font-bold text-gray-800">Exportar Planilha</h2>
-        <p className="text-sm text-gray-500 mt-1">
+        <h2 className="text-lg font-bold text-ink">Exportar planilha</h2>
+        <p className="text-sm text-stone-400 mt-1">
           Escolha os filtros e colunas desejados. O arquivo será baixado em formato CSV,
           compatível com Excel e Google Sheets.
         </p>
       </div>
 
       {/* Filtro de status */}
-      <div className="rounded-xl border border-gray-200 p-6 space-y-4">
+      <div className="rounded-md border border-stone-200 p-6 space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-gray-700">Filtrar por status</h3>
+          <h3 className="font-semibold text-sm text-ink">Filtrar por status</h3>
           <div className="flex gap-2 text-xs">
             <button
               onClick={selecionarTodosStatus}
-              className="text-blue-600 hover:underline"
+              className="text-brand-dark hover:underline"
             >
               Selecionar todos
             </button>
-            <span className="text-gray-300">|</span>
+            <span className="text-stone-300">|</span>
             <button
               onClick={limparStatus}
-              className="text-gray-500 hover:underline"
+              className="text-stone-400 hover:underline"
             >
               Limpar
             </button>
@@ -148,15 +148,15 @@ export default function ExportarIndex() {
               <button
                 key={s.key}
                 onClick={() => toggleStatus(s.key)}
-                className={`flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium border-2 transition-all ${
+                className={`flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium border-2 transition-colors ${
                   marcado
                     ? `${s.cor} border-current`
-                    : "bg-white text-gray-400 border-gray-200 hover:border-gray-300"
+                    : "bg-white text-stone-400 border-stone-200 hover:border-stone-300"
                 }`}
               >
                 <span
                   className={`h-3.5 w-3.5 rounded-sm border-2 flex items-center justify-center flex-shrink-0 ${
-                    marcado ? "border-current bg-current" : "border-gray-300"
+                    marcado ? "border-current bg-current" : "border-stone-300"
                   }`}
                 >
                   {marcado && (
@@ -171,26 +171,26 @@ export default function ExportarIndex() {
           })}
         </div>
 
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-stone-400">
           {statusSelecionados.size} de {STATUS_OPCOES.length} status selecionados
         </p>
       </div>
 
       {/* Seleção de colunas */}
-      <div className="rounded-xl border border-gray-200 p-6 space-y-4">
+      <div className="rounded-md border border-stone-200 p-6 space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-gray-700">Colunas da planilha</h3>
+          <h3 className="font-semibold text-sm text-ink">Colunas da planilha</h3>
           <div className="flex gap-2 text-xs">
             <button
               onClick={selecionarTodasColunas}
-              className="text-blue-600 hover:underline"
+              className="text-brand-dark hover:underline"
             >
               Selecionar todas
             </button>
-            <span className="text-gray-300">|</span>
+            <span className="text-stone-300">|</span>
             <button
               onClick={limparColunas}
-              className="text-gray-500 hover:underline"
+              className="text-stone-400 hover:underline"
             >
               Limpar
             </button>
@@ -203,19 +203,19 @@ export default function ExportarIndex() {
             return (
               <label
                 key={col.key}
-                className={`flex items-center gap-3 rounded-lg border-2 px-4 py-3 cursor-pointer transition-all ${
+                className={`flex items-center gap-3 rounded border-2 px-4 py-3 cursor-pointer transition-colors ${
                   marcado
-                    ? "border-red-400 bg-red-50"
-                    : "border-gray-200 bg-white hover:border-gray-300"
+                    ? "border-brand bg-brand/5"
+                    : "border-stone-200 bg-white hover:border-stone-300"
                 }`}
               >
                 <input
                   type="checkbox"
                   checked={marcado}
                   onChange={() => toggleColuna(col.key)}
-                  className="accent-red-600 h-4 w-4 flex-shrink-0"
+                  className="accent-brand h-4 w-4 flex-shrink-0"
                 />
-                <span className={`text-sm font-medium ${marcado ? "text-red-700" : "text-gray-500"}`}>
+                <span className={`text-sm font-medium ${marcado ? "text-brand-dark" : "text-stone-500"}`}>
                   {col.label}
                 </span>
               </label>
@@ -223,16 +223,16 @@ export default function ExportarIndex() {
           })}
         </div>
 
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-stone-400">
           {colunasSelecionadas.size} de {COLUNAS.length} colunas selecionadas
         </p>
       </div>
 
       {/* Resumo e botão */}
-      <div className="rounded-xl border border-dashed border-green-300 bg-green-50 p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="rounded-md border border-dashed border-verde-natal/40 bg-verde-natal/5 p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold text-green-800">Pronto para exportar</p>
-          <p className="text-xs text-green-700 mt-0.5">
+          <p className="text-sm font-semibold text-verde-natal">Pronto para exportar</p>
+          <p className="text-xs text-verde-natal/80 mt-0.5">
             Exportando {totalCartinhas} —{" "}
             {colunasSelecionadas.size} coluna{colunasSelecionadas.size !== 1 ? "s" : ""}
           </p>
@@ -240,7 +240,7 @@ export default function ExportarIndex() {
         <button
           onClick={handleExportar}
           disabled={carregando || statusSelecionados.size === 0 || colunasSelecionadas.size === 0}
-          className="flex items-center gap-2 rounded-lg bg-green-600 px-6 py-3 text-sm font-bold text-white shadow transition-colors hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 rounded bg-verde-natal px-6 py-3 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {carregando ? (
             <>

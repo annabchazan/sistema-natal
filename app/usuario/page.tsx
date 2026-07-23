@@ -6,6 +6,7 @@ import db from "@/lib/db";
 import FormularioEditarPerfil from "@/app/components/usuario/FormularioEditarPerfil";
 import BotaoCancelarApadrinamento from "@/app/components/usuario/BotaoCancelarApadrinamento";
 import BotaoExcluirConta from "@/app/components/usuario/BotaoExcluirConta";
+import { STATUS_CARTINHA } from "@/lib/statusCartinha";
 import type { RowDataPacket } from "mysql2/promise";
 
 interface CartinhaUsuarioRow extends RowDataPacket {
@@ -23,15 +24,31 @@ interface CartinhaUsuarioRow extends RowDataPacket {
 // Ordem do fluxo para a barra de progresso (estados especiais ficam fora)
 const FLUXO = ["apadrinhada", "conferida", "embrulhado", "entregue"] as const;
 
-const STATUS_INFO: Record<string, { label: string; cor: string; mensagem: string }> = {
-  apadrinhada:   { label: "Apadrinhada",   cor: "bg-blue-500",    mensagem: "Aguardando conferência pela equipe." },
-  conferida:     { label: "Conferida",     cor: "bg-purple-500",  mensagem: "Presente conferido! Em breve será embrulhado." },
-  embrulhado:    { label: "Embrulhado",    cor: "bg-indigo-500",  mensagem: "Presente embrulhado e pronto para entrega." },
-  entregue:      { label: "Entregue",      cor: "bg-emerald-500", mensagem: "Presente entregue à criança. Muito obrigado!" },
-  carente:       { label: "Carente",       cor: "bg-amber-500",   mensagem: "Esta cartinha precisa de atenção especial." },
-  reapadrinhado: { label: "Reapadrinhado", cor: "bg-yellow-500",  mensagem: "Cartinha em processo de reapadrinhamento." },
-  cancelada:     { label: "Cancelada",     cor: "bg-red-400",     mensagem: "Este apadrinhamento foi cancelado." },
+const MENSAGEM_STATUS: Record<string, string> = {
+  apadrinhada: "Aguardando conferência pela equipe.",
+  conferida: "Presente conferido! Em breve será embrulhado.",
+  embrulhado: "Presente embrulhado e pronto para entrega.",
+  entregue: "Presente entregue à criança. Muito obrigado!",
+  carente: "Esta cartinha precisa de atenção especial.",
+  reapadrinhado: "Cartinha em processo de reapadrinhamento.",
+  cancelada: "Este apadrinhamento foi cancelado.",
 };
+
+function IconeCalendario() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-3.5 h-3.5 shrink-0">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+    </svg>
+  );
+}
+
+function IconeRelogio() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-3.5 h-3.5 shrink-0">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+    </svg>
+  );
+}
 
 function formatarData(data: string | Date | null): string {
   if (!data) return "";
@@ -49,36 +66,26 @@ function BarraProgresso({ status }: { status: string }) {
 
   if (!estaNoFluxo) return null;
 
+  const finalizado = indiceAtual === FLUXO.length - 1; // entregue: tudo concluído, sem etapa "em andamento"
+
   return (
     <div className="mt-4">
-      <div className="flex items-center gap-1">
+      <div className="flex gap-1.5">
         {FLUXO.map((etapa, i) => {
-          const concluida = i <= indiceAtual;
-          const atual = i === indiceAtual;
+          const concluida = i < indiceAtual || finalizado;
+          const atual = i === indiceAtual && !finalizado;
           return (
-            <div key={etapa} className="flex items-center flex-1">
-              <div className="flex flex-col items-center flex-1">
-                <div
-                  className={`h-2.5 w-2.5 rounded-full border-2 transition-all ${
-                    concluida
-                      ? atual
-                        ? "border-red-600 bg-red-600 scale-125"
-                        : "border-green-600 bg-green-600"
-                      : "border-gray-300 bg-white"
-                  }`}
-                />
-                <span className={`mt-1 text-center text-[10px] leading-tight hidden sm:block ${
-                  concluida ? "text-gray-700 font-medium" : "text-gray-400"
-                }`}>
-                  {STATUS_INFO[etapa]?.label ?? etapa}
-                </span>
-              </div>
-              {i < FLUXO.length - 1 && (
-                <div className={`h-0.5 flex-1 mx-0.5 mb-3 rounded ${
-                  i < indiceAtual ? "bg-green-500" : "bg-gray-200"
-                }`} />
-              )}
-            </div>
+            <div
+              key={etapa}
+              title={STATUS_CARTINHA[etapa]?.label ?? etapa}
+              className={`flex-1 h-[3px] rounded-full ${
+                atual
+                  ? "bg-brand"
+                  : concluida
+                  ? "bg-verde-natal"
+                  : "bg-stone-200"
+              }`}
+            />
           );
         })}
       </div>
@@ -107,21 +114,19 @@ export default async function UsuarioPage() {
   hoje.setHours(0, 0, 0, 0);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-orange-50 to-amber-50 py-12">
-      <div className="container mx-auto px-4 max-w-4xl">
+    <div className="min-h-screen bg-cream py-14">
+      <div className="container mx-auto px-4 max-w-3xl">
 
-        <div className="bg-white rounded-[25px] shadow-lg border border-brand/20 overflow-hidden mb-8">
-          <div className="bg-brand text-white px-8 py-6 flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold">Olá, {usuario.nome.split(" ")[0]}!</h1>
-              <p className="text-white/80 text-sm mt-1">{usuario.email}</p>
-            </div>
-            <div className="text-right hidden sm:block">
-              <p className="text-3xl font-bold">{cartinhas.length}</p>
-              <p className="text-white/80 text-sm">
-                cartinha{cartinhas.length !== 1 ? "s" : ""} apadrinhada{cartinhas.length !== 1 ? "s" : ""}
-              </p>
-            </div>
+        <div className="bg-white border border-stone-200 border-t-[3px] border-t-brand rounded-md px-8 py-7 flex items-center justify-between mb-9">
+          <div>
+            <h1 className="text-xl font-bold text-ink">Olá, {usuario.nome.split(" ")[0]}</h1>
+            <p className="text-[13px] text-stone-400 mt-0.5">{usuario.email}</p>
+          </div>
+          <div className="text-right hidden sm:block">
+            <p className="text-[26px] font-bold text-ink">{cartinhas.length}</p>
+            <p className="text-[11.5px] text-stone-400">
+              apadrinhada{cartinhas.length !== 1 ? "s" : ""}
+            </p>
           </div>
         </div>
 
@@ -134,29 +139,33 @@ export default async function UsuarioPage() {
         />
 
         <div className="space-y-4 mt-8">
-          <h2 className="text-xl font-bold text-gray-800 px-1">
-            Minhas Cartinhas
+          <h2 className="text-[11px] font-bold text-stone-400 uppercase tracking-wide px-1">
+            Suas cartinhas
           </h2>
 
           {cartinhas.length === 0 ? (
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
-              <p className="text-5xl mb-4 text-brand">♥</p>
-              <p className="text-gray-500 text-lg mb-6">
+            <div className="bg-white rounded-md border border-stone-200 p-12 text-center">
+              <p className="text-4xl mb-4 text-brand">♥</p>
+              <p className="text-stone-500 text-base mb-6">
                 Você ainda não apadrinhou nenhuma cartinha.
               </p>
               <Link
                 href="/"
-                className="inline-flex items-center gap-2 rounded-full bg-brand border border-brand px-6 py-3 font-semibold text-white hover:bg-white hover:text-brand transition-colors"
+                className="inline-flex items-center gap-2 rounded bg-ink border border-ink px-6 py-3 font-semibold text-sm text-white hover:bg-white hover:text-ink transition-colors"
               >
                 Ver cartinhas disponíveis
               </Link>
             </div>
           ) : (
             cartinhas.map((cartinha) => {
-              const info = STATUS_INFO[cartinha.status] ?? {
+              const statusInfo = STATUS_CARTINHA[cartinha.status as keyof typeof STATUS_CARTINHA] ?? {
                 label: cartinha.status,
-                cor: "bg-gray-400",
-                mensagem: "",
+                dot: "bg-stone-400",
+              };
+              const info = {
+                label: statusInfo.label,
+                cor: statusInfo.dot,
+                mensagem: MENSAGEM_STATUS[cartinha.status] ?? "",
               };
 
               const prazo = cartinha.data_limite_entrega
@@ -183,17 +192,13 @@ export default async function UsuarioPage() {
               return (
                 <div
                   key={cartinha.id}
-                  className={`bg-white rounded-[25px] shadow-sm border overflow-hidden transition-shadow hover:shadow-md ${
-                    cartinha.status === "entregue"
-                      ? "border-emerald-200"
-                      : cartinha.status === "cancelada"
-                      ? "border-red-200 opacity-70"
-                      : prazoVencido
-                      ? "border-red-300"
-                      : "border-brand/20"
+                  className={`bg-white rounded-md border overflow-hidden transition-shadow hover:shadow-[0_8px_24px_rgba(30,27,23,.08)] ${
+                    cartinha.status === "cancelada" ? "opacity-70" : ""
+                  } ${
+                    prazoVencido ? "border-vermelho-natal/40" : "border-stone-200"
                   }`}
                 >
-                  <div className="p-6">
+                  <div className="p-5">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-start gap-4">
                           {cartinha.foto_cartinha &&
@@ -203,39 +208,34 @@ export default async function UsuarioPage() {
                             alt={cartinha.nome_crianca}
                             width={64}
                             height={64}
-                            className="w-16 h-16 rounded-xl object-cover flex-shrink-0 border-2 border-brand/20"
+                            className="w-16 h-16 rounded object-cover flex-shrink-0"
                           />
                         ) : (
-                          <div className="w-16 h-16 rounded-xl bg-orange-50 border-2 border-brand/20 flex items-center justify-center flex-shrink-0">
-                            <svg viewBox="0 0 24 24" fill="none" className="w-8 h-8 text-brand" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M21 11.25v8.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 1 0 9.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1 1 14.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" /></svg>
+                          <div className="w-16 h-16 rounded bg-cream-deep flex items-center justify-center flex-shrink-0">
+                            <svg viewBox="0 0 24 24" fill="none" className="w-7 h-7 text-brand" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M21 11.25v8.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 1 0 9.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1 1 14.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" /></svg>
                           </div>
                         )}
 
                         <div>
                           <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="text-lg font-bold text-gray-900">
+                            <h3 className="text-[15px] font-bold text-ink">
                               {cartinha.nome_crianca}
                             </h3>
                             {cartinha.numero_sequencial != null && (
-                              <span className="text-xs text-gray-400 font-mono">
-                                #{cartinha.numero_sequencial}
+                              <span className="text-xs text-stone-400 font-mono">
+                                Nº {cartinha.numero_sequencial}
                               </span>
                             )}
                           </div>
-                          <p className="text-sm text-gray-500">
-                            {cartinha.nome_instituicao ?? "Instituição removida"}
-                          </p>
-                          <p className="text-sm text-gray-700 mt-1">
-                            <span className="font-medium">Presente:</span>{" "}
-                            {cartinha.presente_pedido}
+                          <p className="text-xs text-stone-400">
+                            {cartinha.nome_instituicao ?? "Instituição removida"} · {cartinha.presente_pedido}
                           </p>
                         </div>
                       </div>
 
-                      <div className="flex-shrink-0 text-right">
-                        <span
-                          className={`inline-block px-3 py-1 rounded-full text-xs font-bold text-white ${info.cor}`}
-                        >
+                      <div className="flex-shrink-0 flex items-center gap-1.5">
+                        <span className={`w-[7px] h-[7px] rounded-full ${info.cor}`} />
+                        <span className="text-xs font-semibold text-stone-600">
                           {info.label}
                         </span>
                       </div>
@@ -244,13 +244,14 @@ export default async function UsuarioPage() {
                     <BarraProgresso status={cartinha.status} />
 
                     {info.mensagem && (
-                      <p className="mt-3 text-sm text-gray-500 italic">
+                      <p className="mt-3 text-[13px] text-stone-400 italic">
                         {info.mensagem}
                       </p>
                     )}
 
-                    <div className="mt-4 pt-4 border-t border-gray-100 flex flex-wrap items-center justify-between gap-2 text-xs text-gray-400">
-                      <span>
+                    <div className="mt-4 pt-4 border-t border-stone-100 flex flex-wrap items-center justify-between gap-2 text-xs text-stone-400">
+                      <span className="flex items-center gap-1.5">
+                        <IconeCalendario />
                         Apadrinhado em{" "}
                         {cartinha.data_apadrinamento
                           ? formatarData(cartinha.data_apadrinamento)
@@ -260,14 +261,15 @@ export default async function UsuarioPage() {
                       <div className="flex items-center gap-3">
                         {prazo && statusAtivo && (
                           <span
-                            className={`font-semibold ${
+                            className={`flex items-center gap-1.5 font-semibold ${
                               prazoVencido
-                                ? "text-red-600"
+                                ? "text-vermelho-natal"
                                 : prazoUrgente
-                                ? "text-amber-600"
-                                : "text-gray-500"
+                                ? "text-brand-dark"
+                                : "text-stone-500"
                             }`}
                           >
+                            <IconeRelogio />
                             {prazoVencido
                               ? `Prazo vencido (${formatarData(cartinha.data_limite_entrega)})`
                               : prazoUrgente
@@ -292,15 +294,15 @@ export default async function UsuarioPage() {
           <div className="mt-8 text-center">
             <Link
               href="/"
-              className="inline-flex items-center gap-2 rounded-full bg-brand border border-brand px-6 py-3 font-semibold text-white hover:bg-white hover:text-brand transition-colors"
+              className="inline-flex items-center gap-2 rounded bg-ink border border-ink px-6 py-3 font-semibold text-sm text-white hover:bg-white hover:text-ink transition-colors"
             >
               Apadrinhar mais cartinhas
             </Link>
           </div>
         )}
 
-        <div className="mt-12 border-t border-red-100 pt-6 text-center">
-          <p className="text-xs text-gray-400 mb-2">
+        <div className="mt-12 border-t border-stone-200 pt-6 text-center">
+          <p className="text-xs text-stone-400 mb-2">
             Ao excluir sua conta, seus dados serão removidos permanentemente.
           </p>
           <BotaoExcluirConta />

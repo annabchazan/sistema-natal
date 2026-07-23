@@ -47,191 +47,148 @@ export default function CheckoutClient() {
 
   if (!isLoaded || cartinhas.length === 0) {
     return (
-      <div className="min-h-screen bg-linear-to-b from-orange-50 to-amber-50 flex items-center justify-center">
+      <div className="min-h-full bg-cream-deep flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand mx-auto mb-4"></div>
-          <p className="text-gray-600">Redirecionando...</p>
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-ink mx-auto mb-4"></div>
+          <p className="text-stone-500">Redirecionando...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-orange-50 to-amber-50 py-12">
+    <div className="min-h-full bg-cream-deep py-14">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl font-bold text-center text-brand mb-8">
+          <h1 className="text-[26px] font-bold text-center text-ink tracking-tight mb-9">
             Finalizar Apadrinhamento
           </h1>
 
           {mensagem && (
             <div
-              className={`mb-6 p-4 rounded-[25px] text-center font-semibold ${
+              className={`mb-6 p-4 rounded-md text-center font-semibold text-sm ${
                 mensagem.tipo === "sucesso"
-                  ? "bg-green-100 text-green-800 border border-green-200"
-                  : "bg-red-100 text-red-800 border border-red-200"
+                  ? "bg-verde-natal/10 text-verde-natal border border-verde-natal/20"
+                  : "bg-vermelho-natal/10 text-vermelho-natal border border-vermelho-natal/20"
               }`}
             >
               {mensagem.texto}
             </div>
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="bg-white rounded-[25px] shadow-lg p-6">
-              <h2 className="text-2xl font-bold text-brand mb-6">
-                Resumo das Cartinhas
+          <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-6">
+            <div className="bg-white border border-stone-200 rounded-md p-7">
+              <h2 className="text-sm font-bold text-ink mb-4">
+                Resumo das cartinhas
               </h2>
 
-              <div className="space-y-4">
+              <div>
                 {cartinhas.map((cartinha, index) => (
                   <div
                     key={cartinha.id}
-                    className="border border-gray-200 rounded-[25px] p-4 bg-gray-50"
+                    className="border-b border-stone-100 py-3.5 last:border-b-0"
                   >
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <h3 className="font-bold text-brand text-lg">
-                          {cartinha.nome_crianca}
-                        </h3>
-                        <p className="text-sm text-gray-600">
-                          Idade: {cartinha.idade} anos
-                        </p>
-                      </div>
-                      <span className="bg-brand/10 text-brand text-xs font-bold px-2 py-1 rounded-full">
-                        #{index + 1}
+                    <div className="flex items-start justify-between mb-1.5">
+                      <h3 className="font-semibold text-sm text-ink">
+                        Nº {index + 1} · {cartinha.nome_crianca}
+                      </h3>
+                      <span className="text-xs text-stone-400 whitespace-nowrap ml-2">
+                        {cartinha.idade} anos
                       </span>
                     </div>
 
-                    <div className="mb-3">
-                      <p className="text-sm text-gray-700 italic">
-                        {cartinha.texto_cartinha}
-                      </p>
-                    </div>
+                    <p className="text-[13px] text-stone-500 italic mb-2">
+                      &quot;{cartinha.texto_cartinha}&quot;
+                    </p>
 
-                    <div className="bg-orange-50 border border-orange-200 rounded-2xl p-3">
-                      <p className="text-sm font-semibold text-orange-800">
-                        Presente desejado:
-                      </p>
-                      <p className="text-sm text-orange-700">
-                        {cartinha.presente_pedido}
-                      </p>
-                    </div>
-
-                    <div className="mt-3 pt-3 border-t border-gray-200">
-                      <p className="text-xs text-gray-500">
-                        Data limite de entrega: consulte os pontos de entrega.
-                      </p>
-                    </div>
+                    <p className="text-[12.5px] text-stone-400">
+                      Pedido: <strong className="text-stone-600">{cartinha.presente_pedido}</strong>
+                    </p>
                   </div>
                 ))}
               </div>
 
-              <div className="mt-6 pt-4 border-t border-gray-200">
-                <div className="flex justify-between items-center text-lg font-bold">
-                  <span>Total de cartinhas:</span>
-                  <span className="text-brand">{cartinhas.length}</span>
-                </div>
+              <p className="text-[11.5px] text-stone-400 mt-3.5 mb-3">
+                Consulte o prazo de entrega de cada cartinha nos Pontos de Entrega.
+              </p>
+
+              <div className="pt-2 text-sm font-bold text-ink">
+                Total: {cartinhas.length} cartinha{cartinhas.length !== 1 ? "s" : ""}
               </div>
             </div>
 
-            <div className="space-y-6">
-              <div className="bg-white rounded-[25px] shadow-lg p-6">
-                <h2 className="text-2xl font-bold text-brand mb-4">
-                  Próximos Passos
+            <div className="space-y-4">
+              <div className="bg-white border border-stone-200 rounded-md p-5">
+                <h2 className="text-[13.5px] font-bold text-ink mb-3.5">
+                  Próximos passos
                 </h2>
 
-                <div className="space-y-4">
-                  <div className="flex items-start space-x-3">
-                    <div className="flex-shrink-0 w-8 h-8 bg-brand text-white rounded-full flex items-center justify-center text-sm font-bold">
-                      1
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-800">
-                        Confirme o apadrinhamento
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        Clique no botão abaixo para confirmar seu apadrinhamento.
-                      </p>
-                    </div>
+                <div className="space-y-3.5">
+                  <div className="flex gap-3">
+                    <div className="text-[13px] font-bold text-brand-dark flex-shrink-0">01</div>
+                    <p className="text-[13px] text-stone-600 leading-5">
+                      Confirme o apadrinhamento das cartinhas escolhidas.
+                    </p>
                   </div>
 
-                  <div className="flex items-start space-x-3">
-                    <div className="flex-shrink-0 w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                      2
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-800">
-                        Leve os presentes
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        Dirija-se a um ponto de entrega com os presentes.
-                      </p>
-                    </div>
+                  <div className="flex gap-3">
+                    <div className="text-[13px] font-bold text-brand-dark flex-shrink-0">02</div>
+                    <p className="text-[13px] text-stone-600 leading-5">
+                      Compre e leve o presente até um ponto de entrega, dentro do prazo.
+                    </p>
                   </div>
 
-                  <div className="flex items-start space-x-3">
-                    <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                      3
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-800">
-                        Acompanhe sua área
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        O apadrinhamento ficará vinculado ao seu cadastro.
-                      </p>
-                    </div>
+                  <div className="flex gap-3">
+                    <div className="text-[13px] font-bold text-brand-dark flex-shrink-0">03</div>
+                    <p className="text-[13px] text-stone-600 leading-5">
+                      Acompanhe o status da entrega na sua área do padrinho.
+                    </p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-[25px] shadow-lg p-6">
-                <h2 className="text-xl font-bold text-brand mb-4">
-                  Pontos de Entrega
+              <div className="bg-white border border-stone-200 rounded-md p-5">
+                <h2 className="text-[13.5px] font-bold text-ink mb-2">
+                  Pontos de entrega
                 </h2>
-                <p className="text-gray-700 mb-4">
-                  Após confirmar o apadrinhamento, você poderá levar os presentes
-                  a qualquer um dos nossos pontos de entrega parceiros.
+                <p className="text-[13px] text-stone-500 mb-3.5">
+                  Veja endereços e horários disponíveis.
                 </p>
                 <a
                   href="/pontos-entrega"
-                  className="inline-block bg-white text-brand border border-brand px-4 py-2 rounded-full font-semibold hover:bg-brand hover:text-white transition-colors"
+                  className="block text-center bg-transparent text-ink border border-ink px-4 py-2.5 rounded font-semibold text-[13px] hover:bg-ink hover:text-white transition-colors"
                 >
-                  Ver Pontos de Entrega
+                  Ver pontos de entrega
                 </a>
               </div>
 
-              <div className="bg-white rounded-[25px] shadow-lg p-6">
+              <div className="bg-white border border-stone-200 rounded-md p-5">
                 <button
                   onClick={handleFinalizarApadrinamento}
                   disabled={isLoading}
-                  className="w-full bg-brand border border-brand text-white py-4 rounded-full font-bold text-lg hover:bg-white hover:text-brand transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
+                  className="w-full bg-brand text-white py-3.5 rounded font-bold text-[14.5px] hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2 mb-2.5"
                 >
                   {isLoading ? (
                     <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current"></div>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
                       <span>Finalizando...</span>
                     </>
                   ) : (
-                    <span>Confirmar Apadrinhamento</span>
+                    <span>Confirmar apadrinhamento</span>
                   )}
                 </button>
 
-                <p className="text-xs text-gray-500 mt-3 text-center">
-                  Ao confirmar, você se compromete a entregar os presentes nos
-                  pontos de coleta até a data limite.
+                <p className="text-[11px] text-stone-400 text-center">
+                  Ao confirmar, você se compromete a entregar o presente até o
+                  prazo indicado.
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="mt-12 bg-gradient-to-r from-brand to-amber-600 rounded-[25px] p-8 text-center text-white">
-            <h2 className="text-2xl font-bold mb-4">Muito obrigado!</h2>
-            <p className="text-lg mb-4">
-              Sua generosidade vai transformar o Natal de uma criança especial.
-            </p>
-            <p className="text-white/80">
-              Não é o quanto você dá, mas o quanto de amor você põe no dar.
+          <div className="mt-7 bg-ink rounded-md p-6 text-center border-t-[3px] border-brand">
+            <p className="text-white text-[15px] font-semibold">
+              Obrigado por fazer parte do Natal de uma criança.
             </p>
           </div>
         </div>

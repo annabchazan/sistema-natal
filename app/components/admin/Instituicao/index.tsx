@@ -31,13 +31,13 @@ export default function InstituicoesIndex({
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+      <div className="flex justify-between items-center bg-white p-4 rounded-md border border-stone-200">
         <div>
-          <h2 className="text-xl font-bold text-gray-800">
-            Gerenciar instituicoes
+          <h2 className="text-lg font-bold text-ink">
+            Gerenciar instituições
           </h2>
-          <p className="text-sm text-gray-500">
-            Total: {instituicoes.length} instituicoes
+          <p className="text-sm text-stone-400">
+            Total: {instituicoes.length} instituições
           </p>
         </div>
 
@@ -51,21 +51,21 @@ export default function InstituicoesIndex({
                 setMostrarFormulario(true);
               }
             }}
-            className={`px-4 py-2 rounded-lg font-bold transition-all ${
+            className={`px-4 py-2 rounded font-bold text-sm transition-colors ${
               mostrarFormulario && !instituicaoEmEdicao
-                ? "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                : "bg-red-600 text-white hover:bg-red-700 shadow-md"
+                ? "bg-cream-deep text-stone-500 hover:bg-stone-200"
+                : "bg-ink text-white hover:bg-stone-600"
             }`}
           >
             {mostrarFormulario && !instituicaoEmEdicao
               ? "Cancelar"
-              : "Adicionar instituicao"}
+              : "Adicionar instituição"}
           </button>
         )}
       </div>
 
       {mostrarFormulario && (
-        <div className="bg-white p-6 rounded-xl border-2 border-red-100 shadow-xl animate-in slide-in-from-top duration-300">
+        <div className="bg-white p-6 rounded-md border border-stone-200 animate-in slide-in-from-top duration-300">
           <FormularioInstituicao
             key={instituicaoEmEdicao?.id ?? "nova"}
             instituicao={instituicaoEmEdicao}
@@ -74,7 +74,7 @@ export default function InstituicoesIndex({
         </div>
       )}
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-md border border-stone-200 overflow-hidden">
         <TabelaInstituicoes
           dados={instituicoes}
           onEdit={abrirEdicao}

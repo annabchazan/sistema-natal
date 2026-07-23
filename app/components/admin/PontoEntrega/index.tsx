@@ -38,10 +38,10 @@ export default function PontosEntregaIndex({
                 setMostrarFormulario(true);
               }
             }}
-            className={`px-4 py-2 rounded-lg font-bold transition-all ${
+            className={`px-4 py-2 rounded font-bold text-sm transition-colors ${
               mostrarFormulario && !pontoEmEdicao
-                ? "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                : "bg-red-600 text-white hover:bg-red-700 shadow-md"
+                ? "bg-cream-deep text-stone-500 hover:bg-stone-200"
+                : "bg-ink text-white hover:bg-stone-600"
             }`}
           >
             {mostrarFormulario && !pontoEmEdicao
@@ -52,7 +52,7 @@ export default function PontosEntregaIndex({
       )}
 
       {mostrarFormulario && (
-        <div className="bg-white p-6 rounded-xl border-2 border-red-100 shadow-xl animate-in slide-in-from-top duration-300">
+        <div className="bg-white p-6 rounded-md border border-stone-200 animate-in slide-in-from-top duration-300">
           <FormularioPontoEntrega
             key={pontoEmEdicao?.id ?? "novo"}
             ponto={pontoEmEdicao}
@@ -61,10 +61,10 @@ export default function PontosEntregaIndex({
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow border border-gray-200">
-        <div className="p-4 border-b">
-          <h2 className="font-bold text-gray-700">
-            Pontos de Entrega Registrados
+      <div className="bg-white rounded-md border border-stone-200">
+        <div className="p-4 border-b border-stone-100">
+          <h2 className="font-bold text-sm text-ink">
+            Pontos de entrega registrados
           </h2>
         </div>
         <TabelaPontosEntrega

@@ -12,7 +12,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Noelzinho Solidário - Apadrinhamento de Cartinhas",
+  title: "Natal Solidário - Apadrinhamento de Cartinhas",
   description:
     "Uma iniciativa do Projeto Sempre Criança. Conectando padrinhos a crianças de Niterói e São Gonçalo através do apadrinhamento de cartinhas de Natal.",
 };

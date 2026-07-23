@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 
 interface CartinhaApadrinada {
   id: number;
@@ -10,59 +10,93 @@ interface CartinhaApadrinada {
   tag_id: number | null;
 }
 
+const STORAGE_KEY = "carrinhoApadrinhamento";
+const EMPTY_CARTINHAS: CartinhaApadrinada[] = [];
+
+// Estado compartilhado entre todos os componentes que usam o hook, para que
+// adicionar/remover em um componente (ex: ListaCartinhasHome) reflita
+// imediatamente nos outros (Header, MiniCartApadrinhamento) sem precisar de reload.
+let cartinhas: CartinhaApadrinada[] = EMPTY_CARTINHAS;
+let carregadoDoStorage = false;
+const listeners = new Set<() => void>();
+
+function notificar() {
+  for (const listener of listeners) listener();
+}
+
+function persistir() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(cartinhas));
+}
+
+function carregarDoStorage() {
+  if (carregadoDoStorage) return;
+  carregadoDoStorage = true;
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      cartinhas = JSON.parse(saved);
+      notificar();
+    }
+  } catch (error) {
+    console.error("Erro ao carregar cartinhas:", error);
+  }
+}
+
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+function getSnapshot() {
+  return cartinhas;
+}
+
+function getServerSnapshot() {
+  return EMPTY_CARTINHAS;
+}
+
+function adicionarCartinha(cartinha: CartinhaApadrinada) {
+  if (cartinhas.some((c) => c.id === cartinha.id)) return;
+  cartinhas = [...cartinhas, cartinha];
+  persistir();
+  notificar();
+}
+
+function removerCartinha(id: number) {
+  cartinhas = cartinhas.filter((c) => c.id !== id);
+  persistir();
+  notificar();
+}
+
+function limparCarrinho() {
+  cartinhas = EMPTY_CARTINHAS;
+  persistir();
+  notificar();
+}
+
 export function useCarrinhoApadrinhamento() {
-  const [cartinhas, setCartinhas] = useState<CartinhaApadrinada[]>([]);
+  const cartinhasAtual = useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    getServerSnapshot,
+  );
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Carrega do localStorage quando o componente monta.
-  // localStorage não existe no server, então o carrinho precisa começar vazio
-  // (igual no server e na primeira renderização do client) e só ser preenchido
-  // depois, aqui, para não gerar mismatch de hidratação.
+  // localStorage não existe no server, então o carrinho começa vazio
+  // (igual no server e na primeira renderização do client) e só é
+  // preenchido depois, aqui, para não gerar mismatch de hidratação.
   useEffect(() => {
-    const saved = localStorage.getItem("carrinhoApadrinhamento");
-    if (saved) {
-      try {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setCartinhas(JSON.parse(saved));
-      } catch (error) {
-        console.error("Erro ao carregar cartinhas:", error);
-      }
-    }
+    carregarDoStorage();
     setIsLoaded(true);
   }, []);
 
-  // Salva no localStorage quando cartinhas mudam
-  useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem("carrinhoApadrinhamento", JSON.stringify(cartinhas));
-    }
-  }, [cartinhas, isLoaded]);
-
-  const adicionarCartinha = (cartinha: CartinhaApadrinada) => {
-    setCartinhas((prev) => {
-      const exists = prev.some((c) => c.id === cartinha.id);
-      if (!exists) {
-        return [...prev, cartinha];
-      }
-      return prev;
-    });
-  };
-
-  const removerCartinha = (id: number) => {
-    setCartinhas((prev) => prev.filter((c) => c.id !== id));
-  };
-
-  const limparCarrinho = () => {
-    setCartinhas([]);
-  };
-
   const temCartinha = useCallback(
-    (id: number) => cartinhas.some((c) => c.id === id),
-    [cartinhas],
+    (id: number) => cartinhasAtual.some((c) => c.id === id),
+    [cartinhasAtual],
   );
 
   return {
-    cartinhas,
+    cartinhas: cartinhasAtual,
     isLoaded,
     adicionarCartinha,
     removerCartinha,

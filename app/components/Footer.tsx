@@ -1,27 +1,35 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Footer() {
   return (
-    <footer className="bg-amber-600 text-white mt-16 print:hidden">
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div className="col-span-1 md:col-span-2">
-            <h3 className="text-2xl font-bold mb-4 text-yellow-300">
-              Noelzinho Solidário
-            </h3>
-            <p className="text-white/80 mb-4">
+    <footer className="bg-ink text-white print:hidden">
+      <div className="container mx-auto px-4 md:px-8 py-14">
+        <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr] gap-10 max-w-6xl mx-auto">
+          <div>
+            <div className="flex items-center gap-3 mb-4">
+              <Image
+                src="/logo-sempre-crianca.png"
+                alt="Sempre Criança"
+                width={32}
+                height={32}
+                className="h-8 w-auto"
+              />
+              <span className="font-bold text-[15px]">Natal Solidário</span>
+            </div>
+            <p className="text-stone-400 text-[13px] leading-7 mb-3 max-w-sm">
               Uma iniciativa do Projeto Sempre Criança. Conectando padrinhos a
               crianças de Niterói e São Gonçalo através do apadrinhamento de
               cartinhas de Natal.
             </p>
-            <div className="flex space-x-4">
+            <div className="flex gap-4 text-[13px] text-stone-400">
               <a
                 href="https://www.facebook.com/semprecrianca/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-white/70 hover:text-white transition-colors"
+                className="text-brand hover:text-white transition-colors"
               >
                 Facebook
               </a>
@@ -29,7 +37,7 @@ export default function Footer() {
                 href="https://www.instagram.com/projetosemprecrianca/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-white/70 hover:text-white transition-colors"
+                className="text-brand hover:text-white transition-colors"
               >
                 Instagram
               </a>
@@ -37,7 +45,7 @@ export default function Footer() {
                 href="https://www.youtube.com/channel/UC4iKh2GpjG99VL6225el2BA"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-white/70 hover:text-white transition-colors"
+                className="text-brand hover:text-white transition-colors"
               >
                 YouTube
               </a>
@@ -45,50 +53,34 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="text-lg font-semibold mb-4 text-yellow-300">
-              Links Rápidos
-            </h4>
-            <ul className="space-y-2">
+            <h4 className="font-bold text-[13px] mb-4">Links rápidos</h4>
+            <ul className="space-y-2 text-[13px] text-stone-400">
               <li>
-                <Link
-                  href="/quem-somos"
-                  className="text-white/70 hover:text-white transition-colors"
-                >
-                  Quem Somos
+                <Link href="/quem-somos" className="text-brand hover:text-white transition-colors">
+                  Quem somos
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/como-funciona"
-                  className="text-white/70 hover:text-white transition-colors"
-                >
-                  Como Funciona
+                <Link href="/como-funciona" className="text-brand hover:text-white transition-colors">
+                  Como funciona
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/duvidas-frequentes"
-                  className="text-white/70 hover:text-white transition-colors"
-                >
-                  Dúvidas Frequentes
+                <Link href="/duvidas-frequentes" className="text-brand hover:text-white transition-colors">
+                  Dúvidas frequentes
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/pontos-entrega"
-                  className="text-white/70 hover:text-white transition-colors"
-                >
-                  Pontos de Entrega
+                <Link href="/pontos-entrega" className="text-brand hover:text-white transition-colors">
+                  Pontos de entrega
                 </Link>
               </li>
             </ul>
           </div>
 
           <div>
-            <h4 className="text-lg font-semibold mb-4 text-yellow-300">
-              Contato
-            </h4>
-            <div className="space-y-2 text-white/70">
+            <h4 className="font-bold text-[13px] mb-4">Contato</h4>
+            <div className="space-y-2 text-[13px] text-stone-400 leading-6">
               <p>contato@semprecrianca.com.br</p>
               <p>(21) 99999-9999</p>
               <p>Av. Rui Barbosa, 738 - loft 2</p>
@@ -97,22 +89,14 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-white/20 mt-8 pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-white/70 text-sm">
-              © 2025 Projeto Sempre Criança. Todos os direitos reservados.
-            </p>
-            <div className="flex space-x-6 mt-4 md:mt-0">
-              <Link
-                href="/privacidade"
-                className="text-white/70 hover:text-white text-sm transition-colors"
-              >
+        <div className="border-t border-white/10 mt-10 pt-6 max-w-6xl mx-auto">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-3 text-[12px] text-stone-400">
+            <p>© 2026 Projeto Sempre Criança. Todos os direitos reservados.</p>
+            <div className="flex gap-6">
+              <Link href="/privacidade" className="text-brand hover:text-white transition-colors">
                 Política de Privacidade
               </Link>
-              <Link
-                href="/termos"
-                className="text-white/70 hover:text-white text-sm transition-colors"
-              >
+              <Link href="/termos" className="text-brand hover:text-white transition-colors">
                 Termos de Uso
               </Link>
             </div>

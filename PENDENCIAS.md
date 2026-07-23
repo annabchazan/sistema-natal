@@ -48,15 +48,21 @@ Complementar o lembrete por e-mail com mensagem no WhatsApp do padrinho, usando 
 - `temCartinha()` em `useCarrinhoApadrinhamento.ts` era recriada a cada render; o `useEffect` de `ListaCartinhasHome.tsx` dependia dela e reexecutava infinitamente
 - Corrigido envolvendo `temCartinha` em `useCallback` com dependência em `cartinhas` (estado interno do hook)
 
-### `useSearchParams()` sem Suspense boundary em `/login`
-Descoberto rodando `next build` (`npx next build`) pra validar a página de crachás: o build de produção falha ao prerenderizar `/login` — `useSearchParams()` precisa estar dentro de um `<Suspense>` boundary. Não impede o `next dev`, mas quebra `npm run build`/deploy.
-
-- [ ] Envolver o componente que usa `useSearchParams()` em `/login` com `<Suspense>` (ver https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout)
+### ~~`useSearchParams()` sem Suspense boundary em `/login`~~ ✅ Feito
+- `LoginForm` (que usa `useSearchParams()`) já está envolvido em `<Suspense fallback={null}>` em `login/page.tsx`
+- Confirmado rodando `npx next build` em 2026-07-22: `/login` prerenderiza como estático (`○`), build completo sem erros
 
 ### Fotos quebradas de cartinhas antigas (`/uploads/...` 404)
 Duas cartinhas no banco (dev) têm `foto_cartinha` apontando para `/uploads/cartinha_...` — caminho local de uma versão antiga do código, antes da integração com Cloudinary (`public/uploads` só tem `.gitkeep`, os arquivos nunca existiram neste ambiente). O código atual não escreve mais nesse caminho (só Cloudinary ou base64), então não é um bug ativo — é dado legado.
 
 - [ ] Conferir depois: `SELECT id, nome_crianca, foto_cartinha FROM cartinhas WHERE foto_cartinha LIKE '/uploads/%';` e reeditar essas cartinhas no admin (reupload) ou limpar o campo (`UPDATE cartinhas SET foto_cartinha = NULL WHERE foto_cartinha LIKE '/uploads/%';`)
+
+### Revisão de segurança
+Revisão feita em 2026-07-22: SQL injection, autenticação, sessão, upload e exportação CSV foram checados. Nenhuma injeção de SQL encontrada (todas as queries usam `?` parametrizado, inclusive filtros dinâmicos e `IN (...)`). Sessão (HMAC + expiração), hash de senha (scrypt + `timingSafeEqual`) e proteção do `/admin` (middleware + `requireAdminAccess()` revalidando no servidor) estão corretos. Três gaps menores ficaram pendentes:
+
+- [ ] **Sem rate limiting no login**: nada impede tentativas repetidas de senha por força bruta em `loginUsuario()` (`app/actions/auth.ts`). Adicionar limite por IP/e-mail (ex: bloquear após N tentativas em X minutos).
+- [ ] **Timing side-channel no login**: em `loginUsuario()`, quando o e-mail não existe a função retorna antes de chamar `validarSenha()` (que roda scrypt, mais lento). Isso permite inferir por tempo de resposta se um e-mail está cadastrado, mesmo a mensagem de erro sendo genérica. Corrigir sempre rodando `validarSenha()` (contra um hash fixo/dummy) mesmo quando o usuário não existe.
+- [ ] **CSV injection (baixo risco)**: em `app/api/admin/exportar/route.ts`, campos como nome da criança/presente vão pro CSV sem neutralizar células que começam com `=`, `+`, `-`, `@` — o Excel pode interpretar como fórmula ao abrir. Prefixar essas células com `'` (ou espaço) quando começarem com esses caracteres.
 
 ### Revisão geral de layout e responsividade
 Passar por todas as páginas e alinhar visual, espaçamentos e responsividade antes do lançamento.
@@ -70,6 +76,17 @@ Páginas a revisar:
 - [ ] `/esqueci-senha` e `/redefinir-senha`
 - [ ] `/duvidas-frequentes`, `/quem-somos`, `/como-funciona`
 - [ ] `/pontos-entrega`
+
+### Menu lateral (drawer) para mobile
+Em 2026-07-22, ao revisar responsividade, foram encontradas duas navegações que sumiam sem alternativa no mobile: o menu principal (`Header.tsx`, links escondidos abaixo de `lg`) e a sidebar do admin (`admin/page.tsx`, escondida abaixo de `md`). Como correção rápida, foi implementado:
+- Header público: botão hambúrguer que abre um painel inline com os links, empurrando o conteúdo pra baixo (`Header.tsx`).
+- Admin: um `<select>` de navegação entre abas, visível só no mobile (`AdminMobileNav.tsx`).
+
+Essas soluções são funcionais mas não são o ideal — a ideia é substituir por um menu lateral (drawer) de verdade, deslizando da lateral por cima do conteúdo, com overlay escuro fechando ao clicar fora. Vale considerar reaproveitar o mesmo componente de drawer para os dois casos (público e admin).
+
+- [ ] Criar um componente de drawer lateral reutilizável (abre da esquerda ou direita, overlay, fecha ao clicar fora ou em um link)
+- [ ] Trocar o painel inline do `Header.tsx` por esse drawer
+- [ ] Trocar o `<select>` do `AdminMobileNav.tsx` por esse drawer, listando as abas como itens clicáveis (like a sidebar deslizante)
 
 ---
 
@@ -104,6 +121,13 @@ Páginas a revisar:
 - `idx_cartinhas_status` já criado na `migration_v2.sql`
 - `idx_cartinhas_instituicao` e `idx_cartinhas_apadrinhado_por` adicionados em `migration_v5.sql`
 
+### Débito técnico — organização do código
+Encontrado numa revisão geral em 2026-07-22 (não bloqueia produção, é manutenibilidade a médio prazo):
+
+- [ ] **Auditar duplicação de definições**: já corrigimos as cores de status (3 paletas diferentes pro mesmo status, unificadas em `lib/statusCartinha.ts`) e a FAQ (2 listas divergentes, unificadas em `app/data/faqCartinhas.ts`). Vale procurar outras duplicações parecidas no restante do código (ex: listas/labels repetidos em mais de um componente).
+- [ ] **Quebrar páginas grandes em subcomponentes**: `app/usuario/page.tsx` faz praticamente tudo inline (card de perfil, lista de cartinhas, barra de progresso) — extrair pelo menos o card de cada cartinha pra um componente próprio facilitaria manutenção futura.
+- [ ] Revisar outros componentes grandes do admin (`Cartinha/index.tsx`, `Cracha/index.tsx`) com o mesmo critério, se fizer sentido.
+
 ### ~~Terceiro nível de admin (Master)~~ ✅ Feito
 - `master` adicionado ao ENUM `admin_role` (`migration_v6.sql`)
 - `master` é o único nível que pode promover/rebaixar outros admins (`adminPodeGerenciarPermissoes()`)
@@ -116,12 +140,7 @@ Obrigatório por lei para sistemas com dados de usuários brasileiros.
 
 - Página de solicitação de exclusão na área do usuário (`/usuario`)
 - Ao excluir: anonimizar ou deletar dados pessoais, manter cartinhas com `apadrinhado_por_usuario_id = NULL`
-- Definir política de retenção de dados com o cliente
-
-### Impressão de crachá
-Mencionado na entrevista, ainda não validado se será implementado.
-
-- A confirmar com o cliente o formato e quando é gerado (no checkout? pelo admin?)
+- Política de retenção de dados: **6 meses** pós-campanha, confirmada com o cliente — ver "Retenção de dados (LGPD)" mais abaixo
 
 ---
 

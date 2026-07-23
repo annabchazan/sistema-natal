@@ -304,6 +304,23 @@ export async function listarCartinhas(): Promise<CartinhaComTagRow[]> {
   }
 }
 
+interface ContagemHomeRow extends RowDataPacket {
+  total: number;
+}
+
+// --- CONTAGEM PARA O HERO DA HOME ---
+export async function contarCartinhasApadrinhadas(): Promise<number> {
+  try {
+    const [[{ total }]] = await db.query<ContagemHomeRow[]>(
+      `SELECT COUNT(*) as total FROM cartinhas WHERE status != 'disponivel' AND status != 'cancelada'`,
+    );
+    return Number(total);
+  } catch (err) {
+    console.error("Erro ao contar cartinhas apadrinhadas:", err);
+    return 0;
+  }
+}
+
 // --- LISTAR COM FILTROS (home pública) ---
 export async function listarCartinhasFiltradas(
   filtros: FiltrosCartinhas,

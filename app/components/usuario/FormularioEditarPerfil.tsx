@@ -48,27 +48,39 @@ export default function FormularioEditarPerfil({ usuario }: Props) {
   }
 
   return (
-    <div className="bg-white rounded-[25px] shadow-sm border border-gray-100 overflow-hidden">
+    <div className="bg-white rounded-md border border-stone-200 overflow-hidden">
       <button
         type="button"
         onClick={() => {
           setAberto((v) => !v);
           setMensagem(null);
         }}
-        className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-orange-50 transition-colors"
+        className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-cream-deep transition-colors"
       >
-        <span className="font-semibold text-gray-700">Editar meus dados</span>
-        <span className={`text-gray-400 transition-transform duration-200 ${aberto ? "rotate-180" : ""}`}>
-          ▾
+        <span className="font-semibold text-sm text-stone-600">Editar meus dados</span>
+        <span
+          className={`shrink-0 flex items-center justify-center text-brand transition-all duration-300 ${
+            aberto ? "rotate-180 text-brand-dark" : ""
+          }`}
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            className="w-4 h-4"
+            stroke="currentColor"
+            strokeWidth="2.5"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="m6 9 6 6 6-6" />
+          </svg>
         </span>
       </button>
 
       {aberto && (
-        <form onSubmit={handleSubmit} className="px-6 pb-6 space-y-5 border-t border-gray-100 pt-5">
+        <form onSubmit={handleSubmit} className="px-6 pb-6 space-y-5 border-t border-stone-100 pt-5">
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-[12.5px] font-medium text-stone-600 mb-1">
                 Nome completo
               </label>
               <input
@@ -76,11 +88,11 @@ export default function FormularioEditarPerfil({ usuario }: Props) {
                 type="text"
                 required
                 defaultValue={usuario.nome}
-                className="w-full rounded-full border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
+                className="w-full rounded border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-[12.5px] font-medium text-stone-600 mb-1">
                 Telefone (WhatsApp)
               </label>
               <input
@@ -88,13 +100,13 @@ export default function FormularioEditarPerfil({ usuario }: Props) {
                 type="tel"
                 required
                 defaultValue={usuario.telefone}
-                className="w-full rounded-full border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
+                className="w-full rounded border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-[12.5px] font-medium text-stone-600 mb-1">
               E-mail
             </label>
             <input
@@ -102,36 +114,36 @@ export default function FormularioEditarPerfil({ usuario }: Props) {
               type="email"
               required
               defaultValue={usuario.email}
-              className="w-full rounded-full border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
+              className="w-full rounded border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand"
             />
           </div>
 
-          <div className="border-t border-gray-100 pt-4">
+          <div className="border-t border-stone-100 pt-4">
             <button
               type="button"
               onClick={() => setAlterarSenha((v) => !v)}
-              className="text-sm text-brand hover:underline font-medium"
+              className="text-[13px] text-brand-dark hover:underline font-medium"
             >
               {alterarSenha ? "Cancelar troca de senha" : "Alterar senha"}
             </button>
           </div>
 
           {alterarSenha && (
-            <div className="space-y-4 rounded-[25px] bg-gray-50 border border-gray-200 p-4">
+            <div className="space-y-4 rounded-md bg-cream-deep border border-stone-200 p-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-[12.5px] font-medium text-stone-600 mb-1">
                   Senha atual
                 </label>
                 <input
                   name="senhaAtual"
                   type="password"
                   autoComplete="current-password"
-                  className="w-full rounded-full border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
+                  className="w-full rounded border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand"
                 />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-[12.5px] font-medium text-stone-600 mb-1">
                     Nova senha
                   </label>
                   <input
@@ -139,31 +151,31 @@ export default function FormularioEditarPerfil({ usuario }: Props) {
                     type="password"
                     autoComplete="new-password"
                     minLength={6}
-                    className="w-full rounded-full border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
+                    className="w-full rounded border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-[12.5px] font-medium text-stone-600 mb-1">
                     Confirmar nova senha
                   </label>
                   <input
                     name="confirmarSenha"
                     type="password"
                     autoComplete="new-password"
-                    className="w-full rounded-full border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
+                    className="w-full rounded border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand"
                   />
                 </div>
               </div>
-              <p className="text-xs text-gray-400">Mínimo de 6 caracteres.</p>
+              <p className="text-xs text-stone-400">Mínimo de 6 caracteres.</p>
             </div>
           )}
 
           {mensagem && (
             <div
-              className={`rounded-2xl px-4 py-3 text-sm font-medium ${
+              className={`rounded px-4 py-3 text-sm font-medium ${
                 mensagem.tipo === "sucesso"
-                  ? "bg-green-50 text-green-700 border border-green-200"
-                  : "bg-red-50 text-red-700 border border-red-200"
+                  ? "bg-verde-natal/10 text-verde-natal border border-verde-natal/20"
+                  : "bg-vermelho-natal/10 text-vermelho-natal border border-vermelho-natal/20"
               }`}
             >
               {mensagem.texto}
@@ -174,14 +186,14 @@ export default function FormularioEditarPerfil({ usuario }: Props) {
             <button
               type="button"
               onClick={() => setAberto(false)}
-              className="rounded-full border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+              className="rounded border border-stone-300 px-4 py-2 text-sm font-medium text-stone-500 hover:bg-cream-deep transition-colors"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={isPending}
-              className="rounded-full bg-brand border border-brand px-5 py-2 text-sm font-bold text-white hover:bg-white hover:text-brand transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded bg-ink border border-ink px-5 py-2 text-sm font-bold text-white hover:bg-white hover:text-ink transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isPending ? "Salvando..." : "Salvar alterações"}
             </button>

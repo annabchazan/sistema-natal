@@ -18,7 +18,7 @@ export default function BotaoCancelarApadrinamento({ cartinhaId }: { cartinhaId:
     <button
       onClick={handleCancelar}
       disabled={isPending}
-      className="text-xs text-red-500 hover:text-red-700 hover:underline disabled:opacity-50 transition-colors"
+      className="text-xs text-vermelho-natal hover:underline disabled:opacity-50 transition-colors"
     >
       {isPending ? "Cancelando..." : "Cancelar apadrinhamento"}
     </button>

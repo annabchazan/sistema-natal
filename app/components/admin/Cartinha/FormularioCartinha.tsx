@@ -123,7 +123,7 @@ export default function FormularioCartinha({
               name="foto_cartinha"
               type="file"
               accept="image/*"
-              className="w-full p-2 border rounded-md file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
+              className="w-full p-2 border rounded-md file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand/10 file:text-brand-dark hover:file:bg-brand/20"
             />
             <p className="text-xs text-gray-500 mt-1">
               Formatos aceitos: JPG, PNG, GIF (máx. 5MB)
@@ -195,7 +195,7 @@ export default function FormularioCartinha({
             <input
               type="checkbox"
               name="necessidade_especial"
-              className="accent-red-600 h-4 w-4"
+              className="accent-brand h-4 w-4"
               checked={necessidadeEspecial}
               onChange={(e) => setNecessidadeEspecial(e.target.checked)}
             />
@@ -223,14 +223,14 @@ export default function FormularioCartinha({
 
         <button
           type="submit"
-          className="w-full bg-red-600 text-white font-bold py-3 rounded-lg hover:bg-red-700 transition shadow-lg"
+          className="w-full bg-ink text-white font-bold py-3 rounded hover:bg-stone-600 transition-colors"
         >
           {cartinha ? "Salvar Alterações" : "Cadastrar Cartinha"}
         </button>
 
         {state.message && (
           <div
-            className={`p-4 rounded-lg text-sm text-center ${state.success ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}
+            className={`p-4 rounded text-sm text-center ${state.success ? "bg-verde-natal/10 text-verde-natal" : "bg-vermelho-natal/10 text-vermelho-natal"}`}
           >
             {state.message}
           </div>

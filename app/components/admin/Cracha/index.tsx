@@ -51,23 +51,23 @@ export default function CrachasIndex({
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-xl font-bold text-gray-800">Crachás</h2>
-        <p className="text-sm text-gray-500 mt-1">
+        <h2 className="text-lg font-bold text-ink">Crachás</h2>
+        <p className="text-sm text-stone-400 mt-1">
           Selecione as cartinhas e gere uma folha pronta para impressão (4 por
           página). Crachás marcados como necessidade especial saem destacados
           — imprimir em papel neon, com a observação no verso.
         </p>
       </div>
 
-      <div className="rounded-xl border border-gray-200 p-6 space-y-4">
+      <div className="rounded-md border border-stone-200 p-6 space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-[12.5px] font-medium text-stone-600 mb-2">
             Filtrar por instituição
           </label>
           <select
             value={instituicaoId}
             onChange={(e) => setInstituicaoId(e.target.value)}
-            className="w-full md:w-80 p-2 border rounded-md bg-white"
+            className="w-full md:w-80 p-2 border border-stone-300 rounded bg-white text-sm focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand"
           >
             <option value="">Todas as instituições</option>
             {instituicoes.map((inst) => (
@@ -79,46 +79,46 @@ export default function CrachasIndex({
         </div>
 
         <div className="flex items-center justify-between">
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-stone-400">
             {filtradas.length} cartinha{filtradas.length !== 1 ? "s" : ""}
             {totalEspeciais > 0 && ` — ${totalEspeciais} com necessidade especial`}
           </p>
           <div className="flex gap-2 text-xs">
-            <button onClick={selecionarTodasFiltradas} className="text-blue-600 hover:underline">
+            <button onClick={selecionarTodasFiltradas} className="text-brand-dark hover:underline">
               Selecionar todas (filtradas)
             </button>
-            <span className="text-gray-300">|</span>
-            <button onClick={limparSelecao} className="text-gray-500 hover:underline">
+            <span className="text-stone-300">|</span>
+            <button onClick={limparSelecao} className="text-stone-400 hover:underline">
               Limpar seleção
             </button>
           </div>
         </div>
 
-        <div className="max-h-96 overflow-y-auto divide-y divide-gray-100 border rounded-lg">
+        <div className="max-h-96 overflow-y-auto divide-y divide-stone-100 border border-stone-200 rounded-md">
           {filtradas.map((c) => {
             const marcado = selecionadas.has(c.id);
             return (
               <label
                 key={c.id}
                 className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors ${
-                  marcado ? "bg-red-50" : "hover:bg-gray-50"
+                  marcado ? "bg-brand/5" : "hover:bg-cream-deep"
                 }`}
               >
                 <input
                   type="checkbox"
                   checked={marcado}
                   onChange={() => toggleCartinha(c.id)}
-                  className="accent-red-600 h-4 w-4 flex-shrink-0"
+                  className="accent-brand h-4 w-4 flex-shrink-0"
                 />
-                <span className="text-gray-400 text-xs w-10 flex-shrink-0">
+                <span className="text-stone-400 text-xs w-10 flex-shrink-0">
                   #{c.numero_sequencial ?? c.id}
                 </span>
-                <span className="flex-1 text-sm font-medium text-gray-800">
+                <span className="flex-1 text-sm font-medium text-ink">
                   {c.nome_crianca}{" "}
-                  <span className="text-gray-400 font-normal">({c.idade} anos)</span>
+                  <span className="text-stone-400 font-normal">({c.idade} anos)</span>
                 </span>
-                <span className="text-xs text-gray-500">{c.nome_instituicao}</span>
-                {c.necessidade_especial && (
+                <span className="text-xs text-stone-500">{c.nome_instituicao}</span>
+                {Boolean(c.necessidade_especial) && (
                   <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-lime-200 text-lime-800">
                     Neon
                   </span>
@@ -128,17 +128,17 @@ export default function CrachasIndex({
           })}
 
           {filtradas.length === 0 && (
-            <p className="px-4 py-8 text-center text-gray-400 text-sm">
+            <p className="px-4 py-8 text-center text-stone-400 text-sm">
               Nenhuma cartinha encontrada.
             </p>
           )}
         </div>
       </div>
 
-      <div className="rounded-xl border border-dashed border-green-300 bg-green-50 p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="rounded-md border border-dashed border-verde-natal/40 bg-verde-natal/5 p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold text-green-800">Pronto para gerar</p>
-          <p className="text-xs text-green-700 mt-0.5">
+          <p className="text-sm font-semibold text-verde-natal">Pronto para gerar</p>
+          <p className="text-xs text-verde-natal/80 mt-0.5">
             {selecionadas.size} cartinha{selecionadas.size !== 1 ? "s" : ""} selecionada
             {selecionadas.size !== 1 ? "s" : ""}
           </p>
@@ -146,7 +146,7 @@ export default function CrachasIndex({
         <button
           onClick={handleGerar}
           disabled={selecionadas.size === 0}
-          className="rounded-lg bg-green-600 px-6 py-3 text-sm font-bold text-white shadow transition-colors hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="rounded bg-verde-natal px-6 py-3 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Gerar folha de crachás
         </button>

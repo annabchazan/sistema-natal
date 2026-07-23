@@ -48,9 +48,9 @@ export default function FormularioUsuarioAdmin() {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow border border-gray-200 p-6">
-      <h2 className="text-xl font-bold text-gray-800 mb-4">
-        Cadastrar Usuario
+    <div className="bg-white rounded-md border border-stone-200 p-6">
+      <h2 className="text-lg font-bold text-ink mb-4">
+        Cadastrar usuário
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -59,13 +59,13 @@ export default function FormularioUsuarioAdmin() {
             value={nome}
             onChange={(event) => setNome(event.target.value)}
             placeholder="Nome completo"
-            className="w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-red-500"
+            className="w-full p-3 border border-stone-300 rounded text-sm outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand"
           />
           <input
             value={telefone}
             onChange={(event) => setTelefone(event.target.value)}
             placeholder="Telefone"
-            className="w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-red-500"
+            className="w-full p-3 border border-stone-300 rounded text-sm outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand"
           />
         </div>
 
@@ -75,14 +75,14 @@ export default function FormularioUsuarioAdmin() {
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             placeholder="E-mail"
-            className="w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-red-500"
+            className="w-full p-3 border border-stone-300 rounded text-sm outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand"
           />
           <input
             type="password"
             value={senha}
             onChange={(event) => setSenha(event.target.value)}
             placeholder="Senha"
-            className="w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-red-500"
+            className="w-full p-3 border border-stone-300 rounded text-sm outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand"
           />
         </div>
 
@@ -92,7 +92,7 @@ export default function FormularioUsuarioAdmin() {
             onChange={(event) =>
               setTipo(event.target.value as "admin" | "padrinho")
             }
-            className="w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-red-500"
+            className="w-full p-3 border border-stone-300 rounded text-sm outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand"
           >
             <option value="padrinho">Padrinho</option>
             <option value="admin">Administrador</option>
@@ -104,7 +104,7 @@ export default function FormularioUsuarioAdmin() {
               setAdminRole(event.target.value as "master" | "full" | "editor")
             }
             disabled={tipo !== "admin"}
-            className="w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-red-500 disabled:bg-gray-100"
+            className="w-full p-3 border border-stone-300 rounded text-sm outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand disabled:bg-cream-deep"
           >
             <option value="editor">Editor — só edita</option>
             <option value="full">Gerente — edita, cria e exclui</option>
@@ -115,19 +115,19 @@ export default function FormularioUsuarioAdmin() {
         <button
           type="submit"
           disabled={isPending}
-          className="w-full bg-red-600 text-white font-bold py-3 rounded-lg hover:bg-red-700 transition-all shadow-md disabled:bg-gray-400"
+          className="w-full bg-ink text-white font-bold py-3 rounded text-sm hover:bg-stone-600 transition-colors disabled:bg-stone-300"
         >
-          {isPending ? "Salvando..." : "Cadastrar usuario"}
+          {isPending ? "Salvando..." : "Cadastrar usuário"}
         </button>
 
         {mensagem && (
-          <p className="rounded bg-green-100 text-green-700 px-4 py-3 text-sm">
+          <p className="rounded bg-verde-natal/10 text-verde-natal px-4 py-3 text-sm">
             {mensagem}
           </p>
         )}
 
         {erro && (
-          <p className="rounded bg-red-100 text-red-700 px-4 py-3 text-sm">
+          <p className="rounded bg-vermelho-natal/10 text-vermelho-natal px-4 py-3 text-sm">
             {erro}
           </p>
         )}

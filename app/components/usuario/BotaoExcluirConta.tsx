@@ -28,7 +28,7 @@ export default function BotaoExcluirConta() {
     <button
       onClick={handleExcluir}
       disabled={isPending}
-      className="text-sm text-red-500 hover:text-red-700 hover:underline disabled:opacity-50 transition-colors"
+      className="text-sm text-vermelho-natal hover:underline disabled:opacity-50 transition-colors"
     >
       {isPending ? "Excluindo..." : "Excluir minha conta"}
     </button>

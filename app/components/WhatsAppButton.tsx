@@ -1,39 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import { FAQ_CARTINHAS } from "@/app/data/faqCartinhas";
+
+const FAQ_RAPIDAS = FAQ_CARTINHAS.slice(0, 4);
 
 export default function WhatsAppButton() {
   const [isOpen, setIsOpen] = useState(false);
 
   const phoneNumber = "5511999999999"; // Substitua pelo número real
-  const message = "Olá! Tenho uma dúvida sobre o Sistema Natal.";
+  const message = "Olá! Tenho uma dúvida sobre o Natal Solidário.";
 
   const handleWhatsAppClick = () => {
     const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     window.open(url, "_blank");
   };
-
-  const faqs = [
-    {
-      question: "Como funciona o apadrinhamento?",
-      answer:
-        "Você escolhe uma cartinha, adiciona ao carrinho e leva os presentes a um ponto de entrega.",
-    },
-    {
-      question: "Posso apadrinhar mais de uma cartinha?",
-      answer: "Sim! Você pode apadrinhar quantas cartinhas desejar.",
-    },
-    {
-      question: "Qual o prazo para entrega?",
-      answer:
-        "Cada cartinha tem uma data limite especificada. Verifique sempre as datas.",
-    },
-    {
-      question: "Como sei se minha doação chegou?",
-      answer:
-        "Você recebe confirmação por e-mail quando os presentes são entregues.",
-    },
-  ];
 
   return (
     <>
@@ -65,35 +46,43 @@ export default function WhatsAppButton() {
           />
 
           {/* Modal */}
-          <div className="fixed bottom-24 right-6 w-80 max-w-sm bg-white rounded-lg shadow-xl z-50">
+          <div className="fixed bottom-24 right-6 w-80 max-w-sm bg-white rounded-md border border-stone-200 shadow-[0_8px_24px_rgba(30,27,23,.18)] z-50">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-gray-800">
+                <h3 className="text-[15px] font-bold text-ink">
                   Como podemos ajudar?
                 </h3>
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-stone-400 hover:text-ink"
                 >
-                  ✕
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    className="w-4 h-4"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                  </svg>
                 </button>
               </div>
 
-              <p className="text-gray-600 mb-4">
+              <p className="text-stone-500 text-sm mb-4">
                 Antes de falar conosco, veja se sua dúvida já está respondida:
               </p>
 
               {/* FAQ rápidas */}
-              <div className="space-y-3 mb-6">
-                {faqs.map((faq, index) => (
+              <div className="space-y-2.5 mb-6">
+                {FAQ_RAPIDAS.map((faq) => (
                   <details
-                    key={index}
-                    className="border border-gray-200 rounded p-3"
+                    key={faq.pergunta}
+                    className="border border-stone-200 rounded p-3"
                   >
-                    <summary className="font-medium text-gray-800 cursor-pointer hover:text-green-600">
-                      {faq.question}
+                    <summary className="font-medium text-sm text-ink cursor-pointer hover:text-green-600">
+                      {faq.pergunta}
                     </summary>
-                    <p className="text-gray-600 mt-2 text-sm">{faq.answer}</p>
+                    <p className="text-stone-500 mt-2 text-[13px]">{faq.resposta}</p>
                   </details>
                 ))}
               </div>
@@ -113,10 +102,6 @@ export default function WhatsAppButton() {
                 </svg>
                 <span>Falar no WhatsApp</span>
               </button>
-
-              <p className="text-xs text-gray-500 mt-2 text-center">
-                Atendemos de segunda a sexta, das 9h às 18h
-              </p>
             </div>
           </div>
         </>

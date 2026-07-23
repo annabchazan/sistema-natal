@@ -24,44 +24,44 @@ export default function FormularioPontoEntrega({
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">
-        {ponto ? "Editar Ponto de Entrega" : "Cadastro de Ponto de Entrega"}
+      <h1 className="text-lg font-bold text-ink mb-6">
+        {ponto ? "Editar ponto de entrega" : "Cadastro de ponto de entrega"}
       </h1>
 
       <form action={formAction} className="space-y-5">
         <input type="hidden" name="id" defaultValue={ponto?.id ?? ""} />
 
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">
-            Nome do Ponto de Entrega
+          <label className="block text-[12.5px] font-semibold text-stone-600 mb-1">
+            Nome do ponto de entrega
           </label>
           <input
             name="nome_local"
             type="text"
             required
             defaultValue={ponto?.nome_local ?? ""}
-            placeholder="Ex: Recreacao"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none transition"
+            placeholder="Ex: Recreação"
+            className="w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-brand/40 focus:border-brand outline-none transition"
           />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Horario
+            <label className="block text-[12.5px] font-semibold text-stone-600 mb-1">
+              Horário
             </label>
             <input
               name="horario"
               type="text"
               required
               defaultValue={ponto?.horario ?? ""}
-              className="w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-red-500"
+              className="w-full p-3 border border-gray-300 rounded outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Endereco
+            <label className="block text-[12.5px] font-semibold text-stone-600 mb-1">
+              Endereço
             </label>
             <input
               name="endereco"
@@ -69,7 +69,7 @@ export default function FormularioPontoEntrega({
               required
               defaultValue={ponto?.endereco ?? ""}
               placeholder="Ex: Rua das Flores, 123"
-              className="w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-red-500"
+              className="w-full p-3 border border-gray-300 rounded outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand"
             />
           </div>
         </div>
@@ -77,16 +77,16 @@ export default function FormularioPontoEntrega({
         <div className="flex gap-3">
           <button
             type="submit"
-            className="flex-1 bg-red-600 text-white font-bold py-3 rounded-lg hover:bg-red-700 transition-all shadow-md"
+            className="flex-1 bg-ink text-white font-bold py-3 rounded hover:bg-stone-600 transition-colors"
           >
-            {ponto ? "Salvar alteracoes" : "Salvar ponto de entrega"}
+            {ponto ? "Salvar alterações" : "Salvar ponto de entrega"}
           </button>
 
           {onCancel && (
             <button
               type="button"
               onClick={onCancel}
-              className="px-4 py-3 rounded-lg font-bold bg-gray-100 text-gray-700 hover:bg-gray-200"
+              className="px-4 py-3 rounded font-bold text-sm bg-cream-deep text-stone-500 hover:bg-stone-200"
             >
               Cancelar
             </button>
@@ -95,7 +95,7 @@ export default function FormularioPontoEntrega({
 
         {state?.message && (
           <p
-            className={`mt-4 p-3 rounded ${state.success ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
+            className={`mt-4 p-3 rounded text-sm ${state.success ? "bg-verde-natal/10 text-verde-natal" : "bg-vermelho-natal/10 text-vermelho-natal"}`}
           >
             {state.message}
           </p>

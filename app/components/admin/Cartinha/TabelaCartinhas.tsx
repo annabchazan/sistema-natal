@@ -2,18 +2,15 @@
 
 import { useState } from "react";
 import { excluirCartinha } from "@/app/actions/cartinhas";
+import { STATUS_CARTINHA } from "@/lib/statusCartinha";
 import type { CartinhaItem } from "./types";
 
-const STATUS_CONFIG: Record<string, { label: string; classes: string }> = {
-  disponivel:    { label: "Disponível",    classes: "bg-green-100 text-green-700" },
-  apadrinhada:   { label: "Apadrinhada",   classes: "bg-blue-100 text-blue-700" },
-  conferida:     { label: "Conferida",     classes: "bg-purple-100 text-purple-700" },
-  carente:       { label: "Carente",       classes: "bg-amber-100 text-amber-700" },
-  embrulhado:    { label: "Embrulhado",    classes: "bg-indigo-100 text-indigo-700" },
-  reapadrinhado: { label: "Reapadrinhado", classes: "bg-yellow-100 text-yellow-700" },
-  entregue:      { label: "Entregue",      classes: "bg-emerald-100 text-emerald-700" },
-  cancelada:     { label: "Cancelada",     classes: "bg-red-100 text-red-700" },
-};
+const STATUS_CONFIG = Object.fromEntries(
+  Object.entries(STATUS_CARTINHA).map(([key, { label, badge }]) => [
+    key,
+    { label, classes: badge },
+  ]),
+) as Record<string, { label: string; classes: string }>;
 
 export default function TabelaCartinhas({
   dados,
@@ -38,8 +35,8 @@ export default function TabelaCartinhas({
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-sm text-left text-gray-500">
-        <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+      <table className="w-full text-sm text-left text-stone-500">
+        <thead className="text-xs text-stone-500 uppercase bg-cream-deep">
           <tr>
             <th className="px-4 py-3">#</th>
             <th className="px-6 py-3">Criança</th>
@@ -54,7 +51,7 @@ export default function TabelaCartinhas({
           {dadosPaginados.map((item) => {
             const statusInfo = STATUS_CONFIG[item.status] ?? {
               label: item.status,
-              classes: "bg-gray-100 text-gray-700",
+              classes: "bg-stone-100 text-stone-600",
             };
             const hoje = new Date();
             hoje.setHours(0, 0, 0, 0);
@@ -65,14 +62,14 @@ export default function TabelaCartinhas({
               item.status !== "cancelada";
 
             return (
-              <tr key={item.id} className="bg-white border-b hover:bg-gray-50">
-                <td className="px-4 py-4 text-gray-400 text-xs">
+              <tr key={item.id} className="bg-white border-b border-stone-100 hover:bg-cream-deep">
+                <td className="px-4 py-4 text-stone-400 text-xs">
                   {item.numero_sequencial ?? item.id}
                 </td>
-                <td className="px-6 py-4 font-medium text-gray-900">
+                <td className="px-6 py-4 font-medium text-ink">
                   {item.nome_crianca}
-                  <span className="text-gray-400 font-normal"> ({item.idade} anos)</span>
-                  {item.necessidade_especial && (
+                  <span className="text-stone-400 font-normal"> ({item.idade} anos)</span>
+                  {Boolean(item.necessidade_especial) && (
                     <span
                       title={item.observacao_especial || "Necessidade especial"}
                       className="ml-2 px-2 py-0.5 rounded-full text-xs font-bold bg-lime-200 text-lime-800"
@@ -90,25 +87,25 @@ export default function TabelaCartinhas({
                 </td>
                 <td className="px-6 py-4">
                   {item.data_limite_entrega ? (
-                    <span className={prazoVencido ? "text-red-600 font-semibold" : "text-gray-600"}>
+                    <span className={prazoVencido ? "text-vermelho-natal font-semibold" : "text-stone-500"}>
                       {new Date(item.data_limite_entrega).toLocaleDateString("pt-BR")}
                       {prazoVencido && " (!)"}
                     </span>
                   ) : (
-                    <span className="text-gray-300">—</span>
+                    <span className="text-stone-300">—</span>
                   )}
                 </td>
-                <td className="p-4 text-right space-x-2">
+                <td className="p-4 text-right space-x-3">
                   <button
                     onClick={() => onEdit(item)}
-                    className="text-blue-600 hover:underline"
+                    className="text-brand-dark hover:underline"
                   >
                     Editar
                   </button>
                   {canManage && (
                     <button
                       onClick={() => handleExcluir(item.id)}
-                      className="text-red-600 hover:underline"
+                      className="text-vermelho-natal hover:underline"
                     >
                       Excluir
                     </button>
@@ -120,7 +117,7 @@ export default function TabelaCartinhas({
 
           {dados.length === 0 && (
             <tr>
-              <td colSpan={7} className="px-6 py-8 text-center text-gray-400">
+              <td colSpan={7} className="px-6 py-8 text-center text-stone-400">
                 Nenhuma cartinha encontrada.
               </td>
             </tr>
@@ -128,20 +125,20 @@ export default function TabelaCartinhas({
         </tbody>
       </table>
       {totalPaginas > 1 && (
-        <div className="flex items-center justify-between px-4 py-3 border-t text-sm text-gray-600">
+        <div className="flex items-center justify-between px-4 py-3 border-t border-stone-100 text-sm text-stone-500">
           <span>{dados.length} registros — Página {paginaAtual} de {totalPaginas}</span>
           <div className="flex gap-2">
             <button
               onClick={() => setPaginaAtual((p) => Math.max(1, p - 1))}
               disabled={paginaAtual === 1}
-              className="px-4 py-1.5 rounded-full border border-gray-300 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-1.5 rounded border border-stone-300 hover:bg-cream-deep disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             >
               Anterior
             </button>
             <button
               onClick={() => setPaginaAtual((p) => Math.min(totalPaginas, p + 1))}
               disabled={paginaAtual === totalPaginas}
-              className="px-4 py-1.5 rounded-full border border-gray-300 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-1.5 rounded border border-stone-300 hover:bg-cream-deep disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             >
               Próxima
             </button>

@@ -30,9 +30,11 @@ interface Tag {
 export default function ListaCartinhasHome({
   cartinhas: cartinhasIniciais,
   tags,
+  totalApadrinhadas = 0,
 }: {
   cartinhas: Cartinha[];
   tags: Tag[];
+  totalApadrinhadas?: number;
 }) {
   const { adicionarCartinha, removerCartinha, temCartinha } =
     useCarrinhoApadrinhamento();
@@ -116,198 +118,225 @@ export default function ListaCartinhasHome({
   };
 
   return (
-    <div className="w-full min-h-screen bg-linear-to-br from-orange-50 to-amber-50 py-12 px-4">
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-4xl font-bold text-center text-brand mb-2">
-          Cartinhas de Natal
-        </h1>
-        <p className="text-center text-gray-600 mb-8">
-          {cartinhas.length} {cartinhas.length === 1 ? "cartinha" : "cartinhas"}{" "}
-          encontrada{cartinhas.length === 1 ? "" : "s"}
-        </p>
+    <div className="w-full bg-cream">
+      {/* Hero */}
+      <div className="max-w-6xl mx-auto px-4 md:px-8 pt-14 pb-10">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_.9fr] gap-10 lg:gap-14 items-center">
+          <div>
+            <div className="text-[11px] font-bold tracking-[.14em] text-brand-dark uppercase mb-3">
+              Campanha de Natal 2026
+            </div>
+            <h1 className="text-3xl sm:text-4xl lg:text-[44px] font-bold text-ink leading-[1.12] tracking-tight mb-4">
+              Uma cartinha pode
+              <br />
+              mudar um Natal.
+            </h1>
+            <p className="text-[15px] text-stone-500 leading-7 max-w-md mb-7">
+              Escolha uma criança, leve o presente até um ponto de entrega e
+              acompanhe cada etapa até a entrega.
+            </p>
+            <div className="flex gap-8">
+              <div>
+                <div className="text-2xl font-bold text-ink">{cartinhas.length}</div>
+                <div className="text-xs text-stone-400">aguardando padrinho</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-ink">{totalApadrinhadas}</div>
+                <div className="text-xs text-stone-400">já apadrinhadas</div>
+              </div>
+            </div>
+          </div>
+          {/* Trocar por banner real da festa de Natal: salvar em public/banner-natal.jpg
+              e substituir este bloco por <Image src="/banner-natal.jpg" alt="..." fill className="object-cover rounded-md" /> */}
+          <div className="h-56 lg:h-80 rounded-md bg-[repeating-linear-gradient(135deg,#F0EAE0,#F0EAE0_12px,#E7DFD2_12px,#E7DFD2_24px)] flex items-center justify-center">
+            <span className="text-xs text-stone-400 font-mono">banner da festa de Natal</span>
+          </div>
+        </div>
+      </div>
 
+      <div className="max-w-6xl mx-auto px-4 md:px-8 pb-16">
         {/* Filtros */}
-        <div className="bg-white rounded-[25px] shadow-md p-6 mb-8 border-l-4 border-brand">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-            Filtrar Cartinhas
-          </h2>
+        <div className="flex flex-wrap items-end gap-6 border-b border-stone-200 pb-5 mb-8">
+          <div className="min-w-[180px]">
+            <label className="block text-[11px] font-semibold text-stone-400 uppercase tracking-wide mb-1.5">
+              Categoria
+            </label>
+            <select
+              value={filtroTag}
+              onChange={(e) => setFiltroTag(e.target.value)}
+              className="w-full border-0 border-b-[1.5px] border-stone-300 bg-transparent py-1.5 text-sm text-ink focus:outline-none focus:border-ink"
+            >
+              <option value="">Todas as categorias</option>
+              {tags.map((tag) => (
+                <option key={tag.id} value={tag.id}>
+                  {tag.nome}
+                </option>
+              ))}
+            </select>
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Categoria (Tag)
-              </label>
-              <select
-                value={filtroTag}
-                onChange={(e) => setFiltroTag(e.target.value)}
-                className="w-full p-2 border rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-brand"
-              >
-                <option value="">Todas as categorias</option>
-                {tags.map((tag) => (
-                  <option key={tag.id} value={tag.id}>
-                    {tag.nome}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div className="w-28">
+            <label className="block text-[11px] font-semibold text-stone-400 uppercase tracking-wide mb-1.5">
+              Idade mín.
+            </label>
+            <input
+              type="number"
+              value={filtroIdadeMin}
+              onChange={(e) => setFiltroIdadeMin(e.target.value)}
+              placeholder="0"
+              min="0"
+              max="18"
+              className="w-full border-0 border-b-[1.5px] border-stone-300 bg-transparent py-1.5 text-sm text-ink focus:outline-none focus:border-ink"
+            />
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Idade Mínima
-              </label>
-              <input
-                type="number"
-                value={filtroIdadeMin}
-                onChange={(e) => setFiltroIdadeMin(e.target.value)}
-                placeholder="Ex: 5"
-                min="0"
-                max="18"
-                className="w-full p-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-brand"
-              />
-            </div>
+          <div className="w-28">
+            <label className="block text-[11px] font-semibold text-stone-400 uppercase tracking-wide mb-1.5">
+              Idade máx.
+            </label>
+            <input
+              type="number"
+              value={filtroIdadeMax}
+              onChange={(e) => setFiltroIdadeMax(e.target.value)}
+              placeholder="12"
+              min="0"
+              max="18"
+              className="w-full border-0 border-b-[1.5px] border-stone-300 bg-transparent py-1.5 text-sm text-ink focus:outline-none focus:border-ink"
+            />
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Idade Máxima
-              </label>
-              <input
-                type="number"
-                value={filtroIdadeMax}
-                onChange={(e) => setFiltroIdadeMax(e.target.value)}
-                placeholder="Ex: 12"
-                min="0"
-                max="18"
-                className="w-full p-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-brand"
-              />
-            </div>
+          <button
+            onClick={aplicarFiltros}
+            disabled={isFiltering}
+            className="bg-ink text-white border border-ink px-5 py-2 rounded font-semibold text-[13px] hover:bg-white hover:text-ink transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isFiltering ? "Filtrando..." : "Filtrar"}
+          </button>
+          <button
+            onClick={limparFiltros}
+            className="bg-transparent text-stone-500 border border-stone-300 px-5 py-2 rounded font-semibold text-[13px] hover:bg-cream-deep transition-colors"
+          >
+            Limpar
+          </button>
 
-            <div className="flex gap-2 items-end">
-              <button
-                onClick={aplicarFiltros}
-                disabled={isFiltering}
-                className="flex-1 bg-brand text-white border border-brand px-4 py-2 rounded-full font-semibold hover:bg-white hover:text-brand transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isFiltering ? "Filtrando..." : "Filtrar"}
-              </button>
-              <button
-                onClick={limparFiltros}
-                className="flex-1 bg-white text-gray-600 border border-gray-300 px-4 py-2 rounded-full font-semibold hover:bg-gray-50 transition-colors"
-              >
-                Limpar
-              </button>
-            </div>
+          <div className="ml-auto text-[13px] text-stone-400 self-center">
+            {cartinhas.length} {cartinhas.length === 1 ? "cartinha encontrada" : "cartinhas encontradas"}
           </div>
         </div>
 
         {cartinhas.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-xl text-gray-500">
+            <p className="text-lg text-stone-400">
               Nenhuma cartinha encontrada com os filtros aplicados.
             </p>
             <button
               onClick={limparFiltros}
-              className="mt-4 bg-brand text-white border border-brand px-6 py-2 rounded-full font-semibold hover:bg-white hover:text-brand transition-colors"
+              className="mt-4 bg-ink text-white border border-ink px-6 py-2 rounded font-semibold text-sm hover:bg-white hover:text-ink transition-colors"
             >
               Ver todas as cartinhas
             </button>
           </div>
         ) : (
           <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">
             {cartinhas.slice((paginaAtual - 1) * ITENS_POR_PAGINA, paginaAtual * ITENS_POR_PAGINA).map((cartinha) => (
               <div
                 key={cartinha.id}
-                className="bg-white rounded-[25px] shadow-lg hover:shadow-xl transition-shadow p-6 border-l-4 border-brand relative"
+                className="bg-white border border-stone-200 rounded-md overflow-hidden hover:shadow-[0_8px_24px_rgba(30,27,23,.08)] transition-shadow"
               >
-                {cartinha.numero_sequencial !== undefined && (
-                  <div className="absolute top-3 right-3 bg-brand text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-lg">
-                    #{cartinha.numero_sequencial}
-                  </div>
-                )}
-
-                {cartinha.foto_cartinha && (
-                  <div className="mb-4 flex justify-center">
+                <div className="relative h-44 bg-[repeating-linear-gradient(135deg,#F0EAE0,#F0EAE0_10px,#E7DFD2_10px,#E7DFD2_20px)]">
+                  {cartinha.numero_sequencial !== undefined && (
+                    <div className="absolute top-3 left-3 bg-white text-ink text-[11.5px] font-bold rounded px-2.5 py-1">
+                      Nº {cartinha.numero_sequencial}
+                    </div>
+                  )}
+                  {cartinha.foto_cartinha && (
                     <Image
                       src={cartinha.foto_cartinha}
                       alt={`Foto da cartinha de ${cartinha.nome_crianca}`}
-                      width={128}
-                      height={96}
-                      className="rounded-2xl object-cover border-4 border-orange-100 shadow-md"
+                      fill
+                      className="object-cover"
                     />
-                  </div>
-                )}
+                  )}
+                </div>
 
-                <div className="mb-4">
-                  <h2 className="text-2xl font-bold text-brand mb-2">
-                    {cartinha.nome_crianca}
-                  </h2>
-                  <p className="text-sm text-gray-500">
-                    <span className="font-semibold">Idade:</span>{" "}
-                    {cartinha.idade} anos
-                  </p>
+                <div className="p-5">
                   {cartinha.tag_nome && (
-                    <p className="text-sm text-blue-600 mt-1">
-                      <span className="font-semibold">Categoria:</span>{" "}
+                    <div className="text-[10.5px] font-bold text-brand-dark uppercase tracking-wide mb-1.5">
                       {cartinha.tag_nome}
-                    </p>
+                    </div>
                   )}
-                  {cartinha.data_limite_entrega && (
-                    <p className="text-sm text-orange-600 mt-1">
-                      <span className="font-semibold">Entregar até:</span>{" "}
-                      {new Date(
-                        cartinha.data_limite_entrega,
-                      ).toLocaleDateString("pt-BR")}
-                    </p>
-                  )}
-                </div>
-
-                <div className="mb-4">
-                  <p className="text-gray-700 line-clamp-3">
-                    <span className="font-semibold block mb-1">Mensagem:</span>
-                    {cartinha.texto_cartinha}
+                  <div className="flex justify-between items-baseline mb-2.5">
+                    <h2 className="text-[17px] font-bold text-ink">
+                      {cartinha.nome_crianca}
+                    </h2>
+                    <span className="text-[13px] text-stone-400">
+                      {cartinha.idade} anos
+                    </span>
+                  </div>
+                  <p className="text-[13px] text-stone-500 leading-6 mb-3.5 line-clamp-3">
+                    &quot;{cartinha.texto_cartinha}&quot;
                   </p>
-                </div>
 
-                <div className="bg-orange-50 p-3 rounded-2xl mb-4">
-                  <p className="text-orange-800">
-                    <span className="font-semibold">Presente desejado:</span>
-                    <br />
-                    {cartinha.presente_pedido}
-                  </p>
-                </div>
+                  <div className="flex justify-between text-[12.5px] mb-4 pt-3 border-t border-stone-100 gap-2">
+                    <span className="text-stone-400">
+                      Pedido: <strong className="text-stone-600">{cartinha.presente_pedido}</strong>
+                    </span>
+                    {cartinha.data_limite_entrega && (
+                      <span className="text-stone-400 whitespace-nowrap">
+                        Até {new Date(cartinha.data_limite_entrega).toLocaleDateString("pt-BR")}
+                      </span>
+                    )}
+                  </div>
 
-                <button
-                  onClick={() => handleApadrinhar(cartinha)}
-                  className={`w-full py-2 px-4 rounded-full font-semibold border transition-all ${
-                    carrinhoAtualizado[cartinha.id]
-                      ? "bg-green-600 border-green-600 text-white hover:bg-white hover:text-green-600"
-                      : "bg-brand border-brand text-white hover:bg-white hover:text-brand"
-                  }`}
-                >
-                  {carrinhoAtualizado[cartinha.id]
-                    ? "Apadrinhada"
-                    : "Apadrinhar"}
-                </button>
+                  <button
+                    onClick={() => handleApadrinhar(cartinha)}
+                    className={`w-full py-2.5 rounded font-semibold text-[13.5px] transition-colors flex items-center justify-center gap-1.5 ${
+                      carrinhoAtualizado[cartinha.id]
+                        ? "bg-brand/10 text-brand-dark border border-brand hover:bg-brand/20"
+                        : "bg-brand text-white hover:bg-brand-dark"
+                    }`}
+                  >
+                    {carrinhoAtualizado[cartinha.id] && (
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        className="w-4 h-4"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="m5 13 4 4L19 7"
+                        />
+                      </svg>
+                    )}
+                    {carrinhoAtualizado[cartinha.id]
+                      ? "No carrinho"
+                      : "Apadrinhar"}
+                  </button>
+                </div>
               </div>
             ))}
           </div>
 
           {cartinhas.length > ITENS_POR_PAGINA && (
-            <div className="flex items-center justify-center gap-4 mt-10">
+            <div className="flex items-center justify-center gap-1.5 mt-12">
               <button
                 onClick={() => setPaginaAtual((p) => Math.max(1, p - 1))}
                 disabled={paginaAtual === 1}
-                className="px-5 py-2 rounded-full border border-brand text-brand font-semibold hover:bg-brand hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                className="px-4 h-9 rounded border border-stone-300 text-stone-600 font-semibold text-[13px] hover:bg-cream-deep transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 Anterior
               </button>
-              <span className="text-gray-600 text-sm">
+              <span className="text-stone-400 text-[13px] mx-3">
                 Página {paginaAtual} de {Math.ceil(cartinhas.length / ITENS_POR_PAGINA)}
               </span>
               <button
                 onClick={() => setPaginaAtual((p) => Math.min(Math.ceil(cartinhas.length / ITENS_POR_PAGINA), p + 1))}
                 disabled={paginaAtual === Math.ceil(cartinhas.length / ITENS_POR_PAGINA)}
-                className="px-5 py-2 rounded-full border border-brand text-brand font-semibold hover:bg-brand hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                className="px-4 h-9 rounded border border-stone-300 text-stone-600 font-semibold text-[13px] hover:bg-cream-deep transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 Próxima
               </button>

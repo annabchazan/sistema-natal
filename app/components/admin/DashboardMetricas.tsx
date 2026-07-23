@@ -1,19 +1,29 @@
+import { STATUS_CARTINHA } from "@/lib/statusCartinha";
+
 interface MetricasProps {
   porStatus: Record<string, number>;
   totalPadrinhos: number;
   totalVencidas: number;
 }
 
-const STATUS_CONFIG: Record<string, { label: string; cor: string }> = {
-  disponivel:    { label: "Disponíveis",    cor: "bg-gray-100 text-gray-700 border-gray-200"     },
-  apadrinhada:   { label: "Apadrinhadas",   cor: "bg-blue-50 text-blue-700 border-blue-200"      },
-  conferida:     { label: "Conferidas",     cor: "bg-indigo-50 text-indigo-700 border-indigo-200" },
-  carente:       { label: "Carentes",       cor: "bg-orange-50 text-orange-700 border-orange-200" },
-  embrulhado:    { label: "Embrulhadas",    cor: "bg-purple-50 text-purple-700 border-purple-200" },
-  reapadrinhado: { label: "Reapadrinhadas", cor: "bg-cyan-50 text-cyan-700 border-cyan-200"       },
-  entregue:      { label: "Entregues",      cor: "bg-green-50 text-green-700 border-green-200"    },
-  cancelada:     { label: "Canceladas",     cor: "bg-red-50 text-red-600 border-red-200"          },
+// Rótulo no plural pra combinar com os cards do dashboard ("Entregues", "Carentes", etc.)
+const LABEL_PLURAL: Record<string, string> = {
+  disponivel: "Disponíveis",
+  apadrinhada: "Apadrinhadas",
+  conferida: "Conferidas",
+  carente: "Carentes",
+  embrulhado: "Embrulhadas",
+  reapadrinhado: "Reapadrinhadas",
+  entregue: "Entregues",
+  cancelada: "Canceladas",
 };
+
+const STATUS_CONFIG = Object.fromEntries(
+  Object.entries(STATUS_CARTINHA).map(([key, { badge }]) => [
+    key,
+    { label: LABEL_PLURAL[key], cor: `${badge} border-transparent` },
+  ]),
+) as Record<string, { label: string; cor: string }>;
 
 export default function DashboardMetricas({
   porStatus,
@@ -36,21 +46,21 @@ export default function DashboardMetricas({
     <div className="space-y-4 mb-8">
       {/* Resumo geral */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+        <div className="bg-white rounded-md border border-stone-200 p-4">
           <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">
             Total de cartinhas
           </p>
           <p className="text-3xl font-bold text-gray-800">{totalCartinhas}</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+        <div className="bg-white rounded-md border border-stone-200 p-4">
           <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">
             Padrinhos cadastrados
           </p>
           <p className="text-3xl font-bold text-gray-800">{totalPadrinhos}</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+        <div className="bg-white rounded-md border border-stone-200 p-4">
           <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">
             Entregues
           </p>
@@ -59,10 +69,10 @@ export default function DashboardMetricas({
         </div>
 
         <div
-          className={`rounded-xl border shadow-sm p-4 ${
+          className={`rounded-md border p-4 ${
             totalVencidas > 0
-              ? "bg-red-50 border-red-200"
-              : "bg-white border-gray-200"
+              ? "bg-vermelho-natal/5 border-vermelho-natal/30"
+              : "bg-white border-stone-200"
           }`}
         >
           <p
@@ -87,7 +97,7 @@ export default function DashboardMetricas({
 
       {/* Barra de progresso geral */}
       {totalCartinhas > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+        <div className="bg-white rounded-md border border-stone-200 p-4">
           <div className="flex items-center justify-between mb-2">
             <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
               Progresso da campanha
@@ -106,11 +116,11 @@ export default function DashboardMetricas({
       )}
 
       {/* Cards por status */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-8 gap-3">
         {statusOrdenados.map(({ key, label, cor, total }) => (
           <div
             key={key}
-            className={`rounded-lg border px-3 py-3 text-center ${cor}`}
+            className={`min-w-0 rounded-lg border px-3 py-3 text-center ${cor}`}
           >
             <p className="text-2xl font-bold">{total}</p>
             <p className="text-xs font-medium mt-0.5 leading-tight">{label}</p>
