@@ -45,10 +45,17 @@ function formatarDataHora(valor: string | Date | null): string {
   });
 }
 
+// Caracteres que o Excel/Sheets interpretam como início de fórmula ao abrir o CSV
+const GATILHOS_FORMULA = ["=", "+", "-", "@", "\t", "\r"];
+
+function neutralizarFormula(str: string): string {
+  return GATILHOS_FORMULA.some((c) => str.startsWith(c)) ? `'${str}` : str;
+}
+
 function celula(valor: ValorCelula): string {
   if (valor === null || valor === undefined) return "";
-  const str = String(valor);
-  if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+  const str = neutralizarFormula(String(valor));
+  if (str.includes(",") || str.includes('"') || str.includes("\n") || str.includes("\r")) {
     return `"${str.replace(/"/g, '""')}"`;
   }
   return str;

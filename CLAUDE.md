@@ -130,6 +130,16 @@ database_updates.sql  # Migrações manuais (histórico de ALTER TABLE)
 
 > Histórico de quem desistiu de um apadrinhamento (confirmado com cliente em 2026-07-20). Gravada dentro da mesma transação de `cancelarApadrinamento()` (`migration_v8.sql`).
 
+### `login_tentativas`
+| Campo | Tipo | Notas |
+|-------|------|-------|
+| email | VARCHAR(100) PK | e-mail digitado no login (não é FK — existe mesmo para e-mails não cadastrados) |
+| tentativas_falhas | INT | default 0 |
+| bloqueado_ate | DATETIME NULL | login bloqueado para esse e-mail até essa data/hora após 5 tentativas seguidas incorretas |
+| atualizado_em | DATETIME | `CURRENT_TIMESTAMP` / `ON UPDATE CURRENT_TIMESTAMP` |
+
+> Rate limiting do login (`loginUsuario()` em `app/actions/auth.ts`, `migration_v9.sql`). Rastreado por e-mail digitado, não por `usuarios.id` — de propósito, pra que a mensagem de bloqueio apareça igual tanto para e-mail cadastrado quanto inexistente, sem abrir canal de enumeração de contas via diferença de resposta. Linha apagada no login bem-sucedido.
+
 ### `pontos_entrega`
 | Campo | Tipo |
 |-------|------|
@@ -271,7 +281,7 @@ CRON_SECRET=<string aleatória longa>   # protege GET /api/cron/lembretes
 
 ### Popular o banco
 Executar `database_updates.sql` no MySQL após criar o schema base.
-Em seguida, executar as migrations na ordem: `migration_v2.sql` (status extras) → `migration_v3.sql` (recuperação de senha) → `migration_v4.sql` (tabela `lembretes_enviados`) → `migration_v5.sql` (índices) → `migration_v6.sql` (nível de admin `master` — não esquecer de promover um usuário manualmente após aplicar) → `migration_v7.sql` (campos `necessidade_especial`/`observacao_especial` para o crachá) → `migration_v8.sql` (tabela `desistencias`).
+Em seguida, executar as migrations na ordem: `migration_v2.sql` (status extras) → `migration_v3.sql` (recuperação de senha) → `migration_v4.sql` (tabela `lembretes_enviados`) → `migration_v5.sql` (índices) → `migration_v6.sql` (nível de admin `master` — não esquecer de promover um usuário manualmente após aplicar) → `migration_v7.sql` (campos `necessidade_especial`/`observacao_especial` para o crachá) → `migration_v8.sql` (tabela `desistencias`) → `migration_v9.sql` (tabela `login_tentativas` para rate limiting do login — sem essa migration o login quebra, pois `loginUsuario()` já consulta essa tabela).
 
 ---
 

@@ -50,6 +50,41 @@ export function validarSenha(senha: string, hashArmazenado: string) {
   return timingSafeEqual(hashCalculado, hashBuffer);
 }
 
+// Hash fixo (calculado uma vez, na subida do processo) usado quando o e-mail
+// informado no login não existe. Sem isso, a ausência da chamada a scrypt
+// (mais lenta que a comparação de string) faria a resposta voltar mais rápido
+// para e-mails inexistentes, permitindo inferir por timing quais e-mails
+// estão cadastrados mesmo com mensagem de erro genérica.
+export const HASH_SENHA_INEXISTENTE = gerarHashSenha(randomBytes(32).toString("hex"));
+
+export const LIMITE_TENTATIVAS_LOGIN = 5;
+export const JANELA_BLOQUEIO_LOGIN_MS = 15 * 60 * 1000;
+
+export interface EstadoTentativasLogin {
+  tentativas: number;
+  bloqueadoAte: Date | null;
+}
+
+// Calcula o novo estado de tentativas/bloqueio após uma senha incorreta.
+// Se o bloqueio anterior já expirou, a contagem reinicia (janela nova).
+// Rastreado por e-mail digitado (tabela login_tentativas), não pelo id do
+// usuário, pra funcionar igual tanto pra e-mail cadastrado quanto inexistente
+// e não abrir um canal de enumeração de contas pela resposta.
+export function calcularBloqueioAposFalha(
+  tentativasAtuais: number,
+  bloqueadoAteAtual: Date | null,
+  agora: Date = new Date(),
+): EstadoTentativasLogin {
+  const bloqueioExpirado = bloqueadoAteAtual !== null && bloqueadoAteAtual <= agora;
+  const tentativas = bloqueioExpirado ? 1 : tentativasAtuais + 1;
+
+  if (tentativas >= LIMITE_TENTATIVAS_LOGIN) {
+    return { tentativas, bloqueadoAte: new Date(agora.getTime() + JANELA_BLOQUEIO_LOGIN_MS) };
+  }
+
+  return { tentativas, bloqueadoAte: null };
+}
+
 function assinarSessao(payload: string) {
   return createHmac("sha256", getAuthSecret()).update(payload).digest("hex");
 }

@@ -3,9 +3,11 @@
 import crypto from "crypto";
 import db from "@/lib/db";
 import {
+  calcularBloqueioAposFalha,
   criarSessao,
   gerarHashSenha,
   getUsuarioAutenticado,
+  HASH_SENHA_INEXISTENTE,
   limparSessao,
   validarPermissaoAdmin,
   validarSenha,
@@ -23,6 +25,11 @@ interface UsuarioLoginRow extends RowDataPacket {
   id: number;
   senha: string;
   tipo: "admin" | "padrinho";
+}
+
+interface TentativaLoginRow extends RowDataPacket {
+  tentativas_falhas: number;
+  bloqueado_ate: Date | null;
 }
 
 interface UsuarioSenhaRow extends RowDataPacket {
@@ -105,6 +112,28 @@ export async function loginUsuario(input: LoginInput): Promise<AuthActionState> 
   const senha = input.senha;
 
   try {
+    // O bloqueio por tentativas é rastreado por e-mail digitado (tabela
+    // login_tentativas), nao pelo id do usuario. Isso garante que o
+    // comportamento (mensagem, tempo de resposta) seja identico pra um
+    // e-mail cadastrado e um inexistente, sem abrir um canal de enumeracao
+    // de contas via conteudo da resposta.
+    const [tentativaRows] = await db.query<TentativaLoginRow[]>(
+      "SELECT tentativas_falhas, bloqueado_ate FROM login_tentativas WHERE email = ? LIMIT 1",
+      [email],
+    );
+
+    const tentativa = tentativaRows?.[0];
+    const agora = new Date();
+    const bloqueadoAte = tentativa?.bloqueado_ate ? new Date(tentativa.bloqueado_ate) : null;
+
+    if (bloqueadoAte && bloqueadoAte > agora) {
+      const minutosRestantes = Math.ceil((bloqueadoAte.getTime() - agora.getTime()) / 60000);
+      return {
+        success: false,
+        message: `Muitas tentativas de login. Tente novamente em ${minutosRestantes} minuto(s).`,
+      };
+    }
+
     const [rows] = await db.query<UsuarioLoginRow[]>(
       "SELECT id, senha, tipo FROM usuarios WHERE email = ? LIMIT 1",
       [email],
@@ -112,8 +141,27 @@ export async function loginUsuario(input: LoginInput): Promise<AuthActionState> 
 
     const usuario = rows?.[0];
 
-    if (!usuario || !validarSenha(senha, usuario.senha)) {
+    // Roda validarSenha mesmo quando o e-mail nao existe (contra um hash fixo)
+    // pra nao expor por tempo de resposta quais e-mails estao cadastrados.
+    const senhaValida = validarSenha(senha, usuario?.senha ?? HASH_SENHA_INEXISTENTE);
+
+    if (!usuario || !senhaValida) {
+      const novoEstado = calcularBloqueioAposFalha(
+        tentativa?.tentativas_falhas ?? 0,
+        bloqueadoAte,
+        agora,
+      );
+      await db.query(
+        `INSERT INTO login_tentativas (email, tentativas_falhas, bloqueado_ate)
+         VALUES (?, ?, ?)
+         ON DUPLICATE KEY UPDATE tentativas_falhas = VALUES(tentativas_falhas), bloqueado_ate = VALUES(bloqueado_ate)`,
+        [email, novoEstado.tentativas, novoEstado.bloqueadoAte],
+      );
       return { success: false, message: "E-mail ou senha invalidos." };
+    }
+
+    if (tentativa) {
+      await db.query("DELETE FROM login_tentativas WHERE email = ?", [email]);
     }
 
     await criarSessao(usuario.id);
