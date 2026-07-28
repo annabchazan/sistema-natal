@@ -135,7 +135,7 @@ Encontrado numa revisão geral em 2026-07-22 (não bloqueia produção, é manut
 - `master` é o único nível que pode promover/rebaixar outros admins (`adminPodeGerenciarPermissoes()`)
 - `full` perdeu a capacidade de gerenciar permissões, mas continua podendo criar/editar/excluir cartinhas, instituições, tags e pontos de entrega
 - `validarPermissaoAdmin()` ganhou o valor `"users"`; aba "Usuários" no painel agora é gated por `canManageUsers`
-- **Pendente:** aplicar `migration_v6.sql` em produção e promover manualmente um admin existente a `master` (senão ninguém acessa a aba Usuários)
+- `migration_v6.sql` já aplicada em produção. **Pendente:** confirmar que pelo menos um admin foi promovido manualmente a `master` (senão ninguém acessa a aba Usuários)
 
 ### Exclusão de conta (LGPD)
 Obrigatório por lei para sistemas com dados de usuários brasileiros.

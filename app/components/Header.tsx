@@ -6,6 +6,7 @@ import { useCarrinhoApadrinhamento } from "@/app/hooks/useCarrinhoApadrinhamento
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { logoutUsuario } from "@/app/actions/auth";
+import Drawer from "@/app/components/Drawer";
 
 interface UsuarioMenu {
   id: number;
@@ -385,40 +386,45 @@ export default function Header() {
             </div>
           </div>
         </div>
-
-        {isMobileMenuOpen && (
-          <nav className="lg:hidden border-t border-stone-200 px-4 py-3 flex flex-col gap-1 text-sm font-medium text-stone-600">
-            <Link
-              href="/quem-somos"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="px-2 py-2.5 rounded hover:bg-cream-deep hover:text-ink transition-colors"
-            >
-              Quem somos
-            </Link>
-            <Link
-              href="/como-funciona"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="px-2 py-2.5 rounded hover:bg-cream-deep hover:text-ink transition-colors"
-            >
-              Como funciona
-            </Link>
-            <Link
-              href="/duvidas-frequentes"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="px-2 py-2.5 rounded hover:bg-cream-deep hover:text-ink transition-colors"
-            >
-              Dúvidas frequentes
-            </Link>
-            <Link
-              href="/pontos-entrega"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="px-2 py-2.5 rounded hover:bg-cream-deep hover:text-ink transition-colors"
-            >
-              Pontos de entrega
-            </Link>
-          </nav>
-        )}
       </header>
+
+      <Drawer
+        isOpen={isMobileMenuOpen}
+        onClose={() => setIsMobileMenuOpen(false)}
+        title="Menu"
+        side="left"
+      >
+        <nav className="flex flex-col gap-1 p-3 text-sm font-medium text-stone-600">
+          <Link
+            href="/quem-somos"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="px-3 py-3 rounded hover:bg-cream-deep hover:text-ink transition-colors"
+          >
+            Quem somos
+          </Link>
+          <Link
+            href="/como-funciona"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="px-3 py-3 rounded hover:bg-cream-deep hover:text-ink transition-colors"
+          >
+            Como funciona
+          </Link>
+          <Link
+            href="/duvidas-frequentes"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="px-3 py-3 rounded hover:bg-cream-deep hover:text-ink transition-colors"
+          >
+            Dúvidas frequentes
+          </Link>
+          <Link
+            href="/pontos-entrega"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="px-3 py-3 rounded hover:bg-cream-deep hover:text-ink transition-colors"
+          >
+            Pontos de entrega
+          </Link>
+        </nav>
+      </Drawer>
 
       {(isOpen || isUserMenuOpen) && (
         <div
