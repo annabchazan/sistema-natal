@@ -50,11 +50,7 @@ export function validarSenha(senha: string, hashArmazenado: string) {
   return timingSafeEqual(hashCalculado, hashBuffer);
 }
 
-// Hash fixo (calculado uma vez, na subida do processo) usado quando o e-mail
-// informado no login não existe. Sem isso, a ausência da chamada a scrypt
-// (mais lenta que a comparação de string) faria a resposta voltar mais rápido
-// para e-mails inexistentes, permitindo inferir por timing quais e-mails
-// estão cadastrados mesmo com mensagem de erro genérica.
+// Usado quando o e-mail não existe, pra não vazar por timing quais e-mails estão cadastrados.
 export const HASH_SENHA_INEXISTENTE = gerarHashSenha(randomBytes(32).toString("hex"));
 
 export const LIMITE_TENTATIVAS_LOGIN = 5;
@@ -65,11 +61,7 @@ export interface EstadoTentativasLogin {
   bloqueadoAte: Date | null;
 }
 
-// Calcula o novo estado de tentativas/bloqueio após uma senha incorreta.
-// Se o bloqueio anterior já expirou, a contagem reinicia (janela nova).
-// Rastreado por e-mail digitado (tabela login_tentativas), não pelo id do
-// usuário, pra funcionar igual tanto pra e-mail cadastrado quanto inexistente
-// e não abrir um canal de enumeração de contas pela resposta.
+// Rastreado por e-mail digitado (não pelo id do usuário) pra não abrir canal de enumeração de contas.
 export function calcularBloqueioAposFalha(
   tentativasAtuais: number,
   bloqueadoAteAtual: Date | null,

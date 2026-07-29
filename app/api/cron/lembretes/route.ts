@@ -3,8 +3,7 @@ import db from "@/lib/db";
 import { enviarLembreteEntrega } from "@/lib/email";
 import type { RowDataPacket } from "mysql2/promise";
 
-// Vercel injeta o CRON_SECRET automaticamente no header Authorization.
-// Em chamadas manuais/testes, passe: Authorization: Bearer <CRON_SECRET>
+// Vercel injeta o CRON_SECRET automaticamente no header Authorization; em testes manuais, passe Bearer <CRON_SECRET>.
 function autorizacaoValida(req: NextRequest): boolean {
   const header = req.headers.get("authorization");
   const secret = process.env.CRON_SECRET;

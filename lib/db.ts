@@ -1,8 +1,6 @@
 import mysql, { type Pool } from "mysql2/promise";
 
-// Em dev, o Next.js (Turbopack/HMR) reavalia este módulo a cada hot-reload.
-// Sem guardar o pool em globalThis, cada reload criaria um pool novo (10
-// conexões extras) sem fechar o anterior, até estourar o limite do MySQL.
+// Guardado em globalThis pra sobreviver ao hot-reload do Turbopack sem vazar conexões a cada reload.
 const globalForDb = globalThis as unknown as { mysqlPool?: Pool };
 
 const db =

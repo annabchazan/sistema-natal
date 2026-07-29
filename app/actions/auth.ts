@@ -112,11 +112,7 @@ export async function loginUsuario(input: LoginInput): Promise<AuthActionState> 
   const senha = input.senha;
 
   try {
-    // O bloqueio por tentativas é rastreado por e-mail digitado (tabela
-    // login_tentativas), nao pelo id do usuario. Isso garante que o
-    // comportamento (mensagem, tempo de resposta) seja identico pra um
-    // e-mail cadastrado e um inexistente, sem abrir um canal de enumeracao
-    // de contas via conteudo da resposta.
+    // Rastreado por e-mail digitado, não pelo id do usuário — ver calcularBloqueioAposFalha em lib/auth.ts.
     const [tentativaRows] = await db.query<TentativaLoginRow[]>(
       "SELECT tentativas_falhas, bloqueado_ate FROM login_tentativas WHERE email = ? LIMIT 1",
       [email],
@@ -141,8 +137,7 @@ export async function loginUsuario(input: LoginInput): Promise<AuthActionState> 
 
     const usuario = rows?.[0];
 
-    // Roda validarSenha mesmo quando o e-mail nao existe (contra um hash fixo)
-    // pra nao expor por tempo de resposta quais e-mails estao cadastrados.
+    // Roda mesmo com e-mail inexistente (contra HASH_SENHA_INEXISTENTE) pra não vazar por timing.
     const senhaValida = validarSenha(senha, usuario?.senha ?? HASH_SENHA_INEXISTENTE);
 
     if (!usuario || !senhaValida) {

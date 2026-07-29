@@ -3,8 +3,7 @@ export interface FaqItem {
   resposta: string;
 }
 
-// Fonte única das perguntas frequentes — usada na página /duvidas-frequentes
-// e no widget do botão do WhatsApp, pra evitar que as duas fiquem divergentes.
+// Fonte única — usada em /duvidas-frequentes e no widget do WhatsApp, pra não divergir.
 export const FAQ_CARTINHAS: FaqItem[] = [
   {
     pergunta: "Como funciona o apadrinhamento de cartinhas?",

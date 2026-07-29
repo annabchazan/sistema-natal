@@ -16,9 +16,7 @@ interface StatusCartinhaInfo {
   dot: string;
 }
 
-// Única fonte de verdade para as cores de status — usada em /usuario,
-// no dashboard do admin e na tabela de cartinhas do admin, pra evitar que
-// o mesmo status apareça com cores diferentes dependendo da tela.
+// Única fonte de verdade pras cores de status, pra não divergir entre /usuario e o admin.
 export const STATUS_CARTINHA: Record<StatusCartinha, StatusCartinhaInfo> = {
   disponivel:    { label: "Disponível",    badge: "bg-stone-100 text-stone-600",              dot: "bg-stone-400" },
   apadrinhada:   { label: "Apadrinhada",   badge: "bg-stone-200 text-stone-600",              dot: "bg-stone-500" },

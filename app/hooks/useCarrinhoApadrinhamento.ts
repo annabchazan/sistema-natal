@@ -13,9 +13,7 @@ interface CartinhaApadrinada {
 const STORAGE_KEY = "carrinhoApadrinhamento";
 const EMPTY_CARTINHAS: CartinhaApadrinada[] = [];
 
-// Estado compartilhado entre todos os componentes que usam o hook, para que
-// adicionar/remover em um componente (ex: ListaCartinhasHome) reflita
-// imediatamente nos outros (Header, MiniCartApadrinhamento) sem precisar de reload.
+// Estado a nível de módulo (não de componente) para refletir add/remove entre Header e MiniCart sem reload.
 let cartinhas: CartinhaApadrinada[] = EMPTY_CARTINHAS;
 let carregadoDoStorage = false;
 const listeners = new Set<() => void>();
@@ -82,9 +80,7 @@ export function useCarrinhoApadrinhamento() {
   );
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // localStorage não existe no server, então o carrinho começa vazio
-  // (igual no server e na primeira renderização do client) e só é
-  // preenchido depois, aqui, para não gerar mismatch de hidratação.
+  // Carrega do localStorage só depois de montar, pra não gerar mismatch de hidratação.
   useEffect(() => {
     carregarDoStorage();
     setIsLoaded(true);

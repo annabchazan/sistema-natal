@@ -65,8 +65,6 @@ function linha(campos: ValorCelula[]): string {
   return campos.map(celula).join(",");
 }
 
-// Mapa de todas as colunas disponíveis:
-// chave → { cabeçalho para o CSV, função que extrai o valor de uma linha do banco }
 const COLUNA_MAP: Record<string, { header: string; valor: (row: ExportacaoRow) => ValorCelula }> = {
   numero:              { header: "Número",                valor: (r) => r.numero_sequencial ?? "" },
   nome_crianca:        { header: "Nome da Criança",        valor: (r) => r.nome_crianca },
