@@ -6,6 +6,17 @@ Backlog vivo do projeto. Atualizar conforme itens forem concluídos ou reprioriz
 
 ## Prioridade Alta — Resolver antes de ir a produção
 
+### 🔴 E-mails para padrinhos não estão sendo entregues (domínio não verificado no Resend)
+Diagnosticado em 2026-07-29: testei o envio real pela API do Resend e confirmei. `EMAIL_FROM` está com o valor padrão de sandbox (`onboarding@resend.dev`), sem domínio verificado na conta. Nesse modo, o Resend **bloqueia com erro 403 qualquer envio para destinatário que não seja o e-mail dono da conta Resend** (`annachazan@id.uff.br`) — ou seja, todo e-mail para padrinho real (confirmação de apadrinhamento, lembrete, recuperação de senha, cancelamento, notificação de entrega) está falhando silenciosamente.
+
+Importante (confusão comum): verificar um domínio é sobre o **remetente**, não sobre quem pode receber — depois de verificado, dá pra mandar de `contato@dominio.org` pra qualquer destinatário (Gmail, Hotmail, etc.), sem restrição de domínio do lado de quem recebe.
+
+Agravante: em `lib/email.ts`, erro do Resend só vai pra `console.error` — ninguém (nem padrinho, nem equipe) fica sabendo que o envio falhou.
+
+- [ ] Verificar um domínio próprio no Resend (resend.com/domains) — precisa de acesso ao DNS do domínio escolhido (ver item "Domínio" na tabela de decisões do cliente abaixo, que trata do mesmo DNS pro WhatsApp/subdomínio)
+- [ ] Atualizar `EMAIL_FROM` em produção (e `.env.local`) para um endereço nesse domínio
+- [ ] Considerar dar visibilidade às falhas de envio (hoje somem no `console.error`) antes de ir a produção
+
 ### ~~Lembretes automáticos por e-mail~~ ✅ Feito
 - Cron diário às 9h via Vercel (`vercel.json`)
 - Rota `GET /api/cron/lembretes` protegida por `CRON_SECRET`
@@ -79,16 +90,13 @@ Páginas a revisar:
 - [ ] `/duvidas-frequentes`, `/quem-somos`, `/como-funciona`
 - [ ] `/pontos-entrega`
 
-### Menu lateral (drawer) para mobile
-Em 2026-07-22, ao revisar responsividade, foram encontradas duas navegações que sumiam sem alternativa no mobile: o menu principal (`Header.tsx`, links escondidos abaixo de `lg`) e a sidebar do admin (`admin/page.tsx`, escondida abaixo de `md`). Como correção rápida, foi implementado:
-- Header público: botão hambúrguer que abre um painel inline com os links, empurrando o conteúdo pra baixo (`Header.tsx`).
-- Admin: um `<select>` de navegação entre abas, visível só no mobile (`AdminMobileNav.tsx`).
+### ~~Menu lateral (drawer) para mobile~~ ✅ Feito
+Em 2026-07-22, ao revisar responsividade, foram encontradas duas navegações que sumiam sem alternativa no mobile: o menu principal (`Header.tsx`, links escondidos abaixo de `lg`) e a sidebar do admin (`admin/page.tsx`, escondida abaixo de `md`). A correção rápida (painel inline no Header, `<select>` no admin) foi substituída por um drawer de verdade:
 
-Essas soluções são funcionais mas não são o ideal — a ideia é substituir por um menu lateral (drawer) de verdade, deslizando da lateral por cima do conteúdo, com overlay escuro fechando ao clicar fora. Vale considerar reaproveitar o mesmo componente de drawer para os dois casos (público e admin).
-
-- [ ] Criar um componente de drawer lateral reutilizável (abre da esquerda ou direita, overlay, fecha ao clicar fora ou em um link)
-- [ ] Trocar o painel inline do `Header.tsx` por esse drawer
-- [ ] Trocar o `<select>` do `AdminMobileNav.tsx` por esse drawer, listando as abas como itens clicáveis (like a sidebar deslizante)
+- Componente reutilizável `app/components/Drawer.tsx`: desliza da esquerda ou direita, overlay escuro (fecha ao clicar fora), fecha com **Esc**, trava o scroll do body enquanto aberto.
+- `Header.tsx`: painel inline do menu público trocado pelo `Drawer` (mesmos links: Quem somos, Como funciona, Dúvidas frequentes, Pontos de entrega).
+- `AdminMobileNav.tsx`: `<select>` trocado por um botão (mostra a aba atual) que abre o `Drawer` listando as abas como itens clicáveis, mesmo destaque visual da sidebar desktop.
+- Testado no navegador (fluxo de abrir/fechar via overlay e Esc, scroll lock) no Header; o do admin reaproveita o mesmo componente já validado.
 
 ---
 

@@ -3,6 +3,7 @@
 import { useCarrinhoApadrinhamento } from "@/app/hooks/useCarrinhoApadrinhamento";
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import FotoLightbox from "@/app/components/FotoLightbox";
 import {
   listarCartinhasFiltradas,
   type FiltrosCartinhas,
@@ -48,6 +49,7 @@ export default function ListaCartinhasHome({
   const [filtroIdadeMax, setFiltroIdadeMax] = useState<string>("");
   const [isFiltering, setIsFiltering] = useState(false);
   const [paginaAtual, setPaginaAtual] = useState(1);
+  const [fotoAberta, setFotoAberta] = useState<{ src: string; alt: string } | null>(null);
   const ITENS_POR_PAGINA = 12;
 
   useEffect(() => {
@@ -244,19 +246,45 @@ export default function ListaCartinhasHome({
                 key={cartinha.id}
                 className="bg-white border border-stone-200 rounded-md overflow-hidden hover:shadow-[0_8px_24px_rgba(30,27,23,.08)] transition-shadow"
               >
-                <div className="relative h-44 bg-[repeating-linear-gradient(135deg,#F0EAE0,#F0EAE0_10px,#E7DFD2_10px,#E7DFD2_20px)]">
+                <div
+                  className={`relative h-60 bg-[repeating-linear-gradient(135deg,#F0EAE0,#F0EAE0_10px,#E7DFD2_10px,#E7DFD2_20px)] ${
+                    cartinha.foto_cartinha ? "group cursor-zoom-in" : ""
+                  }`}
+                  onClick={() =>
+                    cartinha.foto_cartinha &&
+                    setFotoAberta({
+                      src: cartinha.foto_cartinha,
+                      alt: `Foto da cartinha de ${cartinha.nome_crianca}`,
+                    })
+                  }
+                >
                   {cartinha.numero_sequencial !== undefined && (
-                    <div className="absolute top-3 left-3 bg-white text-ink text-[11.5px] font-bold rounded px-2.5 py-1">
+                    <div className="absolute top-3 left-3 bg-white text-ink text-[11.5px] font-bold rounded px-2.5 py-1 z-10">
                       Nº {cartinha.numero_sequencial}
                     </div>
                   )}
                   {cartinha.foto_cartinha && (
-                    <Image
-                      src={cartinha.foto_cartinha}
-                      alt={`Foto da cartinha de ${cartinha.nome_crianca}`}
-                      fill
-                      className="object-cover"
-                    />
+                    <>
+                      <Image
+                        src={cartinha.foto_cartinha}
+                        alt={`Foto da cartinha de ${cartinha.nome_crianca}`}
+                        fill
+                        className="object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors" />
+                      <div className="absolute top-3 right-3 bg-black/50 text-white rounded-full p-1.5 z-10">
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                          className="w-4 h-4"
+                        >
+                          <circle cx="11" cy="11" r="7" />
+                          <path strokeLinecap="round" d="m20 20-3.5-3.5M11 8v6M8 11h6" />
+                        </svg>
+                      </div>
+                    </>
                   )}
                 </div>
 
@@ -345,6 +373,12 @@ export default function ListaCartinhasHome({
           </>
         )}
       </div>
+
+      <FotoLightbox
+        src={fotoAberta?.src ?? null}
+        alt={fotoAberta?.alt ?? ""}
+        onClose={() => setFotoAberta(null)}
+      />
     </div>
   );
 }
