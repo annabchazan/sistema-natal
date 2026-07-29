@@ -129,27 +129,24 @@ interface BaseVagasRow extends RowDataPacket {
   base: number;
 }
 
-interface ContagemCartinhasRow extends RowDataPacket {
-  total: number;
+interface MaxNumeroRow extends RowDataPacket {
+  maximo: number | null;
 }
 
-async function gerarNumeroSequencial(instituicao_id: number): Promise<number> {
-  try {
-    const [[baseRows], [countRows]] = await Promise.all([
-      db.query<BaseVagasRow[]>(
-        "SELECT COALESCE(SUM(quantidade_vagas), 0) AS base FROM instituicoes WHERE id < ?",
-        [instituicao_id],
-      ),
-      db.query<ContagemCartinhasRow[]>(
-        "SELECT COUNT(*) AS total FROM cartinhas WHERE instituicao_id = ?",
-        [instituicao_id],
-      ),
-    ]);
-    return Number(baseRows[0]?.base ?? 0) + Number(countRows[0]?.total ?? 0);
-  } catch (err) {
-    console.error("Erro ao gerar número sequencial:", err);
-    return 0;
-  }
+export async function gerarNumeroSequencial(instituicao_id: number): Promise<number> {
+  const [[baseRows], [maxRows]] = await Promise.all([
+    db.query<BaseVagasRow[]>(
+      "SELECT COALESCE(SUM(quantidade_vagas), 0) AS base FROM instituicoes WHERE id < ?",
+      [instituicao_id],
+    ),
+    db.query<MaxNumeroRow[]>(
+      "SELECT MAX(numero_sequencial) AS maximo FROM cartinhas WHERE instituicao_id = ?",
+      [instituicao_id],
+    ),
+  ]);
+  const base = Number(baseRows[0]?.base ?? 0);
+  const maximoExistente = maxRows[0]?.maximo;
+  return maximoExistente == null ? base : Number(maximoExistente) + 1;
 }
 
 // --- SALVAR CARTINHA (CRIA OU EDITA) ---

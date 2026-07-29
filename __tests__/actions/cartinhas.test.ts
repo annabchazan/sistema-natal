@@ -24,7 +24,7 @@ vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 import db from "@/lib/db";
 import { getUsuarioAutenticado } from "@/lib/auth";
 import { enviarConfirmacaoApadrinhamento, enviarCancelamentoApadrinamento, enviarAvisoDesistenciaEquipe } from "@/lib/email";
-import { finalizarApadrinamento, cancelarApadrinamento } from "@/app/actions/cartinhas";
+import { finalizarApadrinamento, cancelarApadrinamento, gerarNumeroSequencial } from "@/app/actions/cartinhas";
 
 const mockDb = db as unknown as {
   query: ReturnType<typeof vi.fn>;
@@ -59,6 +59,35 @@ function mockConexao(queryResults: unknown[] = []) {
 
 beforeEach(() => {
   vi.resetAllMocks();
+});
+
+// ─── gerarNumeroSequencial ─────────────────────────────────────────────────
+
+describe("gerarNumeroSequencial", () => {
+  it("usa base + 0 quando a instituição ainda não tem nenhuma cartinha", async () => {
+    mockDb.query
+      .mockResolvedValueOnce([[{ base: 20 }]])   // soma de vagas das instituições anteriores
+      .mockResolvedValueOnce([[{ maximo: null }]]); // nenhuma cartinha ainda
+    const numero = await gerarNumeroSequencial(2);
+    expect(numero).toBe(20);
+  });
+
+  it("usa o maior número já emitido + 1, não a contagem de linhas atuais", async () => {
+    // Regressão do bug: instituição com cartinhas numeradas até 5, mas só 4
+    // linhas restantes (uma foi excluída no meio). Se a próxima cartinha
+    // fosse numerada pela contagem (4), reapareceria o número 5, que já
+    // está em uso por outra cartinha existente.
+    mockDb.query
+      .mockResolvedValueOnce([[{ base: 0 }]])
+      .mockResolvedValueOnce([[{ maximo: 5 }]]);
+    const numero = await gerarNumeroSequencial(1);
+    expect(numero).toBe(6);
+  });
+
+  it("propaga erro do banco em vez de devolver 0 silenciosamente", async () => {
+    mockDb.query.mockRejectedValueOnce(new Error("conexão perdida"));
+    await expect(gerarNumeroSequencial(1)).rejects.toThrow("conexão perdida");
+  });
 });
 
 // ─── finalizarApadrinamento ───────────────────────────────────────────────────
