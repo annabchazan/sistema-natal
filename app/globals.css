@@ -44,6 +44,13 @@ body {
   a:hover {
     color: var(--color-ink);
   }
+  button:not(:disabled),
+  [role="button"] {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
 }
 
 ::placeholder {
