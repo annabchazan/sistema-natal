@@ -291,102 +291,105 @@ export default function Header() {
               </div>
             </div>
 
-            <div className="relative">
-              <button
-                onClick={() => {
-                  setIsOpen((prev) => !prev);
-                  setIsUserMenuOpen(false);
-                }}
-                className="relative flex items-center gap-2 border border-ink rounded px-3.5 py-1.5 text-[13px] font-semibold hover:bg-ink hover:text-white transition-colors"
-              >
-                Carrinho
-                {cartinhas.length > 0 && (
-                  <span className="bg-ink text-white group-hover:bg-white text-[10.5px] font-bold rounded-full w-4 h-4 flex items-center justify-center shrink-0">
-                    {cartinhas.length}
-                  </span>
-                )}
-              </button>
-
-              <div
-                className={`absolute right-0 mt-2 w-96 max-w-[calc(100vw-2rem)] origin-top-right bg-white rounded-md shadow-[0_8px_24px_rgba(30,27,23,.10)] border border-stone-200 max-h-96 flex flex-col z-50 transition-all duration-150 ease-out ${
-                  isOpen
-                    ? "opacity-100 scale-100"
-                    : "opacity-0 scale-95 pointer-events-none"
-                }`}
-              >
-                <div className="p-4 border-b border-stone-100 flex items-center justify-between">
-                  <h3 className="text-[13.5px] font-bold text-ink">Cartinhas escolhidas</h3>
-                  <button
-                    onClick={() => setIsOpen(false)}
-                    className="text-stone-400 hover:text-ink"
-                  >
-                    <IconeFechar className="w-4 h-4" />
-                  </button>
-                </div>
-
-                {cartinhas.length === 0 ? (
-                  <div className="p-8 text-center text-stone-400">
-                    <IconeSacolaVazia />
-                    <p className="text-[12.5px]">Nenhuma cartinha selecionada ainda</p>
-                  </div>
-                ) : (
-                  <div className="overflow-y-auto flex-1 p-4 space-y-3">
-                    {cartinhas.map((cartinha) => (
-                      <div
-                        key={cartinha.id}
-                        className="border border-stone-200 rounded-md p-3 bg-cream-deep"
-                      >
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <h4 className="font-bold text-ink text-sm">
-                              {cartinha.nome_crianca}
-                            </h4>
-                            <p className="text-xs text-stone-400 mt-1">
-                              Idade: {cartinha.idade} anos
-                            </p>
-                            <p className="text-xs text-stone-600 font-semibold mt-2">
-                              {cartinha.presente_pedido}
-                            </p>
-                          </div>
-                          <button
-                            onClick={() => removerCartinha(cartinha.id)}
-                            className="ml-2 text-stone-400 hover:text-vermelho-natal"
-                          >
-                            <IconeFechar className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {cartinhas.length > 0 && (
-                  <div className="border-t border-stone-100 p-4 space-y-2">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="font-bold text-sm text-ink">Total:</span>
-                      <span className="text-sm font-bold text-ink">
-                        {cartinhas.length} cartinha{cartinhas.length !== 1 ? "s" : ""}
-                      </span>
-                    </div>
-                    <button
-                      onClick={handleIrParaCheckout}
-                      className="w-full bg-ink text-white border border-ink py-2 rounded font-semibold text-sm hover:bg-white hover:text-ink transition-colors"
-                    >
-                      Ir para Checkout
-                    </button>
-                    <button
-                      onClick={() => limparCarrinho()}
-                      className="w-full bg-white text-stone-500 border border-stone-200 py-2 rounded font-semibold text-sm hover:bg-cream-deep transition-colors"
-                    >
-                      Limpar Carrinho
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
+            <button
+              onClick={() => {
+                setIsOpen((prev) => !prev);
+                setIsUserMenuOpen(false);
+              }}
+              className="relative flex items-center gap-2 border border-ink rounded px-3.5 py-1.5 text-[13px] font-semibold hover:bg-ink hover:text-white transition-colors"
+            >
+              Carrinho
+              {cartinhas.length > 0 && (
+                <span className="bg-ink text-white group-hover:bg-white text-[10.5px] font-bold rounded-full w-4 h-4 flex items-center justify-center shrink-0">
+                  {cartinhas.length}
+                </span>
+              )}
+            </button>
           </div>
         </div>
       </header>
+
+      <Drawer
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        title="Cartinhas escolhidas"
+        side="right"
+        width="w-full sm:w-[420px] max-w-[90vw]"
+        footer={
+          cartinhas.length > 0 ? (
+            <div className="p-4 space-y-2">
+              <div className="flex justify-between items-center mb-2">
+                <span className="font-bold text-sm text-ink">Total:</span>
+                <span className="text-sm font-bold text-ink">
+                  {cartinhas.length} cartinha{cartinhas.length !== 1 ? "s" : ""}
+                </span>
+              </div>
+              <button
+                onClick={handleIrParaCheckout}
+                className="w-full bg-ink text-white border border-ink py-2.5 rounded font-semibold text-sm hover:bg-white hover:text-ink transition-colors"
+              >
+                Ir para Checkout
+              </button>
+              <button
+                onClick={() => limparCarrinho()}
+                className="w-full bg-white text-stone-500 border border-stone-200 py-2.5 rounded font-semibold text-sm hover:bg-cream-deep transition-colors"
+              >
+                Limpar Carrinho
+              </button>
+            </div>
+          ) : undefined
+        }
+      >
+        {cartinhas.length === 0 ? (
+          <div className="p-8 text-center text-stone-400">
+            <IconeSacolaVazia />
+            <p className="text-[12.5px]">Nenhuma cartinha selecionada ainda</p>
+          </div>
+        ) : (
+          <div className="p-4 space-y-3">
+            {cartinhas.map((cartinha) => (
+              <div
+                key={cartinha.id}
+                className="flex gap-3 border border-stone-200 rounded-md p-3 bg-cream-deep"
+              >
+                {cartinha.foto_cartinha && !cartinha.foto_cartinha.startsWith("data:") ? (
+                  <Image
+                    src={cartinha.foto_cartinha}
+                    alt={cartinha.nome_crianca}
+                    width={64}
+                    height={64}
+                    className="w-16 h-16 rounded object-cover shrink-0"
+                  />
+                ) : (
+                  <div className="w-16 h-16 rounded bg-white flex items-center justify-center shrink-0">
+                    <svg viewBox="0 0 24 24" fill="none" className="w-7 h-7 text-brand" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M21 11.25v8.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 1 0 9.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1 1 14.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" /></svg>
+                  </div>
+                )}
+
+                <div className="flex-1 flex justify-between items-start gap-2">
+                  <div>
+                    <h4 className="font-bold text-ink text-sm">
+                      {cartinha.nome_crianca}
+                    </h4>
+                    <p className="text-xs text-stone-400 mt-1">
+                      Idade: {cartinha.idade} anos
+                    </p>
+                    <p className="text-xs text-stone-600 font-semibold mt-2">
+                      {cartinha.presente_pedido}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => removerCartinha(cartinha.id)}
+                    className="text-stone-400 hover:text-vermelho-natal shrink-0"
+                  >
+                    <IconeFechar className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Drawer>
 
       <Drawer
         isOpen={isMobileMenuOpen}
@@ -426,13 +429,10 @@ export default function Header() {
         </nav>
       </Drawer>
 
-      {(isOpen || isUserMenuOpen) && (
+      {isUserMenuOpen && (
         <div
           className="fixed inset-0 bg-black/20 z-30"
-          onClick={() => {
-            setIsOpen(false);
-            setIsUserMenuOpen(false);
-          }}
+          onClick={() => setIsUserMenuOpen(false)}
         />
       )}
     </>

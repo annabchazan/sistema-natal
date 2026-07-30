@@ -7,6 +7,9 @@ interface DrawerProps {
   onClose: () => void;
   side?: "left" | "right";
   title?: string;
+  footer?: React.ReactNode;
+  /** Classes Tailwind de largura do painel. Default: w-72 max-w-[85vw] */
+  width?: string;
   children: React.ReactNode;
 }
 
@@ -15,6 +18,8 @@ export default function Drawer({
   onClose,
   side = "left",
   title,
+  footer,
+  width = "w-72 max-w-[85vw]",
   children,
 }: DrawerProps) {
   useEffect(() => {
@@ -51,7 +56,7 @@ export default function Drawer({
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`fixed top-0 ${posicao} h-full w-72 max-w-[85vw] bg-white z-60 shadow-[0_0_32px_rgba(30,27,23,.15)] transition-transform duration-200 ease-out flex flex-col ${
+        className={`fixed top-0 ${posicao} h-full ${width} bg-white z-60 shadow-[0_0_32px_rgba(30,27,23,.15)] transition-transform duration-200 ease-out flex flex-col ${
           isOpen ? "translate-x-0" : translacaoFechado
         }`}
       >
@@ -77,6 +82,10 @@ export default function Drawer({
         )}
 
         <div className="flex-1 overflow-y-auto">{children}</div>
+
+        {footer && (
+          <div className="border-t border-stone-200 shrink-0">{footer}</div>
+        )}
       </div>
     </>
   );

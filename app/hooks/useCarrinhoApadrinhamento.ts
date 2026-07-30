@@ -8,6 +8,7 @@ interface CartinhaApadrinada {
   presente_pedido: string;
   instituicao_id: number;
   tag_id: number | null;
+  foto_cartinha?: string | null;
 }
 
 const STORAGE_KEY = "carrinhoApadrinhamento";
