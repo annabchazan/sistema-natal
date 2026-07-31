@@ -68,6 +68,7 @@ export default async function ImprimirCrachasPage({ searchParams }: CrachaPagePr
           gap: 6px;
           min-height: 55mm;
           break-inside: avoid;
+          background: #fff;
         }
         .cracha-especial { border-color: #a3e635; background: #f7ffe0; }
         .cracha-verso { border-style: dashed; justify-content: center; }
@@ -83,14 +84,12 @@ export default async function ImprimirCrachasPage({ searchParams }: CrachaPagePr
                   className={`cracha ${item.cartinha.necessidade_especial ? "cracha-especial" : ""}`}
                 >
                   <div className="flex items-center gap-2">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src="/logo-sempre-crianca.png"
                       alt="Sempre Criança"
-                      className="h-10 w-10 object-contain"
+                      className="h-16 w-16 object-contain"
                     />
-                    <span className="text-xs font-semibold text-gray-500">
-                      Sempre Criança
-                    </span>
                   </div>
                   <p className="text-sm font-semibold text-center text-gray-700">
                     {item.cartinha.nome_instituicao}
@@ -104,11 +103,6 @@ export default async function ImprimirCrachasPage({ searchParams }: CrachaPagePr
                     </span>
                     <span>Idade: {item.cartinha.idade} Anos</span>
                   </div>
-                  <p className="text-xs text-center font-semibold text-gray-500">
-                    {item.cartinha.necessidade_especial
-                      ? "Crachá criança — ESPECIAL (imprimir em neon)"
-                      : "Crachá criança"}
-                  </p>
                 </div>
               ) : (
                 <div key={`verso-${item.cartinha.id}`} className="cracha cracha-verso cracha-especial">

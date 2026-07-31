@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useCarrinhoApadrinhamento } from "@/app/hooks/useCarrinhoApadrinhamento";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { logoutUsuario } from "@/app/actions/auth";
 import Drawer from "@/app/components/Drawer";
@@ -72,43 +72,14 @@ function IconeSacolaVazia() {
   );
 }
 
-export default function Header() {
+export default function Header({ usuario }: { usuario: UsuarioMenu | null }) {
   const { cartinhas, removerCartinha, limparCarrinho } =
     useCarrinhoApadrinhamento();
   const [isOpen, setIsOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [usuario, setUsuario] = useState<UsuarioMenu | null>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const router = useRouter();
-
-  useEffect(() => {
-    const carregarUsuario = async () => {
-      try {
-        const resposta = await fetch("/api/auth/me", { cache: "no-store" });
-        const dados = await resposta.json();
-        setUsuario(dados.usuario);
-      } catch (error) {
-        console.error("Erro ao carregar sessao:", error);
-        setUsuario(null);
-      } finally {
-        setIsLoaded(true);
-      }
-    };
-
-    carregarUsuario();
-
-    const atualizarSessao = () => {
-      carregarUsuario();
-    };
-
-    window.addEventListener("auth-changed", atualizarSessao);
-
-    return () => {
-      window.removeEventListener("auth-changed", atualizarSessao);
-    };
-  }, []);
 
   const handleIrParaCheckout = () => {
     setIsOpen(false);
@@ -124,15 +95,11 @@ export default function Header() {
     setIsLoggingOut(true);
     limparCarrinho();
     await logoutUsuario();
-    setUsuario(null);
-    window.dispatchEvent(new Event("auth-changed"));
     setIsUserMenuOpen(false);
     setIsLoggingOut(false);
     router.push("/");
     router.refresh();
   };
-
-  if (!isLoaded) return null;
 
   return (
     <>
@@ -153,6 +120,7 @@ export default function Header() {
           </Link>
 
           <nav className="hidden lg:flex items-center gap-6 text-[13px] font-medium text-stone-600">
+            <Link href="/" className="relative py-1 hover:text-ink transition-colors after:content-[''] after:absolute after:left-0 after:-bottom-0.5 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:bg-brand after:transition-transform after:duration-300 hover:after:scale-x-100">Início</Link>
             <Link href="/quem-somos" className="relative py-1 hover:text-ink transition-colors after:content-[''] after:absolute after:left-0 after:-bottom-0.5 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:bg-brand after:transition-transform after:duration-300 hover:after:scale-x-100">Quem somos</Link>
             <Link href="/como-funciona" className="relative py-1 hover:text-ink transition-colors after:content-[''] after:absolute after:left-0 after:-bottom-0.5 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:bg-brand after:transition-transform after:duration-300 hover:after:scale-x-100">Como funciona</Link>
             <Link href="/duvidas-frequentes" className="relative py-1 hover:text-ink transition-colors after:content-[''] after:absolute after:left-0 after:-bottom-0.5 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:bg-brand after:transition-transform after:duration-300 hover:after:scale-x-100">Dúvidas frequentes</Link>
@@ -398,6 +366,13 @@ export default function Header() {
         side="left"
       >
         <nav className="flex flex-col gap-1 p-3 text-sm font-medium text-stone-600">
+          <Link
+            href="/"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="px-3 py-3 rounded hover:bg-cream-deep hover:text-ink transition-colors"
+          >
+            Início
+          </Link>
           <Link
             href="/quem-somos"
             onClick={() => setIsMobileMenuOpen(false)}

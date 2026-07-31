@@ -73,7 +73,7 @@ export default function MapaPontosEntrega({ pontos }: MapaPontosEntregaProps) {
 
               <a
                 href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                  `${ponto.nome_local}, ${ponto.endereco}`,
+                  ponto.endereco,
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"

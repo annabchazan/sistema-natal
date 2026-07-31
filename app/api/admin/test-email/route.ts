@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
-import { getUsuarioAutenticado, usuarioEhAdmin } from "@/lib/auth";
+import { getUsuarioAutenticado, adminPodeGerenciarPermissoes } from "@/lib/auth";
 
 export async function GET() {
   const usuario = await getUsuarioAutenticado();
-  if (!usuario || !usuarioEhAdmin(usuario)) {
+  if (!usuario || !adminPodeGerenciarPermissoes(usuario)) {
     return NextResponse.json({ erro: "Acesso negado" }, { status: 403 });
   }
 

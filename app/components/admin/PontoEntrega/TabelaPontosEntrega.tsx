@@ -1,7 +1,9 @@
 "use client";
 
 import { excluirPontoEntrega } from "@/app/actions/pontosEntrega";
-import { useRouter } from "next/navigation";
+import { usePaginacao } from "@/app/hooks/usePaginacao";
+import { useExclusaoComConfirmacao } from "@/app/hooks/useExclusaoComConfirmacao";
+import Paginacao from "@/app/components/admin/Paginacao";
 import type { PontoEntregaItem } from "./types";
 
 export default function TabelaPontosEntrega({
@@ -13,18 +15,11 @@ export default function TabelaPontosEntrega({
   onEdit: (item: PontoEntregaItem) => void;
   canManage: boolean;
 }) {
-  const router = useRouter();
-  const handleExcluir = async (id: number) => {
-    if (!confirm("Deseja realmente apagar este ponto de entrega?")) {
-      return;
-    }
-
-    const res = await excluirPontoEntrega(id);
-    alert(res.message);
-    if (res.success) {
-      router.refresh();
-    }
-  };
+  const { paginaAtual, setPaginaAtual, totalPaginas, dadosPaginados } = usePaginacao(dados);
+  const handleExcluir = useExclusaoComConfirmacao(
+    excluirPontoEntrega,
+    "Deseja realmente apagar este ponto de entrega?",
+  );
 
   return (
     <div className="overflow-x-auto">
@@ -38,7 +33,7 @@ export default function TabelaPontosEntrega({
           </tr>
         </thead>
         <tbody>
-          {dados.map((item) => (
+          {dadosPaginados.map((item) => (
             <tr key={item.id} className="bg-white border-b border-stone-100 hover:bg-cream-deep">
               <td className="px-6 py-4 font-medium text-ink">
                 {item.nome_local}
@@ -72,6 +67,12 @@ export default function TabelaPontosEntrega({
           )}
         </tbody>
       </table>
+      <Paginacao
+        paginaAtual={paginaAtual}
+        totalPaginas={totalPaginas}
+        totalRegistros={dados.length}
+        onChange={setPaginaAtual}
+      />
     </div>
   );
 }

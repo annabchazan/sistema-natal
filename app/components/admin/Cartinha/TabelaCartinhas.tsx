@@ -1,8 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { excluirCartinha } from "@/app/actions/cartinhas";
 import { STATUS_CARTINHA } from "@/lib/statusCartinha";
+import { usePaginacao } from "@/app/hooks/usePaginacao";
+import { useExclusaoComConfirmacao } from "@/app/hooks/useExclusaoComConfirmacao";
+import Paginacao from "@/app/components/admin/Paginacao";
 import type { CartinhaItem } from "./types";
 
 const STATUS_CONFIG = Object.fromEntries(
@@ -21,20 +24,130 @@ export default function TabelaCartinhas({
   onEdit: (cartinha: CartinhaItem) => void;
   canManage: boolean;
 }) {
-  const ITENS_POR_PAGINA = 20;
-  const [paginaAtual, setPaginaAtual] = useState(1);
-  const totalPaginas = Math.ceil(dados.length / ITENS_POR_PAGINA);
-  const dadosPaginados = dados.slice((paginaAtual - 1) * ITENS_POR_PAGINA, paginaAtual * ITENS_POR_PAGINA);
+  const [filtroStatus, setFiltroStatus] = useState("");
+  const [filtroInstituicao, setFiltroInstituicao] = useState("");
+  const [filtroCrachaNeon, setFiltroCrachaNeon] = useState("");
 
-  const handleExcluir = async (id: number) => {
-    if (confirm("Deseja realmente apagar esta cartinha?")) {
-      const res = await excluirCartinha(id);
-      alert(res.message);
-    }
+  const instituicoesDisponiveis = useMemo(() => {
+    const mapa = new Map<number, string>();
+    dados.forEach((item) => {
+      if (item.nome_instituicao) mapa.set(item.instituicao_id, item.nome_instituicao);
+    });
+    return Array.from(mapa.entries())
+      .map(([id, nome]) => ({ id, nome }))
+      .sort((a, b) => a.nome.localeCompare(b.nome));
+  }, [dados]);
+
+  const dadosFiltrados = useMemo(() => {
+    return dados.filter((item) => {
+      if (filtroStatus && item.status !== filtroStatus) return false;
+      if (filtroInstituicao && String(item.instituicao_id) !== filtroInstituicao) return false;
+      if (filtroCrachaNeon === "sim" && !item.necessidade_especial) return false;
+      if (filtroCrachaNeon === "nao" && item.necessidade_especial) return false;
+      return true;
+    });
+  }, [dados, filtroStatus, filtroInstituicao, filtroCrachaNeon]);
+
+  const { paginaAtual, setPaginaAtual, totalPaginas, dadosPaginados } = usePaginacao(dadosFiltrados);
+  const handleExcluir = useExclusaoComConfirmacao(
+    excluirCartinha,
+    "Deseja realmente apagar esta cartinha?",
+  );
+
+  const temFiltroAtivo = Boolean(filtroStatus || filtroInstituicao || filtroCrachaNeon);
+  const limparFiltros = () => {
+    setFiltroStatus("");
+    setFiltroInstituicao("");
+    setFiltroCrachaNeon("");
+    setPaginaAtual(1);
   };
 
   return (
     <div className="overflow-x-auto">
+      <div className="flex flex-wrap items-end gap-4 p-4 border-b border-stone-100 bg-cream/40">
+        <div className="min-w-40">
+          <label className="block text-[11px] font-semibold text-stone-400 uppercase tracking-wide mb-1">
+            Status
+          </label>
+          <div className="relative">
+            <select
+              value={filtroStatus}
+              onChange={(e) => {
+                setFiltroStatus(e.target.value);
+                setPaginaAtual(1);
+              }}
+              className="w-full appearance-none border border-stone-300 rounded pl-2 pr-8 py-1.5 text-sm text-ink bg-white focus:outline-none focus:border-ink"
+            >
+              <option value="">Todos os status</option>
+              {Object.entries(STATUS_CONFIG).map(([key, { label }]) => (
+                <option key={key} value={key}>
+                  {label}
+                </option>
+              ))}
+            </select>
+            <SetaSelect />
+          </div>
+        </div>
+
+        <div className="min-w-45">
+          <label className="block text-[11px] font-semibold text-stone-400 uppercase tracking-wide mb-1">
+            Instituição
+          </label>
+          <div className="relative">
+            <select
+              value={filtroInstituicao}
+              onChange={(e) => {
+                setFiltroInstituicao(e.target.value);
+                setPaginaAtual(1);
+              }}
+              className="w-full appearance-none border border-stone-300 rounded pl-2 pr-8 py-1.5 text-sm text-ink bg-white focus:outline-none focus:border-ink"
+            >
+              <option value="">Todas as instituições</option>
+              {instituicoesDisponiveis.map((inst) => (
+                <option key={inst.id} value={inst.id}>
+                  {inst.nome}
+                </option>
+              ))}
+            </select>
+            <SetaSelect />
+          </div>
+        </div>
+
+        <div className="min-w-40">
+          <label className="block text-[11px] font-semibold text-stone-400 uppercase tracking-wide mb-1">
+            Crachá neon
+          </label>
+          <div className="relative">
+            <select
+              value={filtroCrachaNeon}
+              onChange={(e) => {
+                setFiltroCrachaNeon(e.target.value);
+                setPaginaAtual(1);
+              }}
+              className="w-full appearance-none border border-stone-300 rounded pl-2 pr-8 py-1.5 text-sm text-ink bg-white focus:outline-none focus:border-ink"
+            >
+              <option value="">Todas</option>
+              <option value="sim">Só com crachá neon</option>
+              <option value="nao">Só sem crachá neon</option>
+            </select>
+            <SetaSelect />
+          </div>
+        </div>
+
+        {temFiltroAtivo && (
+          <button
+            onClick={limparFiltros}
+            className="text-sm text-stone-500 hover:text-ink hover:underline"
+          >
+            Limpar filtros
+          </button>
+        )}
+
+        <div className="ml-auto text-xs text-stone-400 self-center">
+          {dadosFiltrados.length} {dadosFiltrados.length === 1 ? "cartinha" : "cartinhas"}
+        </div>
+      </div>
+
       <table className="w-full text-sm text-left text-stone-500">
         <thead className="text-xs text-stone-500 uppercase bg-cream-deep">
           <tr>
@@ -115,7 +228,7 @@ export default function TabelaCartinhas({
             );
           })}
 
-          {dados.length === 0 && (
+          {dadosFiltrados.length === 0 && (
             <tr>
               <td colSpan={7} className="px-6 py-8 text-center text-stone-400">
                 Nenhuma cartinha encontrada.
@@ -124,27 +237,26 @@ export default function TabelaCartinhas({
           )}
         </tbody>
       </table>
-      {totalPaginas > 1 && (
-        <div className="flex items-center justify-between px-4 py-3 border-t border-stone-100 text-sm text-stone-500">
-          <span>{dados.length} registros — Página {paginaAtual} de {totalPaginas}</span>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setPaginaAtual((p) => Math.max(1, p - 1))}
-              disabled={paginaAtual === 1}
-              className="px-4 py-1.5 rounded border border-stone-300 hover:bg-cream-deep disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-            >
-              Anterior
-            </button>
-            <button
-              onClick={() => setPaginaAtual((p) => Math.min(totalPaginas, p + 1))}
-              disabled={paginaAtual === totalPaginas}
-              className="px-4 py-1.5 rounded border border-stone-300 hover:bg-cream-deep disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-            >
-              Próxima
-            </button>
-          </div>
-        </div>
-      )}
+      <Paginacao
+        paginaAtual={paginaAtual}
+        totalPaginas={totalPaginas}
+        totalRegistros={dadosFiltrados.length}
+        onChange={setPaginaAtual}
+      />
     </div>
+  );
+}
+
+function SetaSelect() {
+  return (
+    <svg
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400"
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="m5.5 8 4.5 4.5L14.5 8" />
+    </svg>
   );
 }

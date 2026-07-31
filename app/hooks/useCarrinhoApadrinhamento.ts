@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useSyncExternalStore } from "react";
 
 interface CartinhaApadrinada {
   id: number;
@@ -34,11 +34,19 @@ function carregarDoStorage() {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       cartinhas = JSON.parse(saved);
-      notificar();
     }
   } catch (error) {
     console.error("Erro ao carregar cartinhas:", error);
   }
+  notificar();
+}
+
+function getIsLoadedSnapshot() {
+  return carregadoDoStorage;
+}
+
+function getServerIsLoadedSnapshot() {
+  return false;
 }
 
 function subscribe(listener: () => void) {
@@ -79,12 +87,15 @@ export function useCarrinhoApadrinhamento() {
     getSnapshot,
     getServerSnapshot,
   );
-  const [isLoaded, setIsLoaded] = useState(false);
+  const isLoaded = useSyncExternalStore(
+    subscribe,
+    getIsLoadedSnapshot,
+    getServerIsLoadedSnapshot,
+  );
 
   // Carrega do localStorage só depois de montar, pra não gerar mismatch de hidratação.
   useEffect(() => {
     carregarDoStorage();
-    setIsLoaded(true);
   }, []);
 
   const temCartinha = useCallback(

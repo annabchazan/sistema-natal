@@ -40,10 +40,10 @@ app/
 │   └── tags/
 ├── components/
 │   ├── admin/        # Componentes do painel admin (Form + Tabela por entidade)
-│   ├── Header.tsx
+│   ├── Header.tsx    # Inclui o drawer do carrinho (lado direito) e o menu mobile (lado esquerdo)
+│   ├── Drawer.tsx    # Sidebar reutilizável (overlay, fecha com Esc, trava scroll) — usada pelo menu e pelo carrinho
 │   ├── Footer.tsx
 │   ├── ListaCartinhasHome.tsx   # Grid de cartinhas com filtros (home pública)
-│   ├── MiniCartApadrinhamento.tsx  # Carrinho flutuante
 │   └── WhatsAppButton.tsx
 ├── hooks/
 │   └── useCarrinhoApadrinhamento.ts  # Carrinho via localStorage
@@ -98,8 +98,11 @@ database_updates.sql  # Migrações manuais (histórico de ALTER TABLE)
 > Não existe (e não deve existir) coluna `apadrinada` — era um campo legado que foi removido. O `status` é a única fonte de verdade.
 
 **Status possíveis da cartinha:**
-`disponivel` → `apadrinhada` → `conferida` → `carente` → `embrulhado` → `reapadrinhado` → `entregue`
+`disponivel` → `apadrinhada` → `conferida` → `embrulhado` → `entregue`
+`disponivel` → `apadrinhada` → [padrinho desiste] → `carente` → [readotada] → `reapadrinhado` → `entregue`
 `cancelada` (pode ser acionado de qualquer estado pelo admin)
+
+> `carente` e `reapadrinhado` são automáticos (desde 2026-07-30), não manuais: quando um padrinho desiste (`cancelarApadrinamento()`), a cartinha vai para `carente` em vez de `disponivel` — ela continua aparecendo pro público exatamente como uma cartinha disponível (`listarCartinhas()`/`listarCartinhasFiltradas()` incluem `carente` no `WHERE`), só que o admin consegue distinguir no painel que ela já teve um padrinho que sumiu. Se alguém adota uma cartinha `carente`, `finalizarApadrinamento()` seta `reapadrinhado` em vez de `apadrinhada`, sinalizando pra equipe que é uma segunda tentativa. Antes disso, `carente` existiu brevemente só como status manual sem nenhuma automação por trás — chegou a ser removido e depois reintroduzido já com esse comportamento automático.
 
 ### `instituicoes`
 | Campo | Tipo |
@@ -123,12 +126,14 @@ database_updates.sql  # Migrações manuais (histórico de ALTER TABLE)
 |-------|------|-------|
 | id | INT PK AI | |
 | cartinha_id | INT FK | referencia `cartinhas.id` |
-| usuario_id | INT FK | referencia `usuarios.id` — quem desistiu |
+| usuario_id | INT FK NULL | referencia `usuarios.id` — `ON DELETE SET NULL` (`migration_v10.sql`). Vira `NULL` se a conta do padrinho for excluída depois |
+| nome_padrinho | VARCHAR(100) | snapshot do nome do padrinho no momento da desistência (`migration_v10.sql`) — sobrevive à exclusão de conta |
+| email_padrinho | VARCHAR(100) | snapshot do e-mail do padrinho (`migration_v10.sql`) |
 | nome_crianca | VARCHAR(100) | snapshot no momento da desistência |
 | numero_sequencial | INT NULL | snapshot |
 | data_desistencia | DATETIME | default `CURRENT_TIMESTAMP` |
 
-> Histórico de quem desistiu de um apadrinhamento (confirmado com cliente em 2026-07-20). Gravada dentro da mesma transação de `cancelarApadrinamento()` (`migration_v8.sql`).
+> Histórico de quem desistiu de um apadrinhamento (confirmado com cliente em 2026-07-20). Gravada dentro da mesma transação de `cancelarApadrinamento()` (`migration_v8.sql`) e de `excluirConta()` (`migration_v10.sql`). O snapshot de nome/e-mail do padrinho existe porque `usuario_id` sozinho não é confiável como fonte de "quem desistiu": a FK original era `ON DELETE RESTRICT`, o que impedia excluir a conta de qualquer padrinho que já tivesse uma linha aqui — `migration_v10.sql` corrige isso trocando pra `SET NULL` e adicionando o snapshot, pra a equipe continuar sabendo quem foi mesmo depois da conta apagada.
 
 ### `login_tentativas`
 | Campo | Tipo | Notas |
@@ -179,7 +184,7 @@ database_updates.sql  # Migrações manuais (histórico de ALTER TABLE)
 ```
 Home (/) → ver cartinhas disponíveis
    ↓ clica "Apadrinhar"
-Carrinho (localStorage) — MiniCartApadrinhamento.tsx
+Carrinho (localStorage) — drawer no Header.tsx
    ↓ clica "Ir para Checkout"
 /checkout — requer login (redireciona para /login?next=/checkout se não logado)
    ↓ clica "Confirmar Apadrinhamento"
@@ -201,6 +206,7 @@ finalizarApadrinamento() em cartinhas.ts
 | Server Actions em vez de API REST | Projeto de escala pequena, Next.js fullstack simplifica deploy e segurança. |
 | Scrypt para hash de senha (não bcrypt) | Scrypt é mais seguro contra ataques de hardware. Implementado via Node.js nativo (sem lib extra). |
 | Sessão própria (não NextAuth) | Controle total, sem overhead de biblioteca externa para um sistema simples. |
+| `carente`/`reapadrinhado` automáticos, disparados por desistência (2026-07-30) | Antes eram só opções manuais no dropdown do admin, sem nenhuma automação — `carente` chegou a ser removido por isso. Reintroduzido com propósito: dá pro admin visibilidade de quais cartinhas já perderam um padrinho (`carente`), sem tirar a cartinha do público, e sinaliza quando uma adoção é uma segunda tentativa (`reapadrinhado`), ajudando a equipe a identificar cartinhas de risco — direto ligado à dor do cliente de "doadores que somem sem entregar". |
 
 ---
 
@@ -234,7 +240,7 @@ finalizarApadrinamento() em cartinhas.ts
 - [x] **Índices no banco**: `idx_cartinhas_status`, `idx_cartinhas_instituicao`, `idx_cartinhas_apadrinhado_por` — **feito**
 - [x] **Impressão de crachá**: confirmado com cliente em 2026-07-20 — **feito**. Aba "Crachás" no admin (`app/components/admin/Cracha/`) filtra por instituição e seleciona cartinhas; botão abre `/admin/crachas/imprimir?ids=...`, página HTML com CSS de impressão (grid 2x2, `@page`, sem lib de PDF). Crachás com `necessidade_especial` saem destacados e com um card de observação extra na mesma folha, pra colar no verso do crachá físico em papel neon. Logo em `public/logo-sempre-crianca.png`.
 - [x] **Notificação quando entregue**: e-mail disparado em `salvarCartinha()` ao detectar transição para `entregue`. Template `emails/PresenteEntregue.tsx` — **feito**
-- [x] **Exclusão de conta (LGPD)**: botão na `/usuario`. Cancela apadrinhamentos ativos, preserva histórico, remove dados. Bloqueia se cartinha estiver em estágio avançado — **feito**
+- [x] **Exclusão de conta (LGPD)**: botão na `/usuario`. Cartinha ativa (`apadrinhada`) vai para `carente` (não `disponivel` — mesmo tratamento de `cancelarApadrinamento()`) e gera uma linha em `desistencias` com snapshot do nome/e-mail do padrinho. Preserva histórico, remove dados pessoais da conta. Bloqueia se cartinha estiver em estágio avançado — **feito**
 - [ ] **Política de retenção de dados (LGPD)**: confirmado com cliente em 2026-07-20 — manter histórico de apadrinhamento por **6 meses** após o fim da campanha; depois disso o cliente migra o que precisar para o Mailchimp por fora. Falta implementar: onde registrar a data de fim de campanha e o job de anonimização/remoção.
 - [ ] **Integração WhatsApp**: envio de mensagens automáticas para padrinhos (lembrete de entrega, agradecimento pós-entrega, aviso de cancelamento). Plataforma escolhida: WhatsApp Cloud API (Meta). CNPJ da organização recebido do cliente (`12.629.489/0001-44`) em 2026-07-20. Falta o cliente definir o número dedicado (não pode ser número institucional já em uso) antes de seguir com o cadastro no Meta Business Manager.
 
@@ -281,7 +287,7 @@ CRON_SECRET=<string aleatória longa>   # protege GET /api/cron/lembretes
 
 ### Popular o banco
 Executar `database_updates.sql` no MySQL após criar o schema base.
-Em seguida, executar as migrations na ordem: `migration_v2.sql` (status extras) → `migration_v3.sql` (recuperação de senha) → `migration_v4.sql` (tabela `lembretes_enviados`) → `migration_v5.sql` (índices) → `migration_v6.sql` (nível de admin `master` — não esquecer de promover um usuário manualmente após aplicar) → `migration_v7.sql` (campos `necessidade_especial`/`observacao_especial` para o crachá) → `migration_v8.sql` (tabela `desistencias`) → `migration_v9.sql` (tabela `login_tentativas` para rate limiting do login — sem essa migration o login quebra, pois `loginUsuario()` já consulta essa tabela).
+Em seguida, executar as migrations na ordem: `migration_v2.sql` (status extras) → `migration_v3.sql` (recuperação de senha) → `migration_v4.sql` (tabela `lembretes_enviados`) → `migration_v5.sql` (índices) → `migration_v6.sql` (nível de admin `master` — não esquecer de promover um usuário manualmente após aplicar) → `migration_v7.sql` (campos `necessidade_especial`/`observacao_especial` para o crachá) → `migration_v8.sql` (tabela `desistencias`) → `migration_v9.sql` (tabela `login_tentativas` para rate limiting do login — sem essa migration o login quebra, pois `loginUsuario()` já consulta essa tabela) → `migration_v10.sql` (snapshot de padrinho em `desistencias` + FK `usuario_id` vira `ON DELETE SET NULL` — sem essa migration, `excluirConta()` falha pra qualquer padrinho que já tenha uma linha em `desistencias`).
 
 ---
 

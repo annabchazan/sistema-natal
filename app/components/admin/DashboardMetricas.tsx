@@ -116,11 +116,11 @@ export default function DashboardMetricas({
       )}
 
       {/* Cards por status */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-8 gap-3">
+      <div className="flex flex-wrap justify-center gap-3">
         {statusOrdenados.map(({ key, label, cor, total }) => (
           <div
             key={key}
-            className={`min-w-0 rounded-lg border px-3 py-3 text-center ${cor}`}
+            className={`w-28 sm:w-32 rounded-lg border px-3 py-3 text-center ${cor}`}
           >
             <p className="text-2xl font-bold">{total}</p>
             <p className="text-xs font-medium mt-0.5 leading-tight">{label}</p>

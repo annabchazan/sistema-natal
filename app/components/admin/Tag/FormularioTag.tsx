@@ -25,7 +25,7 @@ export default function FormularioTags({
   return (
     <div>
       <h1 className="text-lg font-bold text-ink mb-6">
-        {tag ? "Editar tag" : "Cadastro de tag"}
+        {tag ? "Editar categoria" : "Cadastro de categoria"}
       </h1>
 
       <form action={formAction} className="space-y-5">
@@ -33,7 +33,7 @@ export default function FormularioTags({
 
         <div>
           <label className="block text-[12.5px] font-semibold text-stone-600 mb-1">
-            Nome da tag
+            Nome da categoria
           </label>
           <input
             name="nome"
@@ -50,7 +50,7 @@ export default function FormularioTags({
             type="submit"
             className="flex-1 bg-ink text-white font-bold py-3 rounded hover:bg-stone-600 transition-colors"
           >
-            {tag ? "Salvar alterações" : "Salvar tag"}
+            {tag ? "Salvar alterações" : "Salvar categoria"}
           </button>
 
           {onCancel && (

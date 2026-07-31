@@ -44,7 +44,7 @@ export default function TagsIndex({
                 : "bg-ink text-white hover:bg-stone-600"
             }`}
           >
-            {mostrarFormulario && !tagEmEdicao ? "Cancelar" : "Adicionar tag"}
+            {mostrarFormulario && !tagEmEdicao ? "Cancelar" : "Adicionar categoria"}
           </button>
         </div>
       )}
@@ -61,7 +61,7 @@ export default function TagsIndex({
 
       <div className="bg-white rounded-md border border-stone-200">
         <div className="p-4 border-b border-stone-100">
-          <h2 className="font-bold text-sm text-ink">Tags registradas</h2>
+          <h2 className="font-bold text-sm text-ink">Categorias registradas</h2>
         </div>
         <TabelaTags dados={tags} onEdit={abrirEdicao} canManage={canManage} />
       </div>

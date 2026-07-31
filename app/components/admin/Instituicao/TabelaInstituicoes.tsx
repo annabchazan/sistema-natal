@@ -1,7 +1,9 @@
 "use client";
 
 import { excluirInstituicao } from "@/app/actions/instituicoes";
-import { useRouter } from "next/navigation";
+import { usePaginacao } from "@/app/hooks/usePaginacao";
+import { useExclusaoComConfirmacao } from "@/app/hooks/useExclusaoComConfirmacao";
+import Paginacao from "@/app/components/admin/Paginacao";
 import type { InstituicaoItem } from "./types";
 
 export default function TabelaInstituicoes({
@@ -13,18 +15,11 @@ export default function TabelaInstituicoes({
   onEdit: (item: InstituicaoItem) => void;
   canManage: boolean;
 }) {
-  const router = useRouter();
-  const handleExcluir = async (id: number) => {
-    if (!confirm("Deseja realmente apagar esta instituicao?")) {
-      return;
-    }
-
-    const res = await excluirInstituicao(id);
-    alert(res.message);
-    if (res.success) {
-      router.refresh();
-    }
-  };
+  const { paginaAtual, setPaginaAtual, totalPaginas, dadosPaginados } = usePaginacao(dados);
+  const handleExcluir = useExclusaoComConfirmacao(
+    excluirInstituicao,
+    "Deseja realmente apagar esta instituicao?",
+  );
 
   return (
     <div className="overflow-x-auto">
@@ -39,7 +34,7 @@ export default function TabelaInstituicoes({
           </tr>
         </thead>
         <tbody>
-          {dados.map((item) => (
+          {dadosPaginados.map((item) => (
             <tr key={item.id} className="bg-white border-b border-stone-100 hover:bg-cream-deep">
               <td className="px-6 py-4 font-medium text-ink">
                 {item.nome_instituicao}
@@ -74,6 +69,12 @@ export default function TabelaInstituicoes({
           )}
         </tbody>
       </table>
+      <Paginacao
+        paginaAtual={paginaAtual}
+        totalPaginas={totalPaginas}
+        totalRegistros={dados.length}
+        onChange={setPaginaAtual}
+      />
     </div>
   );
 }

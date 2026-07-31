@@ -12,7 +12,7 @@ const passos = [
   {
     titulo: "Adicione ao carrinho",
     texto:
-      "Após escolher a cartinha, adicione-a ao seu carrinho de apadrinhamento. Você pode apadrinhar quantas cartinhas desejar!",
+      "Após escolher a cartinha, adicione-a ao seu carrinho de apadrinhamento. Você pode apadrinhar até 20 cartinhas por vez!",
     itens: [
       "Carrinho salvo no navegador",
       "Visualize todas as suas escolhas",

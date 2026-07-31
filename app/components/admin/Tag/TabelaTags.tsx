@@ -1,7 +1,9 @@
 "use client";
 
 import { excluirTag } from "@/app/actions/tags";
-import { useRouter } from "next/navigation";
+import { usePaginacao } from "@/app/hooks/usePaginacao";
+import { useExclusaoComConfirmacao } from "@/app/hooks/useExclusaoComConfirmacao";
+import Paginacao from "@/app/components/admin/Paginacao";
 import type { TagItem } from "./types";
 
 export default function TabelaTags({
@@ -13,18 +15,11 @@ export default function TabelaTags({
   onEdit: (item: TagItem) => void;
   canManage: boolean;
 }) {
-  const router = useRouter();
-  const handleExcluir = async (id: number) => {
-    if (!confirm("Deseja realmente apagar esta tag?")) {
-      return;
-    }
-
-    const res = await excluirTag(id);
-    alert(res.message);
-    if (res.success) {
-      router.refresh();
-    }
-  };
+  const { paginaAtual, setPaginaAtual, totalPaginas, dadosPaginados } = usePaginacao(dados);
+  const handleExcluir = useExclusaoComConfirmacao(
+    excluirTag,
+    "Deseja realmente apagar esta categoria?",
+  );
 
   return (
     <div className="overflow-x-auto">
@@ -36,7 +31,7 @@ export default function TabelaTags({
           </tr>
         </thead>
         <tbody>
-          {dados.map((item) => (
+          {dadosPaginados.map((item) => (
             <tr key={item.id} className="bg-white border-b border-stone-100 hover:bg-cream-deep">
               <td className="px-6 py-4 font-medium text-ink">
                 {item.nome}
@@ -62,12 +57,18 @@ export default function TabelaTags({
           {dados.length === 0 && (
             <tr>
               <td colSpan={2} className="px-6 py-8 text-center text-stone-400">
-                Nenhuma tag encontrada no banco de dados.
+                Nenhuma categoria encontrada no banco de dados.
               </td>
             </tr>
           )}
         </tbody>
       </table>
+      <Paginacao
+        paginaAtual={paginaAtual}
+        totalPaginas={totalPaginas}
+        totalRegistros={dados.length}
+        onChange={setPaginaAtual}
+      />
     </div>
   );
 }

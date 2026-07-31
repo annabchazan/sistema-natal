@@ -55,14 +55,14 @@ function neutralizarFormula(str: string): string {
 function celula(valor: ValorCelula): string {
   if (valor === null || valor === undefined) return "";
   const str = neutralizarFormula(String(valor));
-  if (str.includes(",") || str.includes('"') || str.includes("\n") || str.includes("\r")) {
+  if (str.includes(";") || str.includes(",") || str.includes('"') || str.includes("\n") || str.includes("\r")) {
     return `"${str.replace(/"/g, '""')}"`;
   }
   return str;
 }
 
 function linha(campos: ValorCelula[]): string {
-  return campos.map(celula).join(",");
+  return campos.map(celula).join(";");
 }
 
 const COLUNA_MAP: Record<string, { header: string; valor: (row: ExportacaoRow) => ValorCelula }> = {
@@ -97,6 +97,15 @@ export async function GET(req: NextRequest) {
     .filter((s) => STATUS_VALIDOS.has(s));
   const filtrarStatus = statusFiltro.length > 0 && statusFiltro.length < STATUS_VALIDOS.size;
 
+  // --- Filtro de instituição ---
+  const instituicoesParam = searchParams.get("instituicoes") ?? "";
+  const instituicoesFiltro = instituicoesParam
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => /^\d+$/.test(s))
+    .map(Number);
+  const filtrarInstituicao = instituicoesFiltro.length > 0;
+
   // --- Colunas selecionadas ---
   const colunasParam = searchParams.get("colunas") ?? "";
   const colunasSolicitadas = colunasParam
@@ -124,11 +133,23 @@ export async function GET(req: NextRequest) {
       LEFT JOIN usuarios u    ON c.apadrinhado_por_usuario_id = u.id
     `;
 
-    const params: string[] = [];
+    const condicoes: string[] = [];
+    const params: (string | number)[] = [];
+
     if (filtrarStatus) {
       const placeholders = statusFiltro.map(() => "?").join(",");
-      query += ` WHERE c.status IN (${placeholders})`;
+      condicoes.push(`c.status IN (${placeholders})`);
       params.push(...statusFiltro);
+    }
+
+    if (filtrarInstituicao) {
+      const placeholders = instituicoesFiltro.map(() => "?").join(",");
+      condicoes.push(`c.instituicao_id IN (${placeholders})`);
+      params.push(...instituicoesFiltro);
+    }
+
+    if (condicoes.length > 0) {
+      query += ` WHERE ${condicoes.join(" AND ")}`;
     }
 
     query += " ORDER BY c.numero_sequencial ASC, c.id ASC";

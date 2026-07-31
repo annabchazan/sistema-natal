@@ -55,61 +55,95 @@ export default function FormularioUsuarioAdmin() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input
-            value={nome}
-            onChange={(event) => setNome(event.target.value)}
-            placeholder="Nome completo"
-            className="w-full p-3 border border-stone-300 rounded text-sm outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand"
-          />
-          <input
-            value={telefone}
-            onChange={(event) => setTelefone(event.target.value)}
-            placeholder="Telefone"
-            className="w-full p-3 border border-stone-300 rounded text-sm outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand"
-          />
+          <div>
+            <label className="block text-[12.5px] font-semibold text-stone-600 mb-1">
+              Nome completo
+            </label>
+            <input
+              value={nome}
+              onChange={(event) => setNome(event.target.value)}
+              required
+              placeholder="Nome completo"
+              className="w-full p-3 border border-stone-300 rounded text-sm outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand"
+            />
+          </div>
+          <div>
+            <label className="block text-[12.5px] font-semibold text-stone-600 mb-1">
+              Telefone
+            </label>
+            <input
+              value={telefone}
+              onChange={(event) => setTelefone(event.target.value)}
+              required
+              placeholder="Telefone"
+              className="w-full p-3 border border-stone-300 rounded text-sm outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand"
+            />
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input
-            type="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            placeholder="E-mail"
-            className="w-full p-3 border border-stone-300 rounded text-sm outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand"
-          />
-          <input
-            type="password"
-            value={senha}
-            onChange={(event) => setSenha(event.target.value)}
-            placeholder="Senha"
-            className="w-full p-3 border border-stone-300 rounded text-sm outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand"
-          />
+          <div>
+            <label className="block text-[12.5px] font-semibold text-stone-600 mb-1">
+              E-mail
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              required
+              placeholder="E-mail"
+              className="w-full p-3 border border-stone-300 rounded text-sm outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand"
+            />
+          </div>
+          <div>
+            <label className="block text-[12.5px] font-semibold text-stone-600 mb-1">
+              Senha
+            </label>
+            <input
+              type="password"
+              value={senha}
+              onChange={(event) => setSenha(event.target.value)}
+              required
+              placeholder="Senha"
+              className="w-full p-3 border border-stone-300 rounded text-sm outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand"
+            />
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <select
-            value={tipo}
-            onChange={(event) =>
-              setTipo(event.target.value as "admin" | "padrinho")
-            }
-            className="w-full p-3 border border-stone-300 rounded text-sm outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand"
-          >
-            <option value="padrinho">Padrinho</option>
-            <option value="admin">Administrador</option>
-          </select>
+          <div>
+            <label className="block text-[12.5px] font-semibold text-stone-600 mb-1">
+              Tipo de usuário
+            </label>
+            <select
+              value={tipo}
+              onChange={(event) =>
+                setTipo(event.target.value as "admin" | "padrinho")
+              }
+              className="w-full p-3 border border-stone-300 rounded text-sm outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand"
+            >
+              <option value="padrinho">Padrinho</option>
+              <option value="admin">Administrador</option>
+            </select>
+          </div>
 
-          <select
-            value={adminRole}
-            onChange={(event) =>
-              setAdminRole(event.target.value as "master" | "full" | "editor")
-            }
-            disabled={tipo !== "admin"}
-            className="w-full p-3 border border-stone-300 rounded text-sm outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand disabled:bg-cream-deep"
-          >
-            <option value="editor">Editor — só edita</option>
-            <option value="full">Gerente — edita, cria e exclui</option>
-            <option value="master">Super Adm — tudo, mais gerenciar usuários</option>
-          </select>
+          <div>
+            <label className="block text-[12.5px] font-semibold text-stone-600 mb-1">
+              Papel de admin
+            </label>
+            <select
+              value={adminRole}
+              onChange={(event) =>
+                setAdminRole(event.target.value as "master" | "full" | "editor")
+              }
+              disabled={tipo !== "admin"}
+              className="w-full p-3 border border-stone-300 rounded text-sm outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand disabled:bg-cream-deep"
+            >
+              <option value="editor">Editor — só edita</option>
+              <option value="full">Gerente — edita, cria e exclui</option>
+              <option value="master">Super Adm — tudo, mais gerenciar usuários</option>
+            </select>
+          </div>
         </div>
 
         <button

@@ -3,7 +3,15 @@
 import { useCarrinhoApadrinhamento } from "@/app/hooks/useCarrinhoApadrinhamento";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { finalizarApadrinamento } from "@/app/actions/cartinhas";
+import { buscarCartinhasParaCheckout, finalizarApadrinamento } from "@/app/actions/cartinhas";
+
+interface DadosAtuais {
+  nome_crianca: string;
+  idade: number;
+  texto_cartinha: string;
+  presente_pedido: string;
+  status: string;
+}
 
 export default function CheckoutClient() {
   const { cartinhas, isLoaded, limparCarrinho } = useCarrinhoApadrinhamento();
@@ -12,6 +20,7 @@ export default function CheckoutClient() {
     tipo: "sucesso" | "erro";
     texto: string;
   } | null>(null);
+  const [dadosAtuais, setDadosAtuais] = useState<Record<number, DadosAtuais>>({});
   const router = useRouter();
 
   useEffect(() => {
@@ -20,10 +29,38 @@ export default function CheckoutClient() {
     }
   }, [cartinhas, isLoaded, router]);
 
+  useEffect(() => {
+    if (!isLoaded || cartinhas.length === 0) return;
+
+    let cancelado = false;
+    buscarCartinhasParaCheckout(cartinhas.map((c) => c.id)).then((atuais) => {
+      if (cancelado) return;
+      setDadosAtuais(Object.fromEntries(atuais.map((c) => [c.id, c])));
+    });
+
+    return () => {
+      cancelado = true;
+    };
+  }, [isLoaded, cartinhas]);
+
+  const indisponiveis = cartinhas.filter(
+    (c) => dadosAtuais[c.id] && dadosAtuais[c.id].status !== "disponivel",
+  );
+
   const handleFinalizarApadrinamento = async () => {
     setIsLoading(true);
     try {
-      const ids = cartinhas.map((c) => c.id);
+      const idsIndisponiveis = new Set(indisponiveis.map((c) => c.id));
+      const ids = cartinhas.map((c) => c.id).filter((id) => !idsIndisponiveis.has(id));
+
+      if (ids.length === 0) {
+        setMensagem({
+          tipo: "erro",
+          texto: "Todas as cartinhas do seu carrinho já foram apadrinhadas por outra pessoa.",
+        });
+        return;
+      }
+
       const resultado = await finalizarApadrinamento(ids);
 
       if (resultado.success) {
@@ -82,30 +119,49 @@ export default function CheckoutClient() {
                 Resumo das cartinhas
               </h2>
 
+              {indisponiveis.length > 0 && (
+                <div className="mb-4 p-3 rounded bg-vermelho-natal/10 text-vermelho-natal text-[13px] font-semibold">
+                  {indisponiveis.length === 1
+                    ? "Uma das cartinhas do seu carrinho já foi apadrinhada por outra pessoa."
+                    : "Algumas cartinhas do seu carrinho já foram apadrinhadas por outra pessoa."}{" "}
+                  Ao confirmar, elas serão desconsideradas automaticamente.
+                </div>
+              )}
+
               <div>
-                {cartinhas.map((cartinha, index) => (
-                  <div
-                    key={cartinha.id}
-                    className="border-b border-stone-100 py-3.5 last:border-b-0"
-                  >
-                    <div className="flex items-start justify-between mb-1.5">
-                      <h3 className="font-semibold text-sm text-ink">
-                        Nº {index + 1} · {cartinha.nome_crianca}
-                      </h3>
-                      <span className="text-xs text-stone-400 whitespace-nowrap ml-2">
-                        {cartinha.idade} anos
-                      </span>
+                {cartinhas.map((cartinha, index) => {
+                  const atual = dadosAtuais[cartinha.id];
+                  const foiApadrinhada = atual && atual.status !== "disponivel";
+
+                  return (
+                    <div
+                      key={cartinha.id}
+                      className={`border-b border-stone-100 py-3.5 last:border-b-0 ${foiApadrinhada ? "opacity-50" : ""}`}
+                    >
+                      <div className="flex items-start justify-between mb-1.5">
+                        <h3 className="font-semibold text-sm text-ink">
+                          Nº {index + 1} · {(atual ?? cartinha).nome_crianca}
+                          {foiApadrinhada && (
+                            <span className="ml-2 text-xs font-normal text-vermelho-natal">
+                              (já apadrinhada)
+                            </span>
+                          )}
+                        </h3>
+                        <span className="text-xs text-stone-400 whitespace-nowrap ml-2">
+                          {(atual ?? cartinha).idade} anos
+                        </span>
+                      </div>
+
+                      <p className="text-[13px] text-stone-500 italic mb-2">
+                        &quot;{(atual ?? cartinha).texto_cartinha}&quot;
+                      </p>
+
+                      <p className="text-[12.5px] text-stone-400">
+                        Pedido: <strong className="text-stone-600">{(atual ?? cartinha).presente_pedido}</strong>
+                      </p>
                     </div>
-
-                    <p className="text-[13px] text-stone-500 italic mb-2">
-                      &quot;{cartinha.texto_cartinha}&quot;
-                    </p>
-
-                    <p className="text-[12.5px] text-stone-400">
-                      Pedido: <strong className="text-stone-600">{cartinha.presente_pedido}</strong>
-                    </p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               <p className="text-[11.5px] text-stone-400 mt-3.5 mb-3">

@@ -2,9 +2,11 @@
 
 import { useTransition } from "react";
 import { excluirConta } from "@/app/actions/auth";
+import { useToast } from "@/app/components/Toast";
 
 export default function BotaoExcluirConta() {
   const [isPending, startTransition] = useTransition();
+  const { mostrarToast } = useToast();
 
   function handleExcluir() {
     if (
@@ -19,7 +21,7 @@ export default function BotaoExcluirConta() {
       if (res.success) {
         window.location.href = "/";
       } else {
-        alert(res.message);
+        mostrarToast(res.message, "erro");
       }
     });
   }

@@ -147,13 +147,12 @@ export default function CadastroPage() {
       return;
     }
 
-    window.dispatchEvent(new Event("auth-changed"));
     router.push("/usuario");
     router.refresh();
   };
 
   return (
-    <div className="min-h-screen bg-cream py-14 flex justify-center">
+    <div className="min-h-full bg-cream py-14 flex items-center justify-center">
       <div className="container mx-auto px-4">
         <div className="max-w-120 mx-auto bg-white border border-stone-200 border-t-[3px] border-t-brand rounded-md overflow-hidden">
           <div className="px-8 pt-8 pb-6 border-b border-stone-100">

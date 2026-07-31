@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { STATUS_CARTINHA } from "@/lib/statusCartinha";
+import { useToast } from "@/app/components/Toast";
 
 const COLUNAS = [
   { key: "numero",              label: "Número" },
@@ -16,25 +18,33 @@ const COLUNAS = [
   { key: "padrinho_email",      label: "Padrinho — E-mail" },
 ];
 
-const STATUS_OPCOES = [
-  { key: "disponivel",    label: "Disponível",    cor: "bg-green-100 text-green-700" },
-  { key: "apadrinhada",   label: "Apadrinhada",   cor: "bg-blue-100 text-blue-700" },
-  { key: "conferida",     label: "Conferida",     cor: "bg-purple-100 text-purple-700" },
-  { key: "carente",       label: "Carente",       cor: "bg-amber-100 text-amber-700" },
-  { key: "embrulhado",    label: "Embrulhado",    cor: "bg-indigo-100 text-indigo-700" },
-  { key: "reapadrinhado", label: "Reapadrinhado", cor: "bg-yellow-100 text-yellow-700" },
-  { key: "entregue",      label: "Entregue",      cor: "bg-emerald-100 text-emerald-700" },
-  { key: "cancelada",     label: "Cancelada",     cor: "bg-red-100 text-red-700" },
-];
+const STATUS_OPCOES = Object.entries(STATUS_CARTINHA).map(([key, { label, badge }]) => ({
+  key,
+  label,
+  cor: badge,
+}));
 
-export default function ExportarIndex() {
+interface InstituicaoOption {
+  id: number;
+  nome_instituicao: string;
+}
+
+export default function ExportarIndex({
+  instituicoes,
+}: {
+  instituicoes: InstituicaoOption[];
+}) {
   const [statusSelecionados, setStatusSelecionados] = useState<Set<string>>(
     new Set(STATUS_OPCOES.map((s) => s.key))
+  );
+  const [instituicoesSelecionadas, setInstituicoesSelecionadas] = useState<Set<number>>(
+    new Set(instituicoes.map((i) => i.id))
   );
   const [colunasSelecionadas, setColunasSelecionadas] = useState<Set<string>>(
     new Set(COLUNAS.map((c) => c.key))
   );
   const [carregando, setCarregando] = useState(false);
+  const { mostrarToast } = useToast();
 
   function toggleStatus(key: string) {
     setStatusSelecionados((prev) => {
@@ -43,6 +53,18 @@ export default function ExportarIndex() {
         next.delete(key);
       } else {
         next.add(key);
+      }
+      return next;
+    });
+  }
+
+  function toggleInstituicao(id: number) {
+    setInstituicoesSelecionadas((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
       }
       return next;
     });
@@ -68,6 +90,14 @@ export default function ExportarIndex() {
     setStatusSelecionados(new Set());
   }
 
+  function selecionarTodasInstituicoes() {
+    setInstituicoesSelecionadas(new Set(instituicoes.map((i) => i.id)));
+  }
+
+  function limparInstituicoes() {
+    setInstituicoesSelecionadas(new Set());
+  }
+
   function selecionarTodasColunas() {
     setColunasSelecionadas(new Set(COLUNAS.map((c) => c.key)));
   }
@@ -78,11 +108,15 @@ export default function ExportarIndex() {
 
   function handleExportar() {
     if (statusSelecionados.size === 0) {
-      alert("Selecione ao menos um status para exportar.");
+      mostrarToast("Selecione ao menos um status para exportar.", "erro");
+      return;
+    }
+    if (instituicoes.length > 0 && instituicoesSelecionadas.size === 0) {
+      mostrarToast("Selecione ao menos uma instituição para exportar.", "erro");
       return;
     }
     if (colunasSelecionadas.size === 0) {
-      alert("Selecione ao menos uma coluna para exportar.");
+      mostrarToast("Selecione ao menos uma coluna para exportar.", "erro");
       return;
     }
 
@@ -90,6 +124,9 @@ export default function ExportarIndex() {
       status:  [...statusSelecionados].join(","),
       colunas: [...colunasSelecionadas].join(","),
     });
+    if (instituicoes.length > 0) {
+      params.set("instituicoes", [...instituicoesSelecionadas].join(","));
+    }
 
     setCarregando(true);
     // Cria um link temporário e dispara o download
@@ -175,6 +212,60 @@ export default function ExportarIndex() {
           {statusSelecionados.size} de {STATUS_OPCOES.length} status selecionados
         </p>
       </div>
+
+      {/* Filtro de instituição */}
+      {instituicoes.length > 0 && (
+        <div className="rounded-md border border-stone-200 p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold text-sm text-ink">Filtrar por instituição</h3>
+            <div className="flex gap-2 text-xs">
+              <button
+                onClick={selecionarTodasInstituicoes}
+                className="text-brand-dark hover:underline"
+              >
+                Selecionar todas
+              </button>
+              <span className="text-stone-300">|</span>
+              <button
+                onClick={limparInstituicoes}
+                className="text-stone-400 hover:underline"
+              >
+                Limpar
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {instituicoes.map((inst) => {
+              const marcado = instituicoesSelecionadas.has(inst.id);
+              return (
+                <label
+                  key={inst.id}
+                  className={`flex items-center gap-3 rounded border-2 px-4 py-3 cursor-pointer transition-colors ${
+                    marcado
+                      ? "border-brand bg-brand/5"
+                      : "border-stone-200 bg-white hover:border-stone-300"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={marcado}
+                    onChange={() => toggleInstituicao(inst.id)}
+                    className="accent-brand h-4 w-4 shrink-0"
+                  />
+                  <span className={`text-sm font-medium ${marcado ? "text-brand-dark" : "text-stone-500"}`}>
+                    {inst.nome_instituicao}
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+
+          <p className="text-xs text-stone-400">
+            {instituicoesSelecionadas.size} de {instituicoes.length} instituições selecionadas
+          </p>
+        </div>
+      )}
 
       {/* Seleção de colunas */}
       <div className="rounded-md border border-stone-200 p-6 space-y-4">

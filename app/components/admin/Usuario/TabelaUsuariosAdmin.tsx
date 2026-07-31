@@ -3,6 +3,8 @@
 import { atualizarPermissoesUsuario } from "@/app/actions/auth";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { usePaginacao } from "@/app/hooks/usePaginacao";
+import Paginacao from "@/app/components/admin/Paginacao";
 
 interface UsuarioItem {
   id: number;
@@ -30,6 +32,7 @@ export default function TabelaUsuariosAdmin({
   );
   const [feedback, setFeedback] = useState<Record<number, string>>({});
   const [isPending, startTransition] = useTransition();
+  const { paginaAtual, setPaginaAtual, totalPaginas, dadosPaginados } = usePaginacao(dados);
 
   const updateDraft = (
     usuarioId: number,
@@ -82,7 +85,7 @@ export default function TabelaUsuariosAdmin({
       </div>
 
       <div className="divide-y divide-stone-100">
-        {dados.map((usuario) => {
+        {dadosPaginados.map((usuario) => {
           const draft = drafts[usuario.id] || {
             tipo: usuario.tipo,
             admin_role: usuario.admin_role,
@@ -158,6 +161,12 @@ export default function TabelaUsuariosAdmin({
           </p>
         )}
       </div>
+      <Paginacao
+        paginaAtual={paginaAtual}
+        totalPaginas={totalPaginas}
+        totalRegistros={dados.length}
+        onChange={setPaginaAtual}
+      />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { useCarrinhoApadrinhamento } from "@/app/hooks/useCarrinhoApadrinhamento
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import FotoLightbox from "@/app/components/FotoLightbox";
+import { useToast } from "@/app/components/Toast";
 import {
   listarCartinhasFiltradas,
   type FiltrosCartinhas,
@@ -39,6 +40,7 @@ export default function ListaCartinhasHome({
 }) {
   const { adicionarCartinha, removerCartinha, temCartinha } =
     useCarrinhoApadrinhamento();
+  const { mostrarToast } = useToast();
   const [carrinhoAtualizado, setCarrinhoAtualizado] = useState<{
     [key: number]: boolean;
   }>({});
@@ -110,12 +112,14 @@ export default function ListaCartinhasHome({
         ...prev,
         [cartinha.id]: false,
       }));
+      mostrarToast("Cartinha removida do carrinho.", "info");
     } else {
       adicionarCartinha(cartinha);
       setCarrinhoAtualizado((prev) => ({
         ...prev,
         [cartinha.id]: true,
       }));
+      mostrarToast("Cartinha adicionada ao carrinho!", "sucesso");
     }
   };
 
@@ -250,6 +254,13 @@ export default function ListaCartinhasHome({
                   className={`relative h-60 bg-[repeating-linear-gradient(135deg,#F0EAE0,#F0EAE0_10px,#E7DFD2_10px,#E7DFD2_20px)] ${
                     cartinha.foto_cartinha ? "group cursor-zoom-in" : ""
                   }`}
+                  role={cartinha.foto_cartinha ? "button" : undefined}
+                  tabIndex={cartinha.foto_cartinha ? 0 : undefined}
+                  aria-label={
+                    cartinha.foto_cartinha
+                      ? `Ver foto da cartinha de ${cartinha.nome_crianca} em tela cheia`
+                      : undefined
+                  }
                   onClick={() =>
                     cartinha.foto_cartinha &&
                     setFotoAberta({
@@ -257,6 +268,16 @@ export default function ListaCartinhasHome({
                       alt: `Foto da cartinha de ${cartinha.nome_crianca}`,
                     })
                   }
+                  onKeyDown={(event) => {
+                    if (!cartinha.foto_cartinha) return;
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      setFotoAberta({
+                        src: cartinha.foto_cartinha,
+                        alt: `Foto da cartinha de ${cartinha.nome_crianca}`,
+                      });
+                    }
+                  }}
                 >
                   {cartinha.numero_sequencial !== undefined && (
                     <div className="absolute top-3 left-3 bg-white text-ink text-[11.5px] font-bold rounded px-2.5 py-1 z-10">

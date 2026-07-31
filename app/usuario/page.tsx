@@ -29,7 +29,6 @@ const MENSAGEM_STATUS: Record<string, string> = {
   conferida: "Presente conferido! Em breve será embrulhado.",
   embrulhado: "Presente embrulhado e pronto para entrega.",
   entregue: "Presente entregue à criança. Muito obrigado!",
-  carente: "Esta cartinha precisa de atenção especial.",
   reapadrinhado: "Cartinha em processo de reapadrinhamento.",
   cancelada: "Este apadrinhamento foi cancelado.",
 };

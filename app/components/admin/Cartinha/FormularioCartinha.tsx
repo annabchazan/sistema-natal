@@ -59,7 +59,7 @@ export default function FormularioCartinha({
               name="idade"
               type="number"
               required
-              min={1}
+              min={0}
               max={17}
               className="w-full p-2 border rounded-md"
               defaultValue={cartinha?.idade ?? ""}
@@ -128,6 +128,16 @@ export default function FormularioCartinha({
             <p className="text-xs text-gray-500 mt-1">
               Formatos aceitos: JPG, PNG, GIF (máx. 5MB)
             </p>
+            {cartinha?.foto_cartinha && (
+              <label className="flex items-center gap-2 text-xs text-gray-600 mt-2">
+                <input
+                  type="checkbox"
+                  name="remover_foto"
+                  className="accent-brand h-4 w-4"
+                />
+                Remover a foto atual
+              </label>
+            )}
           </div>
         </div>
 
@@ -150,7 +160,7 @@ export default function FormularioCartinha({
 
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              Categoria (Tag)
+              Categoria
             </label>
             <select
               name="tag_id"

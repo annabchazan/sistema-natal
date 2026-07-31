@@ -410,15 +410,20 @@ export async function excluirConta(): Promise<AuthActionState> {
     };
   }
 
+  const conn = await db.getConnection();
   try {
-    const [emAndamento] = await db.query<ContagemRow[]>(
+    await conn.beginTransaction();
+
+    const [emAndamento] = await conn.query<ContagemRow[]>(
       `SELECT COUNT(*) as total FROM cartinhas
        WHERE apadrinhado_por_usuario_id = ?
-       AND status IN ('conferida', 'embrulhado', 'carente', 'reapadrinhado')`,
+       AND status IN ('conferida', 'embrulhado', 'reapadrinhado')
+       FOR UPDATE`,
       [usuario.id],
     );
 
     if ((emAndamento?.[0]?.total ?? 0) > 0) {
+      await conn.rollback();
       return {
         success: false,
         message:
@@ -426,32 +431,45 @@ export async function excluirConta(): Promise<AuthActionState> {
       };
     }
 
-    await db.query(
+    await conn.query(
+      `INSERT INTO desistencias (cartinha_id, usuario_id, nome_padrinho, email_padrinho, nome_crianca, numero_sequencial)
+       SELECT id, ?, ?, ?, nome_crianca, numero_sequencial
+       FROM cartinhas
+       WHERE apadrinhado_por_usuario_id = ? AND status = 'apadrinhada'`,
+      [usuario.id, usuario.nome, usuario.email, usuario.id],
+    );
+
+    await conn.query(
       `UPDATE cartinhas
-       SET status = 'disponivel', apadrinhado_por_usuario_id = NULL, data_apadrinamento = NULL
+       SET status = 'carente', apadrinhado_por_usuario_id = NULL, data_apadrinamento = NULL
        WHERE apadrinhado_por_usuario_id = ? AND status = 'apadrinhada'`,
       [usuario.id],
     );
 
-    await db.query(
+    await conn.query(
       "UPDATE cartinhas SET apadrinhado_por_usuario_id = NULL WHERE apadrinhado_por_usuario_id = ?",
       [usuario.id],
     );
 
     try {
-      await db.query("DELETE FROM lembretes_enviados WHERE usuario_id = ?", [usuario.id]);
+      await conn.query("DELETE FROM lembretes_enviados WHERE usuario_id = ?", [usuario.id]);
     } catch {
       // tabela pode não existir em ambientes antigos
     }
 
-    await db.query("DELETE FROM usuarios WHERE id = ?", [usuario.id]);
+    await conn.query("DELETE FROM usuarios WHERE id = ?", [usuario.id]);
+    await conn.commit();
+
     await limparSessao();
     revalidatePath("/");
 
     return { success: true, message: "Conta excluída com sucesso.", redirectTo: "/" };
   } catch (error) {
+    await conn.rollback();
     console.error("Erro ao excluir conta:", error);
     return { success: false, message: "Não foi possível excluir sua conta. Tente novamente." };
+  } finally {
+    conn.release();
   }
 }
 

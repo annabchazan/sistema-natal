@@ -81,35 +81,67 @@ export default async function AdminPage({ searchParams }: AdminProps) {
   const { tab } = await searchParams;
   const abaAtiva = tab || "geral";
 
-  const [
-    [cartinhas],
-    [instituicoes],
-    [pontosEntrega],
-    [tags],
-    [usuarios],
-    [statusRows],
-    [[{ totalPadrinhos }]],
-    [[{ totalVencidas }]],
-  ] = await Promise.all([
-    db.query<CartinhaAdminRow[]>(`
-      SELECT cartinhas.*, instituicoes.nome_instituicao
-      FROM cartinhas
-      INNER JOIN instituicoes ON cartinhas.instituicao_id = instituicoes.id
-      ORDER BY cartinhas.id DESC
-    `),
-    db.query<InstituicaoRow[]>("SELECT id, nome_instituicao, contato, responsavel, quantidade_vagas FROM instituicoes"),
-    db.query<PontoEntregaRow[]>("SELECT id, nome_local, endereco, horario FROM pontos_entrega"),
-    db.query<TagRow[]>("SELECT id, nome FROM tags"),
-    db.query<UsuarioAdminRow[]>("SELECT id, nome, telefone, email, tipo, admin_role FROM usuarios ORDER BY nome ASC"),
-    db.query<StatusCountRow[]>("SELECT status, COUNT(*) as total FROM cartinhas GROUP BY status"),
-    db.query<TotalPadrinhosRow[]>("SELECT COUNT(*) as totalPadrinhos FROM usuarios WHERE tipo = 'padrinho'"),
-    db.query<TotalVencidasRow[]>(`SELECT COUNT(*) as totalVencidas FROM cartinhas
+  const precisaCartinhas = abaAtiva === "cartinhas" || abaAtiva === "crachas";
+  const precisaInstituicoes =
+    abaAtiva === "cartinhas" ||
+    abaAtiva === "instituicoes" ||
+    abaAtiva === "crachas" ||
+    abaAtiva === "exportar";
+  const precisaTags = abaAtiva === "cartinhas" || abaAtiva === "tags";
+  const precisaPontos = abaAtiva === "pontos";
+  const precisaUsuarios = abaAtiva === "usuarios" && canManageUsers;
+  const precisaDashboard = abaAtiva === "geral";
+
+  const [cartinhas, instituicoes, tags, pontosEntrega, usuarios, dashboard] = await Promise.all([
+    precisaCartinhas
+      ? db
+          .query<CartinhaAdminRow[]>(
+            `SELECT cartinhas.*, instituicoes.nome_instituicao
+             FROM cartinhas
+             INNER JOIN instituicoes ON cartinhas.instituicao_id = instituicoes.id
+             ORDER BY cartinhas.id DESC`,
+          )
+          .then(([rows]) => rows)
+      : Promise.resolve([]),
+    precisaInstituicoes
+      ? db
+          .query<InstituicaoRow[]>(
+            "SELECT id, nome_instituicao, contato, responsavel, quantidade_vagas FROM instituicoes",
+          )
+          .then(([rows]) => rows)
+      : Promise.resolve([]),
+    precisaTags
+      ? db.query<TagRow[]>("SELECT id, nome FROM tags").then(([rows]) => rows)
+      : Promise.resolve([]),
+    precisaPontos
+      ? db
+          .query<PontoEntregaRow[]>("SELECT id, nome_local, endereco, horario FROM pontos_entrega")
+          .then(([rows]) => rows)
+      : Promise.resolve([]),
+    precisaUsuarios
+      ? db
+          .query<UsuarioAdminRow[]>(
+            "SELECT id, nome, telefone, email, tipo, admin_role FROM usuarios ORDER BY nome ASC",
+          )
+          .then(([rows]) => rows)
+      : Promise.resolve([]),
+    precisaDashboard
+      ? Promise.all([
+          db.query<StatusCountRow[]>("SELECT status, COUNT(*) as total FROM cartinhas GROUP BY status"),
+          db.query<TotalPadrinhosRow[]>("SELECT COUNT(*) as totalPadrinhos FROM usuarios WHERE tipo = 'padrinho'"),
+          db.query<TotalVencidasRow[]>(`SELECT COUNT(*) as totalVencidas FROM cartinhas
               WHERE data_limite_entrega < CURDATE()
                 AND status NOT IN ('entregue', 'cancelada')`),
+        ]).then(([[statusRows], [[{ totalPadrinhos }]], [[{ totalVencidas }]]]) => ({
+          statusRows,
+          totalPadrinhos,
+          totalVencidas,
+        }))
+      : Promise.resolve({ statusRows: [] as StatusCountRow[], totalPadrinhos: 0, totalVencidas: 0 }),
   ]);
 
   const porStatus: Record<string, number> = {};
-  for (const row of statusRows) {
+  for (const row of dashboard.statusRows) {
     porStatus[row.status] = Number(row.total);
   }
 
@@ -117,7 +149,7 @@ export default async function AdminPage({ searchParams }: AdminProps) {
     { id: "geral",        label: "Visão geral" },
     { id: "cartinhas",    label: "Cartinhas" },
     { id: "instituicoes", label: "Instituições" },
-    { id: "tags",         label: "Tags" },
+    { id: "tags",         label: "Categorias" },
     { id: "pontos",       label: "Pontos de Entrega" },
     { id: "crachas",      label: "Crachás" },
     { id: "exportar",     label: "Exportar" },
@@ -195,8 +227,8 @@ export default async function AdminPage({ searchParams }: AdminProps) {
         {abaAtiva === "geral" && (
           <DashboardMetricas
             porStatus={porStatus}
-            totalPadrinhos={Number(totalPadrinhos)}
-            totalVencidas={Number(totalVencidas)}
+            totalPadrinhos={Number(dashboard.totalPadrinhos)}
+            totalVencidas={Number(dashboard.totalVencidas)}
           />
         )}
 
@@ -233,7 +265,7 @@ export default async function AdminPage({ searchParams }: AdminProps) {
               <CrachasIndex cartinhas={cartinhas} instituicoes={instituicoes} />
             )}
 
-            {abaAtiva === "exportar" && <ExportarIndex />}
+            {abaAtiva === "exportar" && <ExportarIndex instituicoes={instituicoes} />}
 
             {abaAtiva === "usuarios" && canManageUsers && (
               <div className="space-y-8">

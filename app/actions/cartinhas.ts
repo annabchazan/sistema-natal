@@ -41,12 +41,18 @@ interface CartinhaAnteriorRow extends RowDataPacket {
   nome_crianca: string;
   presente_pedido: string;
   numero_sequencial: number;
+  foto_cartinha: string | null;
   padrinho_nome: string | null;
   padrinho_email: string | null;
 }
 
 interface CartinhaIdRow extends RowDataPacket {
   id: number;
+}
+
+interface CartinhaStatusRow extends RowDataPacket {
+  id: number;
+  status: string;
 }
 
 interface CartinhaEmailRow extends RowDataPacket {
@@ -149,26 +155,37 @@ export async function gerarNumeroSequencial(instituicao_id: number): Promise<num
   return maximoExistente == null ? base : Number(maximoExistente) + 1;
 }
 
+function stringDoFormData(formData: FormData, campo: string): string {
+  const valor = formData.get(campo);
+  return typeof valor === "string" ? valor : "";
+}
+
+function arquivoDoFormData(formData: FormData, campo: string): File | null {
+  const valor = formData.get(campo);
+  return valor instanceof File ? valor : null;
+}
+
 // --- SALVAR CARTINHA (CRIA OU EDITA) ---
 export async function salvarCartinha(
   prevstate: CartinhaState | null,
   formData: FormData,
 ): Promise<CartinhaState> {
-  const id = formData.get("id") as string;
-  const nome_crianca = formData.get("nome_crianca") as string;
+  const id = stringDoFormData(formData, "id");
+  const nome_crianca = stringDoFormData(formData, "nome_crianca");
   const idade = Number(formData.get("idade"));
-  const texto_cartinha = formData.get("texto_cartinha") as string;
-  const presente_pedido = formData.get("presente_pedido") as string;
+  const texto_cartinha = stringDoFormData(formData, "texto_cartinha");
+  const presente_pedido = stringDoFormData(formData, "presente_pedido");
   const instituicao_id = Number(formData.get("instituicao_id"));
-  const tag_id_raw = formData.get("tag_id") as string;
-  const tag_id = tag_id_raw === "" ? null : tag_id_raw;
-  const foto_cartinha = formData.get("foto_cartinha") as File | null;
-  const data_limite_entrega = formData.get("data_limite_entrega") as string;
+  const tag_id_raw = stringDoFormData(formData, "tag_id");
+  const tag_id = tag_id_raw === "" ? null : Number(tag_id_raw);
+  const foto_cartinha = arquivoDoFormData(formData, "foto_cartinha");
+  const remover_foto = formData.get("remover_foto") === "on";
+  const data_limite_entrega = stringDoFormData(formData, "data_limite_entrega");
   const necessidade_especial = formData.get("necessidade_especial") === "on";
   const observacao_especial = necessidade_especial
-    ? ((formData.get("observacao_especial") as string) || null)
+    ? stringDoFormData(formData, "observacao_especial") || null
     : null;
-  const statusRaw = (formData.get("status") as string) || "disponivel";
+  const statusRaw = stringDoFormData(formData, "status") || "disponivel";
   const status: StatusCartinha = STATUS_PERMITIDOS.includes(statusRaw as StatusCartinha)
     ? (statusRaw as StatusCartinha)
     : "disponivel";
@@ -178,7 +195,31 @@ export async function salvarCartinha(
     return { success: false, message: permissao.message };
   }
 
+  if (!Number.isInteger(idade) || idade < 0 || idade > 17) {
+    return { success: false, message: "Idade inválida. Deve ser um número entre 0 e 17." };
+  }
+
+  if (!nome_crianca?.trim() || !presente_pedido?.trim() || !texto_cartinha?.trim()) {
+    return { success: false, message: "Preencha nome da criança, presente pedido e texto da cartinha." };
+  }
+
+  if (!Number.isInteger(instituicao_id) || instituicao_id <= 0) {
+    return { success: false, message: "Selecione uma instituição válida." };
+  }
+
+  if (tag_id !== null && (!Number.isInteger(tag_id) || tag_id <= 0)) {
+    return { success: false, message: "Categoria (tag) inválida." };
+  }
+
   try {
+    const [instituicaoExiste] = await db.query<CartinhaIdRow[]>(
+      "SELECT id FROM instituicoes WHERE id = ? LIMIT 1",
+      [instituicao_id],
+    );
+    if (instituicaoExiste.length === 0) {
+      return { success: false, message: "Instituição não encontrada." };
+    }
+
     let fotoPath: string | null = null;
 
     if (foto_cartinha && foto_cartinha.size > 0) {
@@ -190,38 +231,40 @@ export async function salvarCartinha(
         return { success: false, message: "Tipo de arquivo não permitido. Use JPG, PNG ou GIF." };
       }
       const uploadedUrl = await uploadToCloudinary(foto_cartinha);
-      if (uploadedUrl) {
-        fotoPath = uploadedUrl;
-      } else {
-        const buffer = await foto_cartinha.arrayBuffer();
-        const base64 = Buffer.from(buffer).toString("base64");
-        fotoPath = `data:${foto_cartinha.type};base64,${base64}`;
+      if (!uploadedUrl) {
+        return { success: false, message: "Falha ao enviar a foto. Tente novamente." };
       }
+      fotoPath = uploadedUrl;
     }
 
     if (id) {
       // Captura status anterior e dados do padrinho antes de atualizar
       const [anterior] = await db.query<CartinhaAnteriorRow[]>(
         `SELECT c.status, c.nome_crianca, c.presente_pedido, c.numero_sequencial,
-                u.nome AS padrinho_nome, u.email AS padrinho_email
+                c.foto_cartinha, u.nome AS padrinho_nome, u.email AS padrinho_email
          FROM cartinhas c
          LEFT JOIN usuarios u ON c.apadrinhado_por_usuario_id = u.id
          WHERE c.id = ? LIMIT 1`,
         [Number(id)],
       );
       const statusAnterior = anterior?.[0]?.status;
+      const fotoFinal = fotoPath
+        ? fotoPath
+        : remover_foto
+          ? null
+          : (anterior?.[0]?.foto_cartinha ?? null);
 
       await db.query(
         `UPDATE cartinhas
          SET nome_crianca = ?, idade = ?, texto_cartinha = ?, presente_pedido = ?,
              instituicao_id = ?, tag_id = ?,
-             foto_cartinha = COALESCE(?, foto_cartinha),
+             foto_cartinha = ?,
              data_limite_entrega = ?, status = ?,
              necessidade_especial = ?, observacao_especial = ?
          WHERE id = ?`,
         [
           nome_crianca, idade, texto_cartinha, presente_pedido,
-          instituicao_id, tag_id, fotoPath,
+          instituicao_id, tag_id, fotoFinal,
           data_limite_entrega || null, status,
           necessidade_especial, observacao_especial, Number(id),
         ],
@@ -284,6 +327,34 @@ export async function excluirCartinha(id: number): Promise<CartinhaState> {
   }
 }
 
+interface CartinhaCheckoutRow extends RowDataPacket {
+  id: number;
+  nome_crianca: string;
+  idade: number;
+  texto_cartinha: string;
+  presente_pedido: string;
+  status: string;
+}
+
+// --- BUSCAR DADOS ATUAIS DAS CARTINHAS DO CARRINHO (checkout) ---
+export async function buscarCartinhasParaCheckout(
+  ids: number[],
+): Promise<CartinhaCheckoutRow[]> {
+  if (ids.length === 0) return [];
+  try {
+    const placeholders = ids.map(() => "?").join(",");
+    const [cartinhas] = await db.query<CartinhaCheckoutRow[]>(
+      `SELECT id, nome_crianca, idade, texto_cartinha, presente_pedido, status
+       FROM cartinhas WHERE id IN (${placeholders})`,
+      ids,
+    );
+    return cartinhas;
+  } catch (err) {
+    console.error("Erro ao buscar cartinhas para checkout:", err);
+    return [];
+  }
+}
+
 // --- LISTAR CARTINHAS DISPONÍVEIS (home pública) ---
 export async function listarCartinhas(): Promise<CartinhaComTagRow[]> {
   try {
@@ -291,7 +362,7 @@ export async function listarCartinhas(): Promise<CartinhaComTagRow[]> {
       `SELECT c.*, t.nome as tag_nome
        FROM cartinhas c
        LEFT JOIN tags t ON c.tag_id = t.id
-       WHERE c.status = 'disponivel'
+       WHERE c.status IN ('disponivel', 'carente')
        ORDER BY c.id DESC`,
     );
     return cartinhas;
@@ -309,7 +380,7 @@ interface ContagemHomeRow extends RowDataPacket {
 export async function contarCartinhasApadrinhadas(): Promise<number> {
   try {
     const [[{ total }]] = await db.query<ContagemHomeRow[]>(
-      `SELECT COUNT(*) as total FROM cartinhas WHERE status != 'disponivel' AND status != 'cancelada'`,
+      `SELECT COUNT(*) as total FROM cartinhas WHERE status NOT IN ('disponivel', 'carente', 'cancelada')`,
     );
     return Number(total);
   } catch (err) {
@@ -327,7 +398,7 @@ export async function listarCartinhasFiltradas(
       SELECT c.*, t.nome as tag_nome
       FROM cartinhas c
       LEFT JOIN tags t ON c.tag_id = t.id
-      WHERE c.status = 'disponivel'
+      WHERE c.status IN ('disponivel', 'carente')
     `;
     const params: (string | number)[] = [];
 
@@ -384,9 +455,9 @@ export async function finalizarApadrinamento(
 
     const placeholders = cartas_ids.map(() => "?").join(",");
 
-    const [disponiveis] = await conn.query<CartinhaIdRow[]>(
-      `SELECT id FROM cartinhas
-       WHERE id IN (${placeholders}) AND status = 'disponivel'
+    const [disponiveis] = await conn.query<CartinhaStatusRow[]>(
+      `SELECT id, status FROM cartinhas
+       WHERE id IN (${placeholders}) AND status IN ('disponivel', 'carente')
        FOR UPDATE`,
       cartas_ids,
     );
@@ -399,14 +470,32 @@ export async function finalizarApadrinamento(
       };
     }
 
-    await conn.query(
-      `UPDATE cartinhas
-       SET status = 'apadrinhada',
-           data_apadrinamento = NOW(),
-           apadrinhado_por_usuario_id = ?
-       WHERE id IN (${placeholders})`,
-      [usuario.id, ...cartas_ids],
-    );
+    const idsNovos = disponiveis.filter((c) => c.status === "disponivel").map((c) => c.id);
+    const idsReapadrinhados = disponiveis.filter((c) => c.status === "carente").map((c) => c.id);
+
+    if (idsNovos.length > 0) {
+      const ph = idsNovos.map(() => "?").join(",");
+      await conn.query(
+        `UPDATE cartinhas
+         SET status = 'apadrinhada',
+             data_apadrinamento = NOW(),
+             apadrinhado_por_usuario_id = ?
+         WHERE id IN (${ph})`,
+        [usuario.id, ...idsNovos],
+      );
+    }
+
+    if (idsReapadrinhados.length > 0) {
+      const ph = idsReapadrinhados.map(() => "?").join(",");
+      await conn.query(
+        `UPDATE cartinhas
+         SET status = 'reapadrinhado',
+             data_apadrinamento = NOW(),
+             apadrinhado_por_usuario_id = ?
+         WHERE id IN (${ph})`,
+        [usuario.id, ...idsReapadrinhados],
+      );
+    }
 
     await conn.commit();
 
@@ -434,7 +523,7 @@ export async function finalizarApadrinamento(
     const n = cartas_ids.length;
     return {
       success: true,
-      message: `${n} cartinha${n !== 1 ? "s" : ""} apadrinada${n !== 1 ? "s" : ""} com sucesso!`,
+      message: `${n} cartinha${n !== 1 ? "s" : ""} apadrinhada${n !== 1 ? "s" : ""} com sucesso!`,
     };
   } catch (err) {
     await conn.rollback();
@@ -478,7 +567,7 @@ export async function cancelarApadrinamento(
 
     await conn.query(
       `UPDATE cartinhas
-       SET status = 'disponivel',
+       SET status = 'carente',
            apadrinhado_por_usuario_id = NULL,
            data_apadrinamento = NULL
        WHERE id = ?`,
@@ -486,9 +575,9 @@ export async function cancelarApadrinamento(
     );
 
     await conn.query(
-      `INSERT INTO desistencias (cartinha_id, usuario_id, nome_crianca, numero_sequencial)
-       VALUES (?, ?, ?, ?)`,
-      [cartinhaId, usuario.id, cartinha.nome_crianca, cartinha.numero_sequencial],
+      `INSERT INTO desistencias (cartinha_id, usuario_id, nome_padrinho, email_padrinho, nome_crianca, numero_sequencial)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [cartinhaId, usuario.id, usuario.nome, usuario.email, cartinha.nome_crianca, cartinha.numero_sequencial],
     );
 
     await conn.commit();
