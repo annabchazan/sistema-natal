@@ -36,7 +36,7 @@ export default function InstituicoesIndex({
           <h2 className="text-lg font-bold text-ink">
             Gerenciar instituições
           </h2>
-          <p className="text-sm text-stone-400">
+          <p className="text-sm text-stone-500">
             Total: {instituicoes.length} instituições
           </p>
         </div>

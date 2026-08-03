@@ -95,19 +95,20 @@ export default function TabelaUsuariosAdmin({
             <div key={usuario.id} className="p-4 flex flex-wrap items-end gap-4">
               <div className="min-w-45 flex-1">
                 <p className="font-medium text-ink text-sm">{usuario.nome}</p>
-                <p className="text-xs text-stone-400 mt-0.5">
+                <p className="text-xs text-stone-500 mt-0.5">
                   {usuario.email} · {usuario.telefone}
                 </p>
                 {feedback[usuario.id] && (
-                  <p className="text-xs text-stone-400 mt-1">{feedback[usuario.id]}</p>
+                  <p className="text-xs text-stone-500 mt-1">{feedback[usuario.id]}</p>
                 )}
               </div>
 
               <div className="w-40">
-                <label className="block text-[11px] font-semibold text-stone-400 uppercase tracking-wide mb-1">
+                <label htmlFor={`tipo-usuario-${usuario.id}`} className="block text-[11px] font-semibold text-stone-500 uppercase tracking-wide mb-1">
                   Tipo
                 </label>
                 <select
+                  id={`tipo-usuario-${usuario.id}`}
                   value={draft.tipo}
                   onChange={(event) =>
                     updateDraft(usuario.id, {
@@ -122,11 +123,12 @@ export default function TabelaUsuariosAdmin({
               </div>
 
               <div className="w-56">
-                <label className="block text-[11px] font-semibold text-stone-400 uppercase tracking-wide mb-1">
+                <label htmlFor={`admin-role-${usuario.id}`} className="block text-[11px] font-semibold text-stone-500 uppercase tracking-wide mb-1">
                   Nível admin
                 </label>
                 {draft.tipo === "admin" ? (
                   <select
+                    id={`admin-role-${usuario.id}`}
                     value={draft.admin_role ?? "editor"}
                     onChange={(event) =>
                       updateDraft(usuario.id, {
@@ -140,7 +142,7 @@ export default function TabelaUsuariosAdmin({
                     <option value="master">Super Adm</option>
                   </select>
                 ) : (
-                  <p className="p-2 text-sm text-stone-300">— não aplicável</p>
+                  <p id={`admin-role-${usuario.id}`} className="p-2 text-sm text-stone-500">— não aplicável</p>
                 )}
               </div>
 
@@ -156,7 +158,7 @@ export default function TabelaUsuariosAdmin({
         })}
 
         {dados.length === 0 && (
-          <p className="px-4 py-8 text-center text-stone-400 text-sm">
+          <p className="px-4 py-8 text-center text-stone-500 text-sm">
             Nenhum usuário encontrado.
           </p>
         )}

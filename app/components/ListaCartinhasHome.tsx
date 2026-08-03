@@ -144,18 +144,18 @@ export default function ListaCartinhasHome({
             <div className="flex gap-8">
               <div>
                 <div className="text-2xl font-bold text-ink">{cartinhas.length}</div>
-                <div className="text-xs text-stone-400">aguardando padrinho</div>
+                <div className="text-xs text-stone-500">aguardando padrinho</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-ink">{totalApadrinhadas}</div>
-                <div className="text-xs text-stone-400">já apadrinhadas</div>
+                <div className="text-xs text-stone-500">já apadrinhadas</div>
               </div>
             </div>
           </div>
           {/* Trocar por banner real da festa de Natal: salvar em public/banner-natal.jpg
               e substituir este bloco por <Image src="/banner-natal.jpg" alt="..." fill className="object-cover rounded-md" /> */}
           <div className="h-56 lg:h-80 rounded-md bg-[repeating-linear-gradient(135deg,#F0EAE0,#F0EAE0_12px,#E7DFD2_12px,#E7DFD2_24px)] flex items-center justify-center">
-            <span className="text-xs text-stone-400 font-mono">banner da festa de Natal</span>
+            <span className="text-xs text-stone-500 font-mono">banner da festa de Natal</span>
           </div>
         </div>
       </div>
@@ -164,10 +164,11 @@ export default function ListaCartinhasHome({
         {/* Filtros */}
         <div className="flex flex-wrap items-end gap-6 border-b border-stone-200 pb-5 mb-8">
           <div className="min-w-[180px]">
-            <label className="block text-[11px] font-semibold text-stone-400 uppercase tracking-wide mb-1.5">
+            <label htmlFor="filtro-categoria" className="block text-[11px] font-semibold text-stone-500 uppercase tracking-wide mb-1.5">
               Categoria
             </label>
             <select
+              id="filtro-categoria"
               value={filtroTag}
               onChange={(e) => setFiltroTag(e.target.value)}
               className="w-full border-0 border-b-[1.5px] border-stone-300 bg-transparent py-1.5 text-sm text-ink focus:outline-none focus:border-ink"
@@ -182,10 +183,11 @@ export default function ListaCartinhasHome({
           </div>
 
           <div className="w-28">
-            <label className="block text-[11px] font-semibold text-stone-400 uppercase tracking-wide mb-1.5">
+            <label htmlFor="filtro-idade-min" className="block text-[11px] font-semibold text-stone-500 uppercase tracking-wide mb-1.5">
               Idade mín.
             </label>
             <input
+              id="filtro-idade-min"
               type="number"
               value={filtroIdadeMin}
               onChange={(e) => setFiltroIdadeMin(e.target.value)}
@@ -197,10 +199,11 @@ export default function ListaCartinhasHome({
           </div>
 
           <div className="w-28">
-            <label className="block text-[11px] font-semibold text-stone-400 uppercase tracking-wide mb-1.5">
+            <label htmlFor="filtro-idade-max" className="block text-[11px] font-semibold text-stone-500 uppercase tracking-wide mb-1.5">
               Idade máx.
             </label>
             <input
+              id="filtro-idade-max"
               type="number"
               value={filtroIdadeMax}
               onChange={(e) => setFiltroIdadeMax(e.target.value)}
@@ -225,14 +228,14 @@ export default function ListaCartinhasHome({
             Limpar
           </button>
 
-          <div className="ml-auto text-[13px] text-stone-400 self-center">
+          <div className="ml-auto text-[13px] text-stone-500 self-center">
             {cartinhas.length} {cartinhas.length === 1 ? "cartinha encontrada" : "cartinhas encontradas"}
           </div>
         </div>
 
         {cartinhas.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-lg text-stone-400">
+            <p className="text-lg text-stone-500">
               Nenhuma cartinha encontrada com os filtros aplicados.
             </p>
             <button
@@ -319,7 +322,7 @@ export default function ListaCartinhasHome({
                     <h2 className="text-[17px] font-bold text-ink">
                       {cartinha.nome_crianca}
                     </h2>
-                    <span className="text-[13px] text-stone-400">
+                    <span className="text-[13px] text-stone-500">
                       {cartinha.idade} anos
                     </span>
                   </div>
@@ -328,11 +331,11 @@ export default function ListaCartinhasHome({
                   </p>
 
                   <div className="flex justify-between text-[12.5px] mb-4 pt-3 border-t border-stone-100 gap-2">
-                    <span className="text-stone-400">
+                    <span className="text-stone-500">
                       Pedido: <strong className="text-stone-600">{cartinha.presente_pedido}</strong>
                     </span>
                     {cartinha.data_limite_entrega && (
-                      <span className="text-stone-400 whitespace-nowrap">
+                      <span className="text-stone-500 whitespace-nowrap">
                         Até {new Date(cartinha.data_limite_entrega).toLocaleDateString("pt-BR")}
                       </span>
                     )}
@@ -343,7 +346,7 @@ export default function ListaCartinhasHome({
                     className={`w-full py-2.5 rounded font-semibold text-[13.5px] transition-colors flex items-center justify-center gap-1.5 ${
                       carrinhoAtualizado[cartinha.id]
                         ? "bg-brand/10 text-brand-dark border border-brand hover:bg-brand/20"
-                        : "bg-brand text-white hover:bg-brand-dark"
+                        : "bg-brand-dark text-white hover:bg-brand-darker"
                     }`}
                   >
                     {carrinhoAtualizado[cartinha.id] && (
@@ -379,7 +382,7 @@ export default function ListaCartinhasHome({
               >
                 Anterior
               </button>
-              <span className="text-stone-400 text-[13px] mx-3">
+              <span className="text-stone-500 text-[13px] mx-3">
                 Página {paginaAtual} de {Math.ceil(cartinhas.length / ITENS_POR_PAGINA)}
               </span>
               <button

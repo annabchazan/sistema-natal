@@ -42,7 +42,7 @@ const ESTILO_TIPO: Record<TipoToast, { borda: string; icone: React.ReactNode; ic
   },
   info: {
     borda: "border-l-stone-400",
-    iconeCor: "text-stone-400",
+    iconeCor: "text-stone-500",
     icone: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5">
         <circle cx="12" cy="12" r="9" />
@@ -93,7 +93,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
               <p className="text-sm text-ink leading-snug">{toast.mensagem}</p>
               <button
                 onClick={() => removerToast(toast.id)}
-                className="ml-auto shrink-0 text-stone-400 hover:text-ink"
+                className="ml-auto shrink-0 text-stone-500 hover:text-ink"
                 aria-label="Fechar aviso"
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4">

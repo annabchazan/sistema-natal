@@ -4,7 +4,7 @@ export default function QuemSomos() {
       {/* Trocar por foto real da instituição: salvar em public/banner-quem-somos.jpg
           e substituir este bloco por <Image src="/banner-quem-somos.jpg" alt="..." fill className="object-cover" /> */}
       <div className="relative h-28 sm:h-36 w-full bg-[repeating-linear-gradient(135deg,#F0EAE0,#F0EAE0_12px,#E7DFD2_12px,#E7DFD2_24px)] flex items-center justify-center">
-        <span className="text-xs text-stone-400 font-mono">foto da instituição</span>
+        <span className="text-xs text-stone-500 font-mono">foto da instituição</span>
       </div>
 
       <a
@@ -87,7 +87,7 @@ export default function QuemSomos() {
                 pelo e-mail{" "}
                 <a
                   href="mailto:contato@semprecrianca.com.br"
-                  className="text-brand-dark hover:underline"
+                  className="text-brand-dark underline hover:text-ink"
                 >
                   contato@semprecrianca.com.br
                 </a>{" "}
@@ -96,7 +96,7 @@ export default function QuemSomos() {
                   href="https://www.semprecrianca.com.br"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-brand-dark hover:underline"
+                  className="text-brand-dark underline hover:text-ink"
                 >
                   semprecrianca.com.br
                 </a>

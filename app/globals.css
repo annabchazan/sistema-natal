@@ -12,6 +12,7 @@
   /* Marca */
   --color-brand: #F8991D;
   --color-brand-dark: #A85F0A;
+  --color-brand-darker: #7E4708;
   --color-ink: #1E1B17;
   --color-verde-natal: #3F6B52;
   --color-vermelho-natal: #A23B3B;
@@ -67,5 +68,5 @@ body {
 }
 
 ::placeholder {
-  color: var(--color-stone-400);
+  color: var(--color-stone-500);
 }

@@ -53,7 +53,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="font-bold text-[13px] mb-4">Links rápidos</h4>
+            <h2 className="font-bold text-[13px] mb-4">Links rápidos</h2>
             <ul className="space-y-2 text-[13px] text-stone-400">
               <li>
                 <Link href="/quem-somos" className="text-brand hover:text-white transition-colors">
@@ -79,7 +79,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="font-bold text-[13px] mb-4">Contato</h4>
+            <h2 className="font-bold text-[13px] mb-4">Contato</h2>
             <div className="space-y-2 text-[13px] text-stone-400 leading-6">
               <p>contato@semprecrianca.com.br</p>
               <p>(21) 99999-9999</p>

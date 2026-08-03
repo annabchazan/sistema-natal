@@ -170,7 +170,7 @@ export default async function AdminPage({ searchParams }: AdminProps) {
           <span className="w-[6px] h-5 bg-brand flex-shrink-0" />
           <div>
             <h2 className="text-base font-bold text-ink">Natal Solidário</h2>
-            <p className="text-xs text-stone-400">Painel de controle</p>
+            <p className="text-xs text-stone-500">Painel de controle</p>
           </div>
         </div>
         <nav className="flex-1 px-4 space-y-1">
@@ -190,7 +190,7 @@ export default async function AdminPage({ searchParams }: AdminProps) {
         </nav>
       </aside>
 
-      <main className="flex-1 p-8">
+      <main className="flex-1 min-w-0 p-8">
         <AdminMobileNav abas={abas} abaAtiva={abaAtiva} />
 
         <header className="mb-8 space-y-4">
@@ -200,10 +200,10 @@ export default async function AdminPage({ searchParams }: AdminProps) {
                 {abas.find((a) => a.id === abaAtiva)?.label}
               </h1>
               <div className="flex items-center gap-2 mt-1.5">
-                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-brand text-white text-[11px] font-bold shrink-0">
+                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-brand-dark text-white text-[11px] font-bold shrink-0">
                   {usuario.nome.charAt(0).toUpperCase()}
                 </span>
-                <p className="text-sm text-stone-400">
+                <p className="text-sm text-stone-500">
                   Logado como {usuario.nome} ({
                     usuario.admin_role === "master"
                       ? "Super Adm"

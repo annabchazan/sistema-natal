@@ -38,7 +38,7 @@ export default function CartinhasIndex({
           <h2 className="text-lg font-bold text-ink">
             Gerenciar Cartinhas
           </h2>
-          <p className="text-sm text-stone-400">
+          <p className="text-sm text-stone-500">
             Total: {cartinhas.length} cartinhas
           </p>
         </div>

@@ -114,16 +114,17 @@ export default async function UsuarioPage() {
 
   return (
     <div className="min-h-screen bg-cream py-14">
-      <div className="container mx-auto px-4 max-w-3xl">
+      <div className="container mx-auto px-4">
+        <div className="max-w-3xl mx-auto">
 
         <div className="bg-white border border-stone-200 border-t-[3px] border-t-brand rounded-md px-8 py-7 flex items-center justify-between mb-9">
           <div>
             <h1 className="text-xl font-bold text-ink">Olá, {usuario.nome.split(" ")[0]}</h1>
-            <p className="text-[13px] text-stone-400 mt-0.5">{usuario.email}</p>
+            <p className="text-[13px] text-stone-500 mt-0.5">{usuario.email}</p>
           </div>
           <div className="text-right hidden sm:block">
             <p className="text-[26px] font-bold text-ink">{cartinhas.length}</p>
-            <p className="text-[11.5px] text-stone-400">
+            <p className="text-[11.5px] text-stone-500">
               apadrinhada{cartinhas.length !== 1 ? "s" : ""}
             </p>
           </div>
@@ -138,7 +139,7 @@ export default async function UsuarioPage() {
         />
 
         <div className="space-y-4 mt-8">
-          <h2 className="text-[11px] font-bold text-stone-400 uppercase tracking-wide px-1">
+          <h2 className="text-[11px] font-bold text-stone-500 uppercase tracking-wide px-1">
             Suas cartinhas
           </h2>
 
@@ -221,12 +222,12 @@ export default async function UsuarioPage() {
                               {cartinha.nome_crianca}
                             </h3>
                             {cartinha.numero_sequencial != null && (
-                              <span className="text-xs text-stone-400 font-mono">
+                              <span className="text-xs text-stone-500 font-mono">
                                 Nº {cartinha.numero_sequencial}
                               </span>
                             )}
                           </div>
-                          <p className="text-xs text-stone-400">
+                          <p className="text-xs text-stone-500">
                             {cartinha.nome_instituicao ?? "Instituição removida"} · {cartinha.presente_pedido}
                           </p>
                         </div>
@@ -243,12 +244,12 @@ export default async function UsuarioPage() {
                     <BarraProgresso status={cartinha.status} />
 
                     {info.mensagem && (
-                      <p className="mt-3 text-[13px] text-stone-400 italic">
+                      <p className="mt-3 text-[13px] text-stone-500 italic">
                         {info.mensagem}
                       </p>
                     )}
 
-                    <div className="mt-4 pt-4 border-t border-stone-100 flex flex-wrap items-center justify-between gap-2 text-xs text-stone-400">
+                    <div className="mt-4 pt-4 border-t border-stone-100 flex flex-wrap items-center justify-between gap-2 text-xs text-stone-500">
                       <span className="flex items-center gap-1.5">
                         <IconeCalendario />
                         Apadrinhado em{" "}
@@ -301,12 +302,13 @@ export default async function UsuarioPage() {
         )}
 
         <div className="mt-12 border-t border-stone-200 pt-6 text-center">
-          <p className="text-xs text-stone-400 mb-2">
+          <p className="text-xs text-stone-500 mb-2">
             Ao excluir sua conta, seus dados serão removidos permanentemente.
           </p>
           <BotaoExcluirConta />
         </div>
 
+        </div>
       </div>
     </div>
   );

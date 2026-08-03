@@ -173,7 +173,7 @@ export default function Header({ usuario }: { usuario: UsuarioMenu | null }) {
                     <p className="font-semibold text-sm text-ink truncate">
                       Olá, {usuario.nome.split(" ")[0]}
                     </p>
-                    <p className="text-xs text-stone-400 truncate">
+                    <p className="text-xs text-stone-500 truncate">
                       {usuario.email}
                     </p>
                   </div>
@@ -183,14 +183,14 @@ export default function Header({ usuario }: { usuario: UsuarioMenu | null }) {
                   onClick={handleAbrirAreaUsuario}
                   className="w-full flex items-center gap-3 text-left px-4 py-3 rounded hover:bg-cream-deep transition-colors"
                 >
-                  <span className="text-stone-400 shrink-0">
+                  <span className="text-stone-500 shrink-0">
                     <IconeUsuario />
                   </span>
                   <span>
                     <p className="font-semibold text-sm">
                       {usuario ? "Ver área do usuário" : "Cadastrar"}
                     </p>
-                    <p className="text-xs text-stone-400">
+                    <p className="text-xs text-stone-500">
                       {usuario
                         ? "Acompanhe seus apadrinhamentos."
                         : "Crie seu cadastro para continuar."}
@@ -204,12 +204,12 @@ export default function Header({ usuario }: { usuario: UsuarioMenu | null }) {
                     onClick={() => setIsUserMenuOpen(false)}
                     className="flex items-center gap-3 w-full text-left px-4 py-3 rounded hover:bg-cream-deep transition-colors"
                   >
-                    <span className="text-stone-400 shrink-0">
+                    <span className="text-stone-500 shrink-0">
                       <IconeEscudo />
                     </span>
                     <span>
                       <p className="font-semibold text-sm text-ink">Painel admin</p>
-                      <p className="text-xs text-stone-400">
+                      <p className="text-xs text-stone-500">
                         Abrir área administrativa.
                       </p>
                     </span>
@@ -222,12 +222,12 @@ export default function Header({ usuario }: { usuario: UsuarioMenu | null }) {
                     onClick={() => setIsUserMenuOpen(false)}
                     className="flex items-center gap-3 w-full text-left px-4 py-3 rounded hover:bg-cream-deep transition-colors"
                   >
-                    <span className="text-stone-400 shrink-0">
+                    <span className="text-stone-500 shrink-0">
                       <IconeEntrar />
                     </span>
                     <span>
                       <p className="font-semibold text-sm text-ink">Entrar</p>
-                      <p className="text-xs text-stone-400">
+                      <p className="text-xs text-stone-500">
                         Acesse sua conta existente.
                       </p>
                     </span>
@@ -249,7 +249,7 @@ export default function Header({ usuario }: { usuario: UsuarioMenu | null }) {
                         <p className="font-semibold text-sm text-vermelho-natal">
                           {isLoggingOut ? "Saindo..." : "Sair"}
                         </p>
-                        <p className="text-xs text-stone-400">
+                        <p className="text-xs text-stone-500">
                           Encerrar sessão com segurança.
                         </p>
                       </span>
@@ -309,7 +309,7 @@ export default function Header({ usuario }: { usuario: UsuarioMenu | null }) {
         }
       >
         {cartinhas.length === 0 ? (
-          <div className="p-8 text-center text-stone-400">
+          <div className="p-8 text-center text-stone-500">
             <IconeSacolaVazia />
             <p className="text-[12.5px]">Nenhuma cartinha selecionada ainda</p>
           </div>
@@ -336,10 +336,10 @@ export default function Header({ usuario }: { usuario: UsuarioMenu | null }) {
 
                 <div className="flex-1 flex justify-between items-start gap-2">
                   <div>
-                    <h4 className="font-bold text-ink text-sm">
+                    <h3 className="font-bold text-ink text-sm">
                       {cartinha.nome_crianca}
-                    </h4>
-                    <p className="text-xs text-stone-400 mt-1">
+                    </h3>
+                    <p className="text-xs text-stone-500 mt-1">
                       Idade: {cartinha.idade} anos
                     </p>
                     <p className="text-xs text-stone-600 font-semibold mt-2">
@@ -348,7 +348,7 @@ export default function Header({ usuario }: { usuario: UsuarioMenu | null }) {
                   </div>
                   <button
                     onClick={() => removerCartinha(cartinha.id)}
-                    className="text-stone-400 hover:text-vermelho-natal shrink-0"
+                    className="text-stone-500 hover:text-vermelho-natal shrink-0"
                   >
                     <IconeFechar className="w-3.5 h-3.5" />
                   </button>

@@ -72,7 +72,7 @@ const classeInput =
 const classeInputSenha =
   "w-full rounded border border-stone-300 pl-10 pr-10 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand";
 const classeIconeCampo =
-  "pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400";
+  "pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-500";
 
 export default function CadastroPage() {
   const router = useRouter();
@@ -154,10 +154,10 @@ export default function CadastroPage() {
   return (
     <div className="min-h-full bg-cream py-14 flex items-center justify-center">
       <div className="container mx-auto px-4">
-        <div className="max-w-120 mx-auto bg-white border border-stone-200 border-t-[3px] border-t-brand rounded-md overflow-hidden">
+        <div className="max-w-110 mx-auto bg-white border border-stone-200 border-t-[3px] border-t-brand rounded-md overflow-hidden">
           <div className="px-8 pt-8 pb-6 border-b border-stone-100">
             <h1 className="text-[19px] font-bold text-ink">Criar sua conta</h1>
-            <p className="mt-1 text-[13px] text-stone-400">
+            <p className="mt-1 text-[13px] text-stone-500">
               Preencha seus dados para acessar sua área no Natal Solidário.
             </p>
           </div>
@@ -209,7 +209,7 @@ export default function CadastroPage() {
                   autoComplete="tel"
                 />
               </div>
-              <p className="mt-1.5 text-xs text-stone-400">
+              <p className="mt-1.5 text-xs text-stone-500">
                 Aceitamos apenas celular com DDD e nono dígito.
               </p>
             </div>
@@ -260,7 +260,7 @@ export default function CadastroPage() {
                 <button
                   type="button"
                   onClick={() => setMostrarSenha((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-ink transition-colors"
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1.5 text-stone-500 hover:text-ink transition-colors"
                   aria-label={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}
                 >
                   {mostrarSenha ? <IconeOlhoFechado /> : <IconeOlho />}
@@ -293,7 +293,7 @@ export default function CadastroPage() {
                 <button
                   type="button"
                   onClick={() => setMostrarConfirmarSenha((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-ink transition-colors"
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1.5 text-stone-500 hover:text-ink transition-colors"
                   aria-label={
                     mostrarConfirmarSenha ? "Ocultar senha" : "Mostrar senha"
                   }

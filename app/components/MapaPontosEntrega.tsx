@@ -17,7 +17,7 @@ export default function MapaPontosEntrega({ pontos }: MapaPontosEntregaProps) {
           <p className="text-stone-500 text-base">
             Nenhum ponto de entrega cadastrado no momento.
           </p>
-          <p className="text-stone-400 text-sm mt-2">
+          <p className="text-stone-500 text-sm mt-2">
             Em breve novos pontos serão adicionados.
           </p>
         </div>
@@ -36,7 +36,7 @@ export default function MapaPontosEntrega({ pontos }: MapaPontosEntregaProps) {
                 <svg
                   viewBox="0 0 24 24"
                   fill="none"
-                  className="w-4 h-4 mt-0.5 shrink-0 text-stone-400"
+                  className="w-4 h-4 mt-0.5 shrink-0 text-stone-500"
                   stroke="currentColor"
                   strokeWidth="1.8"
                 >

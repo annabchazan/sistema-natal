@@ -52,7 +52,7 @@ export default function CrachasIndex({
     <div className="space-y-8">
       <div>
         <h2 className="text-lg font-bold text-ink">Crachás</h2>
-        <p className="text-sm text-stone-400 mt-1">
+        <p className="text-sm text-stone-500 mt-1">
           Selecione as cartinhas e gere uma folha pronta para impressão (4 por
           página). Crachás marcados como necessidade especial saem destacados
           — imprimir em papel neon, com a observação no verso.
@@ -61,10 +61,11 @@ export default function CrachasIndex({
 
       <div className="rounded-md border border-stone-200 p-6 space-y-4">
         <div>
-          <label className="block text-[12.5px] font-medium text-stone-600 mb-2">
+          <label htmlFor="filtro-cracha-instituicao" className="block text-[12.5px] font-medium text-stone-600 mb-2">
             Filtrar por instituição
           </label>
           <select
+            id="filtro-cracha-instituicao"
             value={instituicaoId}
             onChange={(e) => setInstituicaoId(e.target.value)}
             className="w-full md:w-80 p-2 border border-stone-300 rounded bg-white text-sm focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand"
@@ -78,8 +79,8 @@ export default function CrachasIndex({
           </select>
         </div>
 
-        <div className="flex items-center justify-between">
-          <p className="text-xs text-stone-400">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <p className="text-xs text-stone-500">
             {filtradas.length} cartinha{filtradas.length !== 1 ? "s" : ""}
             {totalEspeciais > 0 && ` — ${totalEspeciais} com necessidade especial`}
           </p>
@@ -88,7 +89,7 @@ export default function CrachasIndex({
               Selecionar todas (filtradas)
             </button>
             <span className="text-stone-300">|</span>
-            <button onClick={limparSelecao} className="text-stone-400 hover:underline">
+            <button onClick={limparSelecao} className="text-stone-500 hover:underline">
               Limpar seleção
             </button>
           </div>
@@ -100,7 +101,7 @@ export default function CrachasIndex({
             return (
               <label
                 key={c.id}
-                className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors ${
+                className={`flex items-start md:items-center gap-3 px-4 py-3 cursor-pointer transition-colors ${
                   marcado ? "bg-brand/5" : "hover:bg-cream-deep"
                 }`}
               >
@@ -108,27 +109,29 @@ export default function CrachasIndex({
                   type="checkbox"
                   checked={marcado}
                   onChange={() => toggleCartinha(c.id)}
-                  className="accent-brand h-4 w-4 flex-shrink-0"
+                  className="accent-brand h-4 w-4 shrink-0 mt-0.5 md:mt-0"
                 />
-                <span className="text-stone-400 text-xs w-10 flex-shrink-0">
+                <span className="text-stone-500 text-xs w-8 shrink-0">
                   #{c.numero_sequencial ?? c.id}
                 </span>
-                <span className="flex-1 text-sm font-medium text-ink">
-                  {c.nome_crianca}{" "}
-                  <span className="text-stone-400 font-normal">({c.idade} anos)</span>
-                </span>
-                <span className="text-xs text-stone-500">{c.nome_instituicao}</span>
-                {Boolean(c.necessidade_especial) && (
-                  <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-lime-200 text-lime-800">
-                    Neon
+                <div className="flex-1 min-w-0 flex flex-col md:flex-row md:items-center md:gap-3">
+                  <span className="text-sm font-medium text-ink">
+                    {c.nome_crianca}{" "}
+                    <span className="text-stone-500 font-normal">({c.idade} anos)</span>
+                    {Boolean(c.necessidade_especial) && (
+                      <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-bold bg-lime-200 text-lime-800 whitespace-nowrap">
+                        Neon
+                      </span>
+                    )}
                   </span>
-                )}
+                  <span className="text-xs text-stone-500">{c.nome_instituicao}</span>
+                </div>
               </label>
             );
           })}
 
           {filtradas.length === 0 && (
-            <p className="px-4 py-8 text-center text-stone-400 text-sm">
+            <p className="px-4 py-8 text-center text-stone-500 text-sm">
               Nenhuma cartinha encontrada.
             </p>
           )}
@@ -138,7 +141,7 @@ export default function CrachasIndex({
       <div className="rounded-md border border-dashed border-verde-natal/40 bg-verde-natal/5 p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <p className="text-sm font-semibold text-verde-natal">Pronto para gerar</p>
-          <p className="text-xs text-verde-natal/80 mt-0.5">
+          <p className="text-xs text-verde-natal mt-0.5">
             {selecionadas.size} cartinha{selecionadas.size !== 1 ? "s" : ""} selecionada
             {selecionadas.size !== 1 ? "s" : ""}
           </p>

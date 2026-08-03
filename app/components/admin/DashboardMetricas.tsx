@@ -47,25 +47,25 @@ export default function DashboardMetricas({
       {/* Resumo geral */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="bg-white rounded-md border border-stone-200 p-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">
+          <p className="text-xs font-semibold uppercase tracking-wide text-stone-500 mb-1">
             Total de cartinhas
           </p>
           <p className="text-3xl font-bold text-gray-800">{totalCartinhas}</p>
         </div>
 
         <div className="bg-white rounded-md border border-stone-200 p-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">
+          <p className="text-xs font-semibold uppercase tracking-wide text-stone-500 mb-1">
             Padrinhos cadastrados
           </p>
           <p className="text-3xl font-bold text-gray-800">{totalPadrinhos}</p>
         </div>
 
         <div className="bg-white rounded-md border border-stone-200 p-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">
+          <p className="text-xs font-semibold uppercase tracking-wide text-stone-500 mb-1">
             Entregues
           </p>
           <p className="text-3xl font-bold text-green-600">{totalEntregues}</p>
-          <p className="text-xs text-gray-400 mt-1">{percentualEntregue}% do total</p>
+          <p className="text-xs text-stone-500 mt-1">{percentualEntregue}% do total</p>
         </div>
 
         <div
@@ -77,7 +77,7 @@ export default function DashboardMetricas({
         >
           <p
             className={`text-xs font-semibold uppercase tracking-wide mb-1 ${
-              totalVencidas > 0 ? "text-red-500" : "text-gray-400"
+              totalVencidas > 0 ? "text-vermelho-natal" : "text-stone-500"
             }`}
           >
             Prazo vencido
@@ -90,7 +90,7 @@ export default function DashboardMetricas({
             {totalVencidas}
           </p>
           {totalVencidas > 0 && (
-            <p className="text-xs text-red-400 mt-1">requerem atenção</p>
+            <p className="text-xs text-vermelho-natal mt-1">requerem atenção</p>
           )}
         </div>
       </div>
@@ -99,7 +99,7 @@ export default function DashboardMetricas({
       {totalCartinhas > 0 && (
         <div className="bg-white rounded-md border border-stone-200 p-4">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+            <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">
               Progresso da campanha
             </p>
             <p className="text-sm font-semibold text-gray-600">

@@ -65,7 +65,7 @@ export default function Drawer({
             <h2 className="text-sm font-bold text-ink">{title}</h2>
             <button
               onClick={onClose}
-              className="text-stone-400 hover:text-ink"
+              className="text-stone-500 hover:text-ink"
               aria-label="Fechar menu"
             >
               <svg

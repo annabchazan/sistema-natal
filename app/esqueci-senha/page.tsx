@@ -19,13 +19,13 @@ export default function EsqueciSenhaPage() {
   }
 
   return (
-    <div className="min-h-screen bg-cream py-14">
+    <div className="bg-cream py-14">
       <div className="container mx-auto px-4">
-        <div className="max-w-[440px] mx-auto bg-white border border-stone-200 rounded-md overflow-hidden">
+        <div className="max-w-110 mx-auto bg-white border border-stone-200 rounded-md overflow-hidden">
 
           <div className="px-8 pt-8 pb-6 border-b border-stone-100">
             <h1 className="text-[19px] font-bold text-ink">Esqueci minha senha</h1>
-            <p className="mt-1 text-[13px] text-stone-400">
+            <p className="mt-1 text-[13px] text-stone-500">
               Informe seu e-mail e enviaremos um link para criar uma nova senha.
             </p>
           </div>
@@ -35,7 +35,7 @@ export default function EsqueciSenhaPage() {
               <div className="space-y-5 text-center">
                 <div className="text-4xl text-brand">✓</div>
                 <p className="text-ink font-medium text-sm">{resultado.texto}</p>
-                <p className="text-[13px] text-stone-400">
+                <p className="text-[13px] text-stone-500">
                   Verifique sua caixa de entrada e a pasta de spam.
                   O link expira em <strong>1 hora</strong>.
                 </p>

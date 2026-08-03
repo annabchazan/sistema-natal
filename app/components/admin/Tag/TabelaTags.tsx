@@ -23,7 +23,7 @@ export default function TabelaTags({
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-sm text-left text-stone-500">
+      <table className="hidden md:table w-full text-sm text-left text-stone-500">
         <thead className="text-xs text-stone-500 uppercase bg-cream-deep">
           <tr>
             <th className="px-6 py-3">Nome</th>
@@ -39,14 +39,14 @@ export default function TabelaTags({
               <td className="px-6 py-4 text-right space-x-3">
                 <button
                   onClick={() => onEdit(item)}
-                  className="text-brand-dark hover:underline"
+                  className="text-brand-dark hover:underline p-1.5"
                 >
                   Editar
                 </button>
                 {canManage && (
                   <button
                     onClick={() => handleExcluir(item.id)}
-                    className="text-vermelho-natal hover:underline"
+                    className="text-vermelho-natal hover:underline p-1.5"
                   >
                     Excluir
                   </button>
@@ -56,13 +56,43 @@ export default function TabelaTags({
           ))}
           {dados.length === 0 && (
             <tr>
-              <td colSpan={2} className="px-6 py-8 text-center text-stone-400">
+              <td colSpan={2} className="px-6 py-8 text-center text-stone-500">
                 Nenhuma categoria encontrada no banco de dados.
               </td>
             </tr>
           )}
         </tbody>
       </table>
+
+      <div className="md:hidden divide-y divide-stone-100">
+        {dadosPaginados.map((item) => (
+          <div key={item.id} className="p-4 flex items-center justify-between gap-3">
+            <p className="font-medium text-ink">{item.nome}</p>
+            <div className="flex gap-2 shrink-0">
+              <button
+                onClick={() => onEdit(item)}
+                className="text-brand-dark hover:underline p-1.5 text-sm"
+              >
+                Editar
+              </button>
+              {canManage && (
+                <button
+                  onClick={() => handleExcluir(item.id)}
+                  className="text-vermelho-natal hover:underline p-1.5 text-sm"
+                >
+                  Excluir
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+        {dados.length === 0 && (
+          <p className="px-6 py-8 text-center text-stone-500 text-sm">
+            Nenhuma categoria encontrada no banco de dados.
+          </p>
+        )}
+      </div>
+
       <Paginacao
         paginaAtual={paginaAtual}
         totalPaginas={totalPaginas}

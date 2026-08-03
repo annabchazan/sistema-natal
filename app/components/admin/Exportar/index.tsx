@@ -29,6 +29,70 @@ interface InstituicaoOption {
   nome_instituicao: string;
 }
 
+function IconeChevron({ aberto }: { aberto: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      className={`w-4 h-4 text-stone-500 shrink-0 transition-transform duration-200 ${aberto ? "rotate-180" : ""}`}
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
+
+function SecaoFiltro({
+  titulo,
+  resumo,
+  aberto,
+  onToggle,
+  onSelecionarTodos,
+  onLimpar,
+  children,
+}: {
+  titulo: string;
+  resumo: string;
+  aberto: boolean;
+  onToggle: () => void;
+  onSelecionarTodos: () => void;
+  onLimpar: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-md border border-stone-200 p-6 space-y-4">
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={aberto}
+        className="w-full flex items-center justify-between gap-4 text-left"
+      >
+        <div>
+          <h3 className="font-semibold text-sm text-ink">{titulo}</h3>
+          <p className="text-xs text-stone-500 mt-0.5">{resumo}</p>
+        </div>
+        <IconeChevron aberto={aberto} />
+      </button>
+
+      {aberto && (
+        <div className="space-y-4">
+          <div className="flex gap-2 text-xs">
+            <button onClick={onSelecionarTodos} className="text-brand-dark hover:underline">
+              Selecionar todos
+            </button>
+            <span className="text-stone-300">|</span>
+            <button onClick={onLimpar} className="text-stone-500 hover:underline">
+              Limpar
+            </button>
+          </div>
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ExportarIndex({
   instituicoes,
 }: {
@@ -44,6 +108,9 @@ export default function ExportarIndex({
     new Set(COLUNAS.map((c) => c.key))
   );
   const [carregando, setCarregando] = useState(false);
+  const [abertoStatus, setAbertoStatus] = useState(false);
+  const [abertoInstituicao, setAbertoInstituicao] = useState(false);
+  const [abertoColunas, setAbertoColunas] = useState(false);
   const { mostrarToast } = useToast();
 
   function toggleStatus(key: string) {
@@ -151,33 +218,21 @@ export default function ExportarIndex({
     <div className="space-y-8">
       <div>
         <h2 className="text-lg font-bold text-ink">Exportar planilha</h2>
-        <p className="text-sm text-stone-400 mt-1">
+        <p className="text-sm text-stone-500 mt-1">
           Escolha os filtros e colunas desejados. O arquivo será baixado em formato CSV,
           compatível com Excel e Google Sheets.
         </p>
       </div>
 
       {/* Filtro de status */}
-      <div className="rounded-md border border-stone-200 p-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-sm text-ink">Filtrar por status</h3>
-          <div className="flex gap-2 text-xs">
-            <button
-              onClick={selecionarTodosStatus}
-              className="text-brand-dark hover:underline"
-            >
-              Selecionar todos
-            </button>
-            <span className="text-stone-300">|</span>
-            <button
-              onClick={limparStatus}
-              className="text-stone-400 hover:underline"
-            >
-              Limpar
-            </button>
-          </div>
-        </div>
-
+      <SecaoFiltro
+        titulo="Filtrar por status"
+        resumo={`${statusSelecionados.size} de ${STATUS_OPCOES.length} status selecionados`}
+        aberto={abertoStatus}
+        onToggle={() => setAbertoStatus((v) => !v)}
+        onSelecionarTodos={selecionarTodosStatus}
+        onLimpar={limparStatus}
+      >
         <div className="flex flex-wrap gap-3">
           {STATUS_OPCOES.map((s) => {
             const marcado = statusSelecionados.has(s.key);
@@ -188,7 +243,7 @@ export default function ExportarIndex({
                 className={`flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium border-2 transition-colors ${
                   marcado
                     ? `${s.cor} border-current`
-                    : "bg-white text-stone-400 border-stone-200 hover:border-stone-300"
+                    : "bg-white text-stone-500 border-stone-200 hover:border-stone-300"
                 }`}
               >
                 <span
@@ -207,41 +262,25 @@ export default function ExportarIndex({
             );
           })}
         </div>
-
-        <p className="text-xs text-stone-400">
-          {statusSelecionados.size} de {STATUS_OPCOES.length} status selecionados
-        </p>
-      </div>
+      </SecaoFiltro>
 
       {/* Filtro de instituição */}
       {instituicoes.length > 0 && (
-        <div className="rounded-md border border-stone-200 p-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-sm text-ink">Filtrar por instituição</h3>
-            <div className="flex gap-2 text-xs">
-              <button
-                onClick={selecionarTodasInstituicoes}
-                className="text-brand-dark hover:underline"
-              >
-                Selecionar todas
-              </button>
-              <span className="text-stone-300">|</span>
-              <button
-                onClick={limparInstituicoes}
-                className="text-stone-400 hover:underline"
-              >
-                Limpar
-              </button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <SecaoFiltro
+          titulo="Filtrar por instituição"
+          resumo={`${instituicoesSelecionadas.size} de ${instituicoes.length} instituições selecionadas`}
+          aberto={abertoInstituicao}
+          onToggle={() => setAbertoInstituicao((v) => !v)}
+          onSelecionarTodos={selecionarTodasInstituicoes}
+          onLimpar={limparInstituicoes}
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             {instituicoes.map((inst) => {
               const marcado = instituicoesSelecionadas.has(inst.id);
               return (
                 <label
                   key={inst.id}
-                  className={`flex items-center gap-3 rounded border-2 px-4 py-3 cursor-pointer transition-colors ${
+                  className={`flex items-center gap-3 min-w-0 rounded border-2 px-4 py-3 cursor-pointer transition-colors ${
                     marcado
                       ? "border-brand bg-brand/5"
                       : "border-stone-200 bg-white hover:border-stone-300"
@@ -253,48 +292,32 @@ export default function ExportarIndex({
                     onChange={() => toggleInstituicao(inst.id)}
                     className="accent-brand h-4 w-4 shrink-0"
                   />
-                  <span className={`text-sm font-medium ${marcado ? "text-brand-dark" : "text-stone-500"}`}>
+                  <span className={`text-sm font-medium min-w-0 break-words ${marcado ? "text-brand-dark" : "text-stone-500"}`}>
                     {inst.nome_instituicao}
                   </span>
                 </label>
               );
             })}
           </div>
-
-          <p className="text-xs text-stone-400">
-            {instituicoesSelecionadas.size} de {instituicoes.length} instituições selecionadas
-          </p>
-        </div>
+        </SecaoFiltro>
       )}
 
       {/* Seleção de colunas */}
-      <div className="rounded-md border border-stone-200 p-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-sm text-ink">Colunas da planilha</h3>
-          <div className="flex gap-2 text-xs">
-            <button
-              onClick={selecionarTodasColunas}
-              className="text-brand-dark hover:underline"
-            >
-              Selecionar todas
-            </button>
-            <span className="text-stone-300">|</span>
-            <button
-              onClick={limparColunas}
-              className="text-stone-400 hover:underline"
-            >
-              Limpar
-            </button>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+      <SecaoFiltro
+        titulo="Colunas da planilha"
+        resumo={`${colunasSelecionadas.size} de ${COLUNAS.length} colunas selecionadas`}
+        aberto={abertoColunas}
+        onToggle={() => setAbertoColunas((v) => !v)}
+        onSelecionarTodos={selecionarTodasColunas}
+        onLimpar={limparColunas}
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
           {COLUNAS.map((col) => {
             const marcado = colunasSelecionadas.has(col.key);
             return (
               <label
                 key={col.key}
-                className={`flex items-center gap-3 rounded border-2 px-4 py-3 cursor-pointer transition-colors ${
+                className={`flex items-center gap-3 min-w-0 rounded border-2 px-4 py-3 cursor-pointer transition-colors ${
                   marcado
                     ? "border-brand bg-brand/5"
                     : "border-stone-200 bg-white hover:border-stone-300"
@@ -306,24 +329,20 @@ export default function ExportarIndex({
                   onChange={() => toggleColuna(col.key)}
                   className="accent-brand h-4 w-4 flex-shrink-0"
                 />
-                <span className={`text-sm font-medium ${marcado ? "text-brand-dark" : "text-stone-500"}`}>
+                <span className={`text-sm font-medium min-w-0 break-words ${marcado ? "text-brand-dark" : "text-stone-500"}`}>
                   {col.label}
                 </span>
               </label>
             );
           })}
         </div>
-
-        <p className="text-xs text-stone-400">
-          {colunasSelecionadas.size} de {COLUNAS.length} colunas selecionadas
-        </p>
-      </div>
+      </SecaoFiltro>
 
       {/* Resumo e botão */}
       <div className="rounded-md border border-dashed border-verde-natal/40 bg-verde-natal/5 p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <p className="text-sm font-semibold text-verde-natal">Pronto para exportar</p>
-          <p className="text-xs text-verde-natal/80 mt-0.5">
+          <p className="text-xs text-verde-natal mt-0.5">
             Exportando {totalCartinhas} —{" "}
             {colunasSelecionadas.size} coluna{colunasSelecionadas.size !== 1 ? "s" : ""}
           </p>

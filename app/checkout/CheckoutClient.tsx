@@ -103,6 +103,7 @@ export default function CheckoutClient() {
 
           {mensagem && (
             <div
+              role="status"
               className={`mb-6 p-4 rounded-md text-center font-semibold text-sm ${
                 mensagem.tipo === "sucesso"
                   ? "bg-verde-natal/10 text-verde-natal border border-verde-natal/20"
@@ -120,7 +121,7 @@ export default function CheckoutClient() {
               </h2>
 
               {indisponiveis.length > 0 && (
-                <div className="mb-4 p-3 rounded bg-vermelho-natal/10 text-vermelho-natal text-[13px] font-semibold">
+                <div role="status" className="mb-4 p-3 rounded bg-vermelho-natal/10 text-vermelho-natal text-[13px] font-semibold">
                   {indisponiveis.length === 1
                     ? "Uma das cartinhas do seu carrinho já foi apadrinhada por outra pessoa."
                     : "Algumas cartinhas do seu carrinho já foram apadrinhadas por outra pessoa."}{" "}
@@ -147,7 +148,7 @@ export default function CheckoutClient() {
                             </span>
                           )}
                         </h3>
-                        <span className="text-xs text-stone-400 whitespace-nowrap ml-2">
+                        <span className="text-xs text-stone-500 whitespace-nowrap ml-2">
                           {(atual ?? cartinha).idade} anos
                         </span>
                       </div>
@@ -156,7 +157,7 @@ export default function CheckoutClient() {
                         &quot;{(atual ?? cartinha).texto_cartinha}&quot;
                       </p>
 
-                      <p className="text-[12.5px] text-stone-400">
+                      <p className="text-[12.5px] text-stone-500">
                         Pedido: <strong className="text-stone-600">{(atual ?? cartinha).presente_pedido}</strong>
                       </p>
                     </div>
@@ -164,7 +165,7 @@ export default function CheckoutClient() {
                 })}
               </div>
 
-              <p className="text-[11.5px] text-stone-400 mt-3.5 mb-3">
+              <p className="text-[11.5px] text-stone-500 mt-3.5 mb-3">
                 Consulte o prazo de entrega de cada cartinha nos Pontos de Entrega.
               </p>
 
@@ -222,7 +223,7 @@ export default function CheckoutClient() {
                 <button
                   onClick={handleFinalizarApadrinamento}
                   disabled={isLoading}
-                  className="w-full bg-brand text-white py-3.5 rounded font-bold text-[14.5px] hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2 mb-2.5"
+                  className="w-full bg-brand-dark text-white py-3.5 rounded font-bold text-[14.5px] hover:bg-brand-darker transition-colors disabled:opacity-50 flex items-center justify-center gap-2 mb-2.5"
                 >
                   {isLoading ? (
                     <>
@@ -234,7 +235,7 @@ export default function CheckoutClient() {
                   )}
                 </button>
 
-                <p className="text-[11px] text-stone-400 text-center">
+                <p className="text-[11px] text-stone-500 text-center">
                   Ao confirmar, você se compromete a entregar o presente até o
                   prazo indicado.
                 </p>

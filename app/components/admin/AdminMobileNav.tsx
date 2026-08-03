@@ -26,7 +26,7 @@ export default function AdminMobileNav({
       <button
         onClick={() => setIsOpen(true)}
         className="w-full flex items-center justify-between p-3 border border-stone-300 rounded-md bg-white text-sm font-semibold text-ink"
-        aria-label="Abrir menu de navegação do painel"
+        aria-label={`${labelAtiva} — abrir menu de navegação do painel`}
       >
         <span>{labelAtiva}</span>
         <svg
@@ -34,7 +34,7 @@ export default function AdminMobileNav({
           fill="none"
           stroke="currentColor"
           strokeWidth={2}
-          className="w-4 h-4 text-stone-400"
+          className="w-4 h-4 text-stone-500"
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
         </svg>

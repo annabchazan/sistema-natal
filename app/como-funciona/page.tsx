@@ -54,7 +54,7 @@ export default function ComoFunciona() {
             {passos.map((passo, index) => (
               <div key={passo.titulo} className="flex gap-5">
                 <div className="flex flex-col items-center">
-                  <div className="shrink-0 w-9 h-9 bg-brand text-white rounded-full flex items-center justify-center text-sm font-bold">
+                  <div className="shrink-0 w-9 h-9 bg-brand-dark text-white rounded-full flex items-center justify-center text-sm font-bold">
                     {index + 1}
                   </div>
                   {index < passos.length - 1 && (

@@ -17,9 +17,9 @@ export default function DuvidasFrequentes() {
           <FaqAccordion itens={FAQ_CARTINHAS} />
 
           <div className="border-l-[3px] border-brand bg-white rounded-md p-6 mt-6 text-center">
-            <h3 className="text-sm font-bold text-ink mb-2">
+            <h2 className="text-sm font-bold text-ink mb-2">
               Ainda tem dúvidas?
-            </h3>
+            </h2>
             <p className="text-[13.5px] text-stone-600 mb-5">
               Nossa equipe está pronta para ajudar! Entre em contato conosco.
             </p>

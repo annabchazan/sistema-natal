@@ -62,15 +62,32 @@ export default function TabelaCartinhas({
     setPaginaAtual(1);
   };
 
+  const metaDoItem = (item: CartinhaItem) => {
+    const statusInfo = STATUS_CONFIG[item.status] ?? {
+      label: item.status,
+      classes: "bg-stone-100 text-stone-600",
+    };
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+    const prazoVencido = Boolean(
+      item.data_limite_entrega &&
+        new Date(item.data_limite_entrega) < hoje &&
+        item.status !== "entregue" &&
+        item.status !== "cancelada",
+    );
+    return { statusInfo, prazoVencido };
+  };
+
   return (
     <div className="overflow-x-auto">
       <div className="flex flex-wrap items-end gap-4 p-4 border-b border-stone-100 bg-cream/40">
         <div className="min-w-40">
-          <label className="block text-[11px] font-semibold text-stone-400 uppercase tracking-wide mb-1">
+          <label htmlFor="filtro-cartinha-status" className="block text-[11px] font-semibold text-stone-500 uppercase tracking-wide mb-1">
             Status
           </label>
           <div className="relative">
             <select
+              id="filtro-cartinha-status"
               value={filtroStatus}
               onChange={(e) => {
                 setFiltroStatus(e.target.value);
@@ -90,11 +107,12 @@ export default function TabelaCartinhas({
         </div>
 
         <div className="min-w-45">
-          <label className="block text-[11px] font-semibold text-stone-400 uppercase tracking-wide mb-1">
+          <label htmlFor="filtro-cartinha-instituicao" className="block text-[11px] font-semibold text-stone-500 uppercase tracking-wide mb-1">
             Instituição
           </label>
           <div className="relative">
             <select
+              id="filtro-cartinha-instituicao"
               value={filtroInstituicao}
               onChange={(e) => {
                 setFiltroInstituicao(e.target.value);
@@ -114,11 +132,12 @@ export default function TabelaCartinhas({
         </div>
 
         <div className="min-w-40">
-          <label className="block text-[11px] font-semibold text-stone-400 uppercase tracking-wide mb-1">
+          <label htmlFor="filtro-cartinha-cracha-neon" className="block text-[11px] font-semibold text-stone-500 uppercase tracking-wide mb-1">
             Crachá neon
           </label>
           <div className="relative">
             <select
+              id="filtro-cartinha-cracha-neon"
               value={filtroCrachaNeon}
               onChange={(e) => {
                 setFiltroCrachaNeon(e.target.value);
@@ -143,12 +162,12 @@ export default function TabelaCartinhas({
           </button>
         )}
 
-        <div className="ml-auto text-xs text-stone-400 self-center">
+        <div className="ml-auto text-xs text-stone-500 self-center">
           {dadosFiltrados.length} {dadosFiltrados.length === 1 ? "cartinha" : "cartinhas"}
         </div>
       </div>
 
-      <table className="w-full text-sm text-left text-stone-500">
+      <table className="hidden md:table w-full text-sm text-left text-stone-500">
         <thead className="text-xs text-stone-500 uppercase bg-cream-deep">
           <tr>
             <th className="px-4 py-3">#</th>
@@ -162,26 +181,16 @@ export default function TabelaCartinhas({
         </thead>
         <tbody>
           {dadosPaginados.map((item) => {
-            const statusInfo = STATUS_CONFIG[item.status] ?? {
-              label: item.status,
-              classes: "bg-stone-100 text-stone-600",
-            };
-            const hoje = new Date();
-            hoje.setHours(0, 0, 0, 0);
-            const prazoVencido =
-              item.data_limite_entrega &&
-              new Date(item.data_limite_entrega) < hoje &&
-              item.status !== "entregue" &&
-              item.status !== "cancelada";
+            const { statusInfo, prazoVencido } = metaDoItem(item);
 
             return (
               <tr key={item.id} className="bg-white border-b border-stone-100 hover:bg-cream-deep">
-                <td className="px-4 py-4 text-stone-400 text-xs">
+                <td className="px-4 py-4 text-stone-500 text-xs">
                   {item.numero_sequencial ?? item.id}
                 </td>
                 <td className="px-6 py-4 font-medium text-ink">
                   {item.nome_crianca}
-                  <span className="text-stone-400 font-normal"> ({item.idade} anos)</span>
+                  <span className="text-stone-500 font-normal"> ({item.idade} anos)</span>
                   {Boolean(item.necessidade_especial) && (
                     <span
                       title={item.observacao_especial || "Necessidade especial"}
@@ -211,14 +220,14 @@ export default function TabelaCartinhas({
                 <td className="p-4 text-right space-x-3">
                   <button
                     onClick={() => onEdit(item)}
-                    className="text-brand-dark hover:underline"
+                    className="text-brand-dark hover:underline p-1.5"
                   >
                     Editar
                   </button>
                   {canManage && (
                     <button
                       onClick={() => handleExcluir(item.id)}
-                      className="text-vermelho-natal hover:underline"
+                      className="text-vermelho-natal hover:underline p-1.5"
                     >
                       Excluir
                     </button>
@@ -230,13 +239,87 @@ export default function TabelaCartinhas({
 
           {dadosFiltrados.length === 0 && (
             <tr>
-              <td colSpan={7} className="px-6 py-8 text-center text-stone-400">
+              <td colSpan={7} className="px-6 py-8 text-center text-stone-500">
                 Nenhuma cartinha encontrada.
               </td>
             </tr>
           )}
         </tbody>
       </table>
+
+      <div className="md:hidden divide-y divide-stone-100">
+        {dadosPaginados.map((item) => {
+          const { statusInfo, prazoVencido } = metaDoItem(item);
+
+          return (
+            <div key={item.id} className="p-4 space-y-2">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs text-stone-500">#{item.numero_sequencial ?? item.id}</p>
+                  <p className="font-medium text-ink">
+                    {item.nome_crianca}
+                    <span className="text-stone-500 font-normal"> ({item.idade} anos)</span>
+                  </p>
+                </div>
+                <span className={`shrink-0 px-2 py-1 rounded-full text-xs font-bold ${statusInfo.classes}`}>
+                  {statusInfo.label}
+                </span>
+              </div>
+
+              {Boolean(item.necessidade_especial) && (
+                <span
+                  title={item.observacao_especial || "Necessidade especial"}
+                  className="inline-block px-2 py-0.5 rounded-full text-xs font-bold bg-lime-200 text-lime-800"
+                >
+                  Crachá neon
+                </span>
+              )}
+
+              <p className="text-sm text-stone-600">
+                <span className="text-stone-500">Presente:</span> {item.presente_pedido}
+              </p>
+              <p className="text-sm text-stone-600">
+                <span className="text-stone-500">Instituição:</span> {item.nome_instituicao}
+              </p>
+              <p className="text-sm text-stone-600">
+                <span className="text-stone-500">Prazo:</span>{" "}
+                {item.data_limite_entrega ? (
+                  <span className={prazoVencido ? "text-vermelho-natal font-semibold" : ""}>
+                    {new Date(item.data_limite_entrega).toLocaleDateString("pt-BR")}
+                    {prazoVencido && " (!)"}
+                  </span>
+                ) : (
+                  "—"
+                )}
+              </p>
+
+              <div className="flex gap-2 pt-1 -ml-1.5">
+                <button
+                  onClick={() => onEdit(item)}
+                  className="text-brand-dark hover:underline p-1.5 text-sm"
+                >
+                  Editar
+                </button>
+                {canManage && (
+                  <button
+                    onClick={() => handleExcluir(item.id)}
+                    className="text-vermelho-natal hover:underline p-1.5 text-sm"
+                  >
+                    Excluir
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })}
+
+        {dadosFiltrados.length === 0 && (
+          <p className="px-6 py-8 text-center text-stone-500 text-sm">
+            Nenhuma cartinha encontrada.
+          </p>
+        )}
+      </div>
+
       <Paginacao
         paginaAtual={paginaAtual}
         totalPaginas={totalPaginas}
@@ -254,7 +337,7 @@ function SetaSelect() {
       fill="none"
       stroke="currentColor"
       strokeWidth={2}
-      className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400"
+      className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500"
     >
       <path strokeLinecap="round" strokeLinejoin="round" d="m5.5 8 4.5 4.5L14.5 8" />
     </svg>

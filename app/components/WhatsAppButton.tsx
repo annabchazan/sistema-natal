@@ -1,15 +1,21 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { FAQ_CARTINHAS } from "@/app/data/faqCartinhas";
 
 const FAQ_RAPIDAS = FAQ_CARTINHAS.slice(0, 4);
 
 export default function WhatsAppButton() {
   const [isOpen, setIsOpen] = useState(false);
+  const pathname = usePathname();
 
   const phoneNumber = "5511999999999"; // Substitua pelo número real
   const message = "Olá! Tenho uma dúvida sobre o Natal Solidário.";
+
+  if (pathname?.startsWith("/admin")) {
+    return null;
+  }
 
   const handleWhatsAppClick = () => {
     const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
@@ -54,7 +60,7 @@ export default function WhatsAppButton() {
                 </h3>
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="text-stone-400 hover:text-ink"
+                  className="text-stone-500 hover:text-ink"
                 >
                   <svg
                     viewBox="0 0 24 24"

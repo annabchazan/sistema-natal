@@ -166,7 +166,7 @@ export default function FormularioEditarPerfil({ usuario }: Props) {
                   />
                 </div>
               </div>
-              <p className="text-xs text-stone-400">Mínimo de 6 caracteres.</p>
+              <p className="text-xs text-stone-500">Mínimo de 6 caracteres.</p>
             </div>
           )}
 

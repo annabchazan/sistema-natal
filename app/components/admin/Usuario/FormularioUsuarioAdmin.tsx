@@ -56,10 +56,11 @@ export default function FormularioUsuarioAdmin() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-[12.5px] font-semibold text-stone-600 mb-1">
+            <label htmlFor="novo-usuario-nome" className="block text-[12.5px] font-semibold text-stone-600 mb-1">
               Nome completo
             </label>
             <input
+              id="novo-usuario-nome"
               value={nome}
               onChange={(event) => setNome(event.target.value)}
               required
@@ -68,10 +69,11 @@ export default function FormularioUsuarioAdmin() {
             />
           </div>
           <div>
-            <label className="block text-[12.5px] font-semibold text-stone-600 mb-1">
+            <label htmlFor="novo-usuario-telefone" className="block text-[12.5px] font-semibold text-stone-600 mb-1">
               Telefone
             </label>
             <input
+              id="novo-usuario-telefone"
               value={telefone}
               onChange={(event) => setTelefone(event.target.value)}
               required
@@ -83,10 +85,11 @@ export default function FormularioUsuarioAdmin() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-[12.5px] font-semibold text-stone-600 mb-1">
+            <label htmlFor="novo-usuario-email" className="block text-[12.5px] font-semibold text-stone-600 mb-1">
               E-mail
             </label>
             <input
+              id="novo-usuario-email"
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
@@ -96,10 +99,11 @@ export default function FormularioUsuarioAdmin() {
             />
           </div>
           <div>
-            <label className="block text-[12.5px] font-semibold text-stone-600 mb-1">
+            <label htmlFor="novo-usuario-senha" className="block text-[12.5px] font-semibold text-stone-600 mb-1">
               Senha
             </label>
             <input
+              id="novo-usuario-senha"
               type="password"
               value={senha}
               onChange={(event) => setSenha(event.target.value)}
@@ -112,10 +116,11 @@ export default function FormularioUsuarioAdmin() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-[12.5px] font-semibold text-stone-600 mb-1">
+            <label htmlFor="novo-usuario-tipo" className="block text-[12.5px] font-semibold text-stone-600 mb-1">
               Tipo de usuário
             </label>
             <select
+              id="novo-usuario-tipo"
               value={tipo}
               onChange={(event) =>
                 setTipo(event.target.value as "admin" | "padrinho")
@@ -128,10 +133,11 @@ export default function FormularioUsuarioAdmin() {
           </div>
 
           <div>
-            <label className="block text-[12.5px] font-semibold text-stone-600 mb-1">
+            <label htmlFor="novo-usuario-papel-admin" className="block text-[12.5px] font-semibold text-stone-600 mb-1">
               Papel de admin
             </label>
             <select
+              id="novo-usuario-papel-admin"
               value={adminRole}
               onChange={(event) =>
                 setAdminRole(event.target.value as "master" | "full" | "editor")
