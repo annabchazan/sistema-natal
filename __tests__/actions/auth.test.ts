@@ -1,13 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("@/lib/db", () => ({
-  default: { query: vi.fn() },
+  default: { query: vi.fn(), getConnection: vi.fn() },
 }));
 
 vi.mock("@/lib/auth", () => ({
   getUsuarioAutenticado: vi.fn(),
   gerarHashSenha: vi.fn().mockReturnValue("salt:novohash"),
   validarSenha: vi.fn(),
+  limparSessao: vi.fn(),
 }));
 
 vi.mock("@/lib/email", () => ({
@@ -17,17 +18,31 @@ vi.mock("@/lib/email", () => ({
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 import db from "@/lib/db";
-import { getUsuarioAutenticado, validarSenha, gerarHashSenha } from "@/lib/auth";
+import { getUsuarioAutenticado, validarSenha, gerarHashSenha, limparSessao } from "@/lib/auth";
 import { enviarEmailRecuperacaoSenha } from "@/lib/email";
-import { redefinirSenha, atualizarPerfil, solicitarRecuperacaoSenha } from "@/app/actions/auth";
+import { redefinirSenha, atualizarPerfil, solicitarRecuperacaoSenha, excluirConta } from "@/app/actions/auth";
 
-const mockDb = db as unknown as { query: ReturnType<typeof vi.fn> };
+const mockDb = db as unknown as { query: ReturnType<typeof vi.fn>; getConnection: ReturnType<typeof vi.fn> };
 const mockGetUsuario = vi.mocked(getUsuarioAutenticado);
 const mockValidarSenha = vi.mocked(validarSenha);
 const mockGerarHash = vi.mocked(gerarHashSenha);
 const mockEnviarRecuperacao = vi.mocked(enviarEmailRecuperacaoSenha);
+const mockLimparSessao = vi.mocked(limparSessao);
 
 const usuarioFake = { id: 1, nome: "Padrinho", telefone: "21999999999", email: "padrinho@teste.com", tipo: "padrinho" as const, admin_role: null };
+
+function mockConexao(queryResults: unknown[] = []) {
+  let chamada = 0;
+  const conn = {
+    beginTransaction: vi.fn(),
+    query: vi.fn().mockImplementation(() => Promise.resolve(queryResults[chamada++] ?? [[]])),
+    commit: vi.fn(),
+    rollback: vi.fn(),
+    release: vi.fn(),
+  };
+  mockDb.getConnection.mockResolvedValue(conn);
+  return conn;
+}
 
 beforeEach(() => vi.resetAllMocks());
 
@@ -174,5 +189,85 @@ describe("solicitarRecuperacaoSenha", () => {
     const res = await solicitarRecuperacaoSenha("   ");
     expect(res.success).toBe(false);
     expect(res.message).toMatch(/válido/i);
+  });
+});
+
+// ─── excluirConta ───────────────────────────────────────────────────────────
+
+describe("excluirConta", () => {
+  it("rejeita quando usuário não está logado", async () => {
+    mockGetUsuario.mockResolvedValue(null);
+    const res = await excluirConta();
+    expect(res.success).toBe(false);
+    expect(res.message).toMatch(/logado/i);
+  });
+
+  it("rejeita contas de administrador", async () => {
+    mockGetUsuario.mockResolvedValue({ ...usuarioFake, tipo: "admin" });
+    const res = await excluirConta();
+    expect(res.success).toBe(false);
+    expect(res.message).toMatch(/administrador/i);
+  });
+
+  it("bloqueia quando há cartinhas em andamento (conferida/embrulhado/reapadrinhado)", async () => {
+    mockGetUsuario.mockResolvedValue(usuarioFake);
+    const conn = mockConexao([
+      [[{ total: 1 }]], // SELECT COUNT(*) ... FOR UPDATE
+    ]);
+    const res = await excluirConta();
+    expect(res.success).toBe(false);
+    expect(res.message).toMatch(/em andamento/i);
+    expect(conn.rollback).toHaveBeenCalled();
+    expect(conn.query.mock.calls.length).toBe(1); // não segue adiante
+  });
+
+  it("exclui a conta preservando o snapshot de cartinhas entregues", async () => {
+    mockGetUsuario.mockResolvedValue(usuarioFake);
+    const conn = mockConexao([
+      [[{ total: 0 }]],       // SELECT COUNT(*) ... FOR UPDATE — nenhuma em andamento
+      [{ affectedRows: 1 }],  // INSERT INTO desistencias
+      [{ affectedRows: 1 }],  // UPDATE ... status = 'carente' (apadrinhada)
+      [{ affectedRows: 1 }],  // UPDATE ... snapshot + NULL (entregue)
+      [{ affectedRows: 1 }],  // UPDATE ... NULL sem snapshot (demais status)
+      [{ affectedRows: 1 }],  // DELETE FROM lembretes_enviados
+      [{ affectedRows: 1 }],  // DELETE FROM usuarios
+    ]);
+
+    const res = await excluirConta();
+
+    expect(res.success).toBe(true);
+    expect(conn.commit).toHaveBeenCalled();
+    expect(mockLimparSessao).toHaveBeenCalled();
+
+    // 4ª chamada = UPDATE de snapshot das entregues
+    expect(conn.query).toHaveBeenNthCalledWith(
+      4,
+      expect.stringMatching(/status = 'entregue'/),
+      [usuarioFake.nome, usuarioFake.email, usuarioFake.id],
+    );
+
+    // 5ª chamada = UPDATE das demais (sem snapshot)
+    expect(conn.query).toHaveBeenNthCalledWith(
+      5,
+      expect.stringMatching(/status != 'entregue'/),
+      [usuarioFake.id],
+    );
+  });
+
+  it("faz rollback e retorna erro genérico se alguma query falhar", async () => {
+    mockGetUsuario.mockResolvedValue(usuarioFake);
+    const conn = {
+      beginTransaction: vi.fn(),
+      query: vi.fn()
+        .mockResolvedValueOnce([[{ total: 0 }]])
+        .mockRejectedValueOnce(new Error("erro de banco")),
+      commit: vi.fn(),
+      rollback: vi.fn(),
+      release: vi.fn(),
+    };
+    mockDb.getConnection.mockResolvedValue(conn);
+    const res = await excluirConta();
+    expect(res.success).toBe(false);
+    expect(conn.rollback).toHaveBeenCalled();
   });
 });

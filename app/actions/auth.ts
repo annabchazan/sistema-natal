@@ -446,8 +446,18 @@ export async function excluirConta(): Promise<AuthActionState> {
       [usuario.id],
     );
 
+    // Cartinhas já entregues guardam quem apadrinhou (nome/e-mail) antes de soltar o
+    // vínculo, pra não perder o registro de quem entregou quando a conta é apagada.
     await conn.query(
-      "UPDATE cartinhas SET apadrinhado_por_usuario_id = NULL WHERE apadrinhado_por_usuario_id = ?",
+      `UPDATE cartinhas
+       SET apadrinhado_por_usuario_id = NULL, nome_padrinho = ?, email_padrinho = ?
+       WHERE apadrinhado_por_usuario_id = ? AND status = 'entregue'`,
+      [usuario.nome, usuario.email, usuario.id],
+    );
+
+    // Demais cartinhas em aberto (ex: canceladas) só perdem o vínculo, sem snapshot.
+    await conn.query(
+      "UPDATE cartinhas SET apadrinhado_por_usuario_id = NULL WHERE apadrinhado_por_usuario_id = ? AND status != 'entregue'",
       [usuario.id],
     );
 

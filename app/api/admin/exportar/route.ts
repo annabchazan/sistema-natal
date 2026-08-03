@@ -125,9 +125,9 @@ export async function GET(req: NextRequest) {
         c.presente_pedido,
         c.data_limite_entrega,
         c.data_apadrinamento,
-        u.nome        AS padrinho_nome,
-        u.telefone    AS padrinho_telefone,
-        u.email       AS padrinho_email
+        COALESCE(u.nome, c.nome_padrinho)   AS padrinho_nome,
+        u.telefone                          AS padrinho_telefone,
+        COALESCE(u.email, c.email_padrinho) AS padrinho_email
       FROM cartinhas c
       LEFT JOIN instituicoes i ON c.instituicao_id = i.id
       LEFT JOIN usuarios u    ON c.apadrinhado_por_usuario_id = u.id
