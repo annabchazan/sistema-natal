@@ -27,7 +27,7 @@ export async function salvarInstituicao(
   if (!nome || !responsavel || !contato || !Number.isFinite(quantidadeVagas)) {
     return {
       success: false,
-      message: "Preencha todos os campos da instituicao corretamente.",
+      message: "Preencha todos os campos da instituição corretamente.",
     };
   }
 
@@ -50,11 +50,11 @@ export async function salvarInstituicao(
     return {
       success: true,
       message: id
-        ? "Instituicao atualizada com sucesso!"
-        : "Instituicao cadastrada com sucesso!",
+        ? "Instituição atualizada com sucesso!"
+        : "Instituição cadastrada com sucesso!",
     };
   } catch (err) {
-    console.error("Erro ao salvar instituicao:", err);
+    console.error("Erro ao salvar instituição:", err);
     return {
       success: false,
       message: "Erro ao conectar com o banco de dados.",
@@ -72,13 +72,13 @@ export async function excluirInstituicao(id: number): Promise<InstituicaoState> 
     await db.query("DELETE FROM instituicoes WHERE id = ?", [id]);
     revalidatePath("/admin");
     revalidatePath("/admin/instituicoes");
-    return { success: true, message: "Instituicao removida com sucesso!" };
+    return { success: true, message: "Instituição removida com sucesso!" };
   } catch (err) {
-    console.error("Erro ao excluir instituicao:", err);
+    console.error("Erro ao excluir instituição:", err);
     return {
       success: false,
       message:
-        "Nao foi possivel excluir a instituicao. Verifique se existem cartinhas vinculadas.",
+        "Não foi possível excluir a instituição. Verifique se existem cartinhas vinculadas.",
     };
   }
 }

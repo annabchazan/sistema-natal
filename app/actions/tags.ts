@@ -53,7 +53,7 @@ export async function salvarTag(
     return {
       success: false,
       message:
-        "Erro ao salvar no banco. Verifique se os campos estao corretos.",
+        "Erro ao salvar no banco. Verifique se os campos estão corretos.",
     };
   }
 }
@@ -73,7 +73,7 @@ export async function excluirTag(id: number): Promise<TagsState> {
     console.error("Erro ao excluir tag:", err);
     return {
       success: false,
-      message: "Nao foi possivel excluir a tag. Verifique se ela esta em uso.",
+      message: "Não foi possível excluir a tag. Verifique se ela está em uso.",
     };
   }
 }

@@ -34,7 +34,7 @@ export async function salvarPontoEntrega(
   if (!nome || !endereco || !horario) {
     return {
       success: false,
-      message: "Preencha nome, endereco e horario do ponto de entrega.",
+      message: "Preencha nome, endereço e horário do ponto de entrega.",
     };
   }
 
@@ -90,7 +90,7 @@ export async function excluirPontoEntrega(
     console.error("Erro ao excluir ponto de entrega:", err);
     return {
       success: false,
-      message: "Nao foi possivel excluir o ponto de entrega.",
+      message: "Não foi possível excluir o ponto de entrega.",
     };
   }
 }

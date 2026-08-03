@@ -26,9 +26,14 @@ export default function TagsIndex({
   };
 
   return (
-    <div className="space-y-8">
-      {canManage && (
-        <div className="flex justify-end">
+    <div className="space-y-6">
+      <div className="flex justify-between items-center bg-white p-4 rounded-md border border-stone-200">
+        <div>
+          <h2 className="text-lg font-bold text-ink">Gerenciar categorias</h2>
+          <p className="text-sm text-stone-500">Total: {tags.length} categorias</p>
+        </div>
+
+        {canManage && (
           <button
             onClick={() => {
               if (mostrarFormulario && !tagEmEdicao) {
@@ -46,8 +51,8 @@ export default function TagsIndex({
           >
             {mostrarFormulario && !tagEmEdicao ? "Cancelar" : "Adicionar categoria"}
           </button>
-        </div>
-      )}
+        )}
+      </div>
 
       {mostrarFormulario && (
         <div className="bg-white p-6 rounded-md border border-stone-200 animate-in slide-in-from-top duration-300">
@@ -59,10 +64,7 @@ export default function TagsIndex({
         </div>
       )}
 
-      <div className="bg-white rounded-md border border-stone-200">
-        <div className="p-4 border-b border-stone-100">
-          <h2 className="font-bold text-sm text-ink">Categorias registradas</h2>
-        </div>
+      <div className="bg-white rounded-md border border-stone-200 overflow-hidden">
         <TabelaTags dados={tags} onEdit={abrirEdicao} canManage={canManage} />
       </div>
     </div>

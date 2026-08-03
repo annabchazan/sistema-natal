@@ -62,7 +62,7 @@ describe("salvarPontoEntrega", () => {
       horario: "",
     }));
     expect(res.success).toBe(false);
-    expect(res.message).toMatch(/nome, endereco e horario/i);
+    expect(res.message).toMatch(/nome, endereço e horário/i);
     expect(mockDb.query).not.toHaveBeenCalled();
   });
 

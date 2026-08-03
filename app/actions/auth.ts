@@ -88,7 +88,7 @@ export async function cadastrarUsuario(
     );
 
     if (existentes?.length) {
-      return { success: false, message: "Ja existe um cadastro com esse e-mail." };
+      return { success: false, message: "Já existe um cadastro com esse e-mail." };
     }
 
     const senhaHash = gerarHashSenha(senha);
@@ -102,8 +102,8 @@ export async function cadastrarUsuario(
 
     return { success: true, message: "Cadastro realizado com sucesso." };
   } catch (error) {
-    console.error("Erro ao cadastrar usuario:", error);
-    return { success: false, message: "Nao foi possivel concluir o cadastro." };
+    console.error("Erro ao cadastrar usuário:", error);
+    return { success: false, message: "Não foi possível concluir o cadastro." };
   }
 }
 
@@ -152,7 +152,7 @@ export async function loginUsuario(input: LoginInput): Promise<AuthActionState> 
          ON DUPLICATE KEY UPDATE tentativas_falhas = VALUES(tentativas_falhas), bloqueado_ate = VALUES(bloqueado_ate)`,
         [email, novoEstado.tentativas, novoEstado.bloqueadoAte],
       );
-      return { success: false, message: "E-mail ou senha invalidos." };
+      return { success: false, message: "E-mail ou senha inválidos." };
     }
 
     if (tentativa) {
@@ -169,7 +169,7 @@ export async function loginUsuario(input: LoginInput): Promise<AuthActionState> 
     };
   } catch (error) {
     console.error("Erro ao fazer login:", error);
-    return { success: false, message: "Nao foi possivel fazer login." };
+    return { success: false, message: "Não foi possível fazer login." };
   }
 }
 
@@ -207,7 +207,7 @@ export async function cadastrarUsuarioAdmin(
   if (tipo === "admin" && !adminRole) {
     return {
       success: false,
-      message: "Escolha o nivel de acesso do administrador.",
+      message: "Escolha o nível de acesso do administrador.",
     };
   }
 
@@ -218,7 +218,7 @@ export async function cadastrarUsuarioAdmin(
     );
 
     if (existentes?.length) {
-      return { success: false, message: "Ja existe um cadastro com esse e-mail." };
+      return { success: false, message: "Já existe um cadastro com esse e-mail." };
     }
 
     const senhaHash = gerarHashSenha(senha);
@@ -228,10 +228,10 @@ export async function cadastrarUsuarioAdmin(
     );
 
     revalidatePath("/admin");
-    return { success: true, message: "Usuario cadastrado com sucesso." };
+    return { success: true, message: "Usuário cadastrado com sucesso." };
   } catch (error) {
-    console.error("Erro ao cadastrar usuario pelo admin:", error);
-    return { success: false, message: "Nao foi possivel cadastrar o usuario." };
+    console.error("Erro ao cadastrar usuário pelo admin:", error);
+    return { success: false, message: "Não foi possível cadastrar o usuário." };
   }
 }
 
@@ -498,7 +498,7 @@ export async function atualizarPermissoesUsuario(input: {
   if (input.tipo === "admin" && !adminRole) {
     return {
       success: false,
-      message: "Escolha o nivel de acesso do administrador.",
+      message: "Escolha o nível de acesso do administrador.",
     };
   }
 
@@ -511,7 +511,7 @@ export async function atualizarPermissoesUsuario(input: {
     const usuarioAtual = rows?.[0];
 
     if (!usuarioAtual) {
-      return { success: false, message: "Usuario nao encontrado." };
+      return { success: false, message: "Usuário não encontrado." };
     }
 
     const vaiPerderAcessoAdmin =
@@ -524,14 +524,14 @@ export async function atualizarPermissoesUsuario(input: {
     if (permissao.usuario.id === input.usuarioId && vaiPerderAcessoAdmin) {
       return {
         success: false,
-        message: "Voce nao pode remover seu proprio acesso de administrador por aqui.",
+        message: "Você não pode remover seu próprio acesso de administrador por aqui.",
       };
     }
 
     if (permissao.usuario.id === input.usuarioId && vaiPerderNivelMaster) {
       return {
         success: false,
-        message: "Voce nao pode rebaixar seu proprio usuario de Super Adm.",
+        message: "Você não pode rebaixar seu próprio usuário de Super Adm.",
       };
     }
 
@@ -555,12 +555,12 @@ export async function atualizarPermissoesUsuario(input: {
     );
 
     revalidatePath("/admin");
-    return { success: true, message: "Permissoes atualizadas com sucesso." };
+    return { success: true, message: "Permissões atualizadas com sucesso." };
   } catch (error) {
-    console.error("Erro ao atualizar permissoes do usuario:", error);
+    console.error("Erro ao atualizar permissões do usuário:", error);
     return {
       success: false,
-      message: "Nao foi possivel atualizar as permissoes.",
+      message: "Não foi possível atualizar as permissões.",
     };
   }
 }

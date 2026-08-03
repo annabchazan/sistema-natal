@@ -26,9 +26,14 @@ export default function PontosEntregaIndex({
   };
 
   return (
-    <div className="space-y-8">
-      {canManage && (
-        <div className="flex justify-end">
+    <div className="space-y-6">
+      <div className="flex justify-between items-center bg-white p-4 rounded-md border border-stone-200">
+        <div>
+          <h2 className="text-lg font-bold text-ink">Gerenciar pontos de entrega</h2>
+          <p className="text-sm text-stone-500">Total: {pontosEntrega.length} pontos de entrega</p>
+        </div>
+
+        {canManage && (
           <button
             onClick={() => {
               if (mostrarFormulario && !pontoEmEdicao) {
@@ -48,8 +53,8 @@ export default function PontosEntregaIndex({
               ? "Cancelar"
               : "Adicionar ponto"}
           </button>
-        </div>
-      )}
+        )}
+      </div>
 
       {mostrarFormulario && (
         <div className="bg-white p-6 rounded-md border border-stone-200 animate-in slide-in-from-top duration-300">
@@ -61,12 +66,7 @@ export default function PontosEntregaIndex({
         </div>
       )}
 
-      <div className="bg-white rounded-md border border-stone-200">
-        <div className="p-4 border-b border-stone-100">
-          <h2 className="font-bold text-sm text-ink">
-            Pontos de entrega registrados
-          </h2>
-        </div>
+      <div className="bg-white rounded-md border border-stone-200 overflow-hidden">
         <TabelaPontosEntrega
           dados={pontosEntrega}
           onEdit={abrirEdicao}
