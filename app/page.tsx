@@ -8,7 +8,7 @@ import MapaPontosEntrega from "@/app/components/MapaPontosEntrega";
 const PONTOS_ENTREGA_PREVIEW = 3;
 
 export default async function Home() {
-  const cartinhas = await listarCartinhas();
+  const { cartinhas, total: totalCartinhas } = await listarCartinhas();
   const pontosEntrega = await listarPontosEntrega();
   const tags = await listarTags();
   const totalApadrinhadas = await contarCartinhasApadrinhadas();
@@ -17,6 +17,7 @@ export default async function Home() {
     <div className="min-h-screen bg-cream pb-6">
       <ListaCartinhasHome
         cartinhas={cartinhas}
+        totalInicial={totalCartinhas}
         tags={tags}
         totalApadrinhadas={totalApadrinhadas}
       />

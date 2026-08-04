@@ -8,51 +8,36 @@ export const FAQ_CARTINHAS: FaqItem[] = [
   {
     pergunta: "Como funciona o apadrinhamento de cartinhas?",
     resposta:
-      "Você escolhe uma cartinha da nossa galeria, adiciona ao carrinho e faz a doação dos itens solicitados em um de nossos pontos de entrega. Nossa equipe se encarrega de entregar tudo para a criança no prazo correto.",
+      "Escolha uma cartinha, adicione ao carrinho e entregue os itens solicitados em um de nossos pontos de coleta. Os presentes devem ser entregues sem embrulho. Se possível, inclua também papel de presente ou embalagem para presente como doação. Dessa forma, nossa equipe poderá conferir os itens, embrulhá-los e prepará-los com todo o carinho antes da entrega às crianças.",
   },
   {
     pergunta: "Posso apadrinhar mais de uma cartinha?",
     resposta:
-      "Sim! Você pode apadrinhar até 20 cartinhas por vez. Cada cartinha representa uma criança diferente e você pode fazer a diferença na vida de várias crianças ao mesmo tempo.",
-  },
-  {
-    pergunta: "Qual é o valor máximo que devo gastar?",
-    resposta:
-      "Cada cartinha tem um valor sugerido máximo. Recomendamos respeitar esse limite para que outras pessoas também possam participar. Se quiser gastar mais, considere apadrinhar uma cartinha adicional.",
+      "Sim! É possível apadrinhar até 20 cartinhas por vez. Cada cartinha corresponde a uma criança, então você pode levar alegria e esperança para muitas delas ao mesmo tempo.",
   },
   {
     pergunta: "Como sei se minha doação chegou à criança?",
     resposta:
-      "Você receberá confirmação por e-mail quando os presentes forem entregues à instituição. Além disso, as instituições parceiras nos enviam fotos e relatos da entrega para compartilhar com os padrinhos.",
+      "Você receberá uma confirmação por e-mail quando os presentes forem entregues às crianças, seja na Festa de Natal ou por meio das instituições parceiras. Além disso, sempre que possível, compartilharemos fotos e relatos da entrega para que você possa acompanhar esse momento especial.",
   },
   {
     pergunta: "Posso escolher itens diferentes dos pedidos na cartinha?",
     resposta:
-      "Preferencialmente, siga os pedidos da cartinha para respeitar os desejos da criança. No entanto, se algum item estiver indisponível, você pode escolher algo similar de valor equivalente. Entre em contato conosco se tiver dúvidas.",
+      "Preferencialmente, siga os pedidos descritos na cartinha para respeitar os desejos da criança. Caso algum item não esteja disponível, você pode substituí-lo por outro semelhante, de valor equivalente. Em caso de dúvidas, entre em contato conosco.",
   },
   {
     pergunta: "Quando devo entregar os presentes?",
     resposta:
-      "Cada cartinha tem uma data limite de entrega especificada. É importante respeitar esse prazo para que as instituições possam organizar a distribuição antes do Natal. Verifique sempre as datas no momento da escolha.",
-  },
-  {
-    pergunta: "As instituições são confiáveis?",
-    resposta:
-      "Trabalhamos apenas com instituições parceiras verificadas e com histórico de trabalho sério com crianças. Todas as doações chegam integralmente às crianças, sem intermediários ou taxas administrativas.",
-  },
-  {
-    pergunta: "Posso visitar a criança ou a instituição?",
-    resposta:
-      "Por questões de privacidade e segurança das crianças, não permitimos visitas diretas. No entanto, você pode acompanhar o trabalho das instituições através dos relatórios que compartilhamos.",
+      "Cada cartinha possui uma data limite de entrega. É importante respeitar esse prazo para que nossa equipe e as instituições parceiras tenham tempo de organizar tudo e garantir que os presentes cheguem às crianças no momento certo. Confira sempre a data informada ao escolher a cartinha.",
   },
   {
     pergunta: "E se eu não conseguir cumprir com a doação?",
     resposta:
-      'Se por algum motivo você não puder cumprir com o apadrinhamento, entre em contato conosco o mais breve possível. Você também pode cancelar pela sua área de usuário enquanto o status for "apadrinhada".',
+      "Caso aconteça algum imprevisto e você não consiga realizar a doação, entre em contato conosco o quanto antes. Você também poderá cancelar o apadrinhamento pela sua área de usuário.",
   },
   {
     pergunta: "Como entro em contato para tirar dúvidas?",
     resposta:
-      "Você pode nos contatar através do e-mail contato@semprecrianca.com.br ou pelo telefone (21) 99999-9999. Estamos disponíveis para ajudar com qualquer dúvida sobre o processo de apadrinhamento.",
+      "Você pode entrar em contato conosco pelo e-mail contato@semprecrianca.org ou pelo telefone (21) 99999-9999. Nossa equipe está disponível para ajudar com qualquer dúvida sobre o processo de apadrinhamento.",
   },
 ];

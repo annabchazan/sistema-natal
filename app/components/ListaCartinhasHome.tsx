@@ -29,12 +29,16 @@ interface Tag {
   nome: string;
 }
 
+const ITENS_POR_PAGINA = 12;
+
 export default function ListaCartinhasHome({
   cartinhas: cartinhasIniciais,
+  totalInicial,
   tags,
   totalApadrinhadas = 0,
 }: {
   cartinhas: Cartinha[];
+  totalInicial: number;
   tags: Tag[];
   totalApadrinhadas?: number;
 }) {
@@ -45,14 +49,14 @@ export default function ListaCartinhasHome({
     [key: number]: boolean;
   }>({});
   const [cartinhas, setCartinhas] = useState<Cartinha[]>(cartinhasIniciais);
+  const [total, setTotal] = useState(totalInicial);
 
   const [filtroTag, setFiltroTag] = useState<string>("");
   const [filtroIdadeMin, setFiltroIdadeMin] = useState<string>("");
   const [filtroIdadeMax, setFiltroIdadeMax] = useState<string>("");
-  const [isFiltering, setIsFiltering] = useState(false);
+  const [isCarregando, setIsCarregando] = useState(false);
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [fotoAberta, setFotoAberta] = useState<{ src: string; alt: string } | null>(null);
-  const ITENS_POR_PAGINA = 12;
 
   useEffect(() => {
     const estado: { [key: number]: boolean } = {};
@@ -62,47 +66,37 @@ export default function ListaCartinhasHome({
     setCarrinhoAtualizado(estado);
   }, [cartinhas, temCartinha]);
 
-  const aplicarFiltros = async () => {
-    setIsFiltering(true);
+  const buscarPagina = async (pagina: number, filtrosExplicitos?: FiltrosCartinhas) => {
+    setIsCarregando(true);
     try {
-      const filtros: FiltrosCartinhas = {};
+      let filtros: FiltrosCartinhas;
+      if (filtrosExplicitos) {
+        filtros = filtrosExplicitos;
+      } else {
+        filtros = {};
+        if (filtroTag)      filtros.tag_id    = parseInt(filtroTag);
+        if (filtroIdadeMin) filtros.idade_min = parseInt(filtroIdadeMin);
+        if (filtroIdadeMax) filtros.idade_max = parseInt(filtroIdadeMax);
+      }
 
-      if (filtroTag)      filtros.tag_id    = parseInt(filtroTag);
-      if (filtroIdadeMin) filtros.idade_min = parseInt(filtroIdadeMin);
-      if (filtroIdadeMax) filtros.idade_max = parseInt(filtroIdadeMax);
-
-      const temFiltros = filtroTag || filtroIdadeMin || filtroIdadeMax;
-      const cartinhasFiltradas = temFiltros
-        ? await listarCartinhasFiltradas(filtros)
-        : cartinhasIniciais;
-
-      setCartinhas(cartinhasFiltradas);
-      setPaginaAtual(1);
-
-      const estado: { [key: number]: boolean } = {};
-      cartinhasFiltradas.forEach((c) => {
-        estado[c.id] = temCartinha(c.id);
-      });
-      setCarrinhoAtualizado(estado);
+      const resultado = await listarCartinhasFiltradas(filtros, pagina, ITENS_POR_PAGINA);
+      setCartinhas(resultado.cartinhas);
+      setTotal(resultado.total);
+      setPaginaAtual(pagina);
     } catch (error) {
-      console.error("Erro ao aplicar filtros:", error);
+      console.error("Erro ao buscar cartinhas:", error);
     } finally {
-      setIsFiltering(false);
+      setIsCarregando(false);
     }
   };
 
-  const limparFiltros = async () => {
+  const aplicarFiltros = () => buscarPagina(1);
+
+  const limparFiltros = () => {
     setFiltroTag("");
     setFiltroIdadeMin("");
     setFiltroIdadeMax("");
-    setCartinhas(cartinhasIniciais);
-    setPaginaAtual(1);
-
-    const estado: { [key: number]: boolean } = {};
-    cartinhasIniciais.forEach((c) => {
-      estado[c.id] = temCartinha(c.id);
-    });
-    setCarrinhoAtualizado(estado);
+    buscarPagina(1, {});
   };
 
   const handleApadrinhar = (cartinha: Cartinha) => {
@@ -138,12 +132,14 @@ export default function ListaCartinhasHome({
               mudar um Natal.
             </h1>
             <p className="text-[15px] text-stone-500 leading-7 max-w-md mb-7">
-              Escolha uma criança, leve o presente até um ponto de entrega e
-              acompanhe cada etapa até a entrega.
+              Você pode transformar o Natal de uma criança. Escolha uma
+              cartinha, prepare o presente e faça parte desse momento
+              especial. Nós cuidaremos para que ele chegue até a criança, e
+              você receberá uma confirmação quando isso acontecer.
             </p>
             <div className="flex gap-8">
               <div>
-                <div className="text-2xl font-bold text-ink">{cartinhas.length}</div>
+                <div className="text-2xl font-bold text-ink">{total}</div>
                 <div className="text-xs text-stone-500">aguardando padrinho</div>
               </div>
               <div>
@@ -216,24 +212,25 @@ export default function ListaCartinhasHome({
 
           <button
             onClick={aplicarFiltros}
-            disabled={isFiltering}
+            disabled={isCarregando}
             className="bg-ink text-white border border-ink px-5 py-2 rounded font-semibold text-[13px] hover:bg-white hover:text-ink transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isFiltering ? "Filtrando..." : "Filtrar"}
+            {isCarregando ? "Filtrando..." : "Filtrar"}
           </button>
           <button
             onClick={limparFiltros}
-            className="bg-transparent text-stone-500 border border-stone-300 px-5 py-2 rounded font-semibold text-[13px] hover:bg-cream-deep transition-colors"
+            disabled={isCarregando}
+            className="bg-transparent text-stone-500 border border-stone-300 px-5 py-2 rounded font-semibold text-[13px] hover:bg-cream-deep transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Limpar
           </button>
 
           <div className="ml-auto text-[13px] text-stone-500 self-center">
-            {cartinhas.length} {cartinhas.length === 1 ? "cartinha encontrada" : "cartinhas encontradas"}
+            {total} {total === 1 ? "cartinha encontrada" : "cartinhas encontradas"}
           </div>
         </div>
 
-        {cartinhas.length === 0 ? (
+        {total === 0 ? (
           <div className="text-center py-20">
             <p className="text-lg text-stone-500">
               Nenhuma cartinha encontrada com os filtros aplicados.
@@ -248,7 +245,7 @@ export default function ListaCartinhasHome({
         ) : (
           <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">
-            {cartinhas.slice((paginaAtual - 1) * ITENS_POR_PAGINA, paginaAtual * ITENS_POR_PAGINA).map((cartinha) => (
+            {cartinhas.map((cartinha) => (
               <div
                 key={cartinha.id}
                 className="bg-white border border-stone-200 rounded-md overflow-hidden hover:shadow-[0_8px_24px_rgba(30,27,23,.08)] transition-shadow"
@@ -373,21 +370,21 @@ export default function ListaCartinhasHome({
             ))}
           </div>
 
-          {cartinhas.length > ITENS_POR_PAGINA && (
+          {total > ITENS_POR_PAGINA && (
             <div className="flex items-center justify-center gap-1.5 mt-12">
               <button
-                onClick={() => setPaginaAtual((p) => Math.max(1, p - 1))}
-                disabled={paginaAtual === 1}
+                onClick={() => buscarPagina(Math.max(1, paginaAtual - 1))}
+                disabled={paginaAtual === 1 || isCarregando}
                 className="px-4 h-9 rounded border border-stone-300 text-stone-600 font-semibold text-[13px] hover:bg-cream-deep transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 Anterior
               </button>
               <span className="text-stone-500 text-[13px] mx-3">
-                Página {paginaAtual} de {Math.ceil(cartinhas.length / ITENS_POR_PAGINA)}
+                Página {paginaAtual} de {Math.max(1, Math.ceil(total / ITENS_POR_PAGINA))}
               </span>
               <button
-                onClick={() => setPaginaAtual((p) => Math.min(Math.ceil(cartinhas.length / ITENS_POR_PAGINA), p + 1))}
-                disabled={paginaAtual === Math.ceil(cartinhas.length / ITENS_POR_PAGINA)}
+                onClick={() => buscarPagina(Math.min(Math.ceil(total / ITENS_POR_PAGINA), paginaAtual + 1))}
+                disabled={paginaAtual === Math.ceil(total / ITENS_POR_PAGINA) || isCarregando}
                 className="px-4 h-9 rounded border border-stone-300 text-stone-600 font-semibold text-[13px] hover:bg-cream-deep transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 Próxima

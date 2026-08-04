@@ -17,7 +17,10 @@ export interface FiltrosCartinhas {
   idade_max?: number;
 }
 
-interface CartinhaComTagRow extends RowDataPacket {
+// Apenas as colunas que a listagem pública (home) precisa exibir.
+// Não inclui apadrinhado_por_usuario_id, necessidade_especial, observacao_especial
+// nem data_apadrinamento — nada disso deve ser exposto num payload público/anônimo.
+interface CartinhaPublicaRow extends RowDataPacket {
   id: number;
   nome_crianca: string;
   idade: number;
@@ -29,12 +32,19 @@ interface CartinhaComTagRow extends RowDataPacket {
   foto_cartinha: string | null;
   data_limite_entrega: string | null;
   status: string;
-  data_apadrinamento: string | null;
-  apadrinhado_por_usuario_id: number | null;
-  necessidade_especial: boolean;
-  observacao_especial: string | null;
   tag_nome: string | null;
 }
+
+interface ListaCartinhasPublicaResultado {
+  cartinhas: CartinhaPublicaRow[];
+  total: number;
+}
+
+const COLUNAS_CARTINHA_PUBLICA = `
+  c.id, c.nome_crianca, c.idade, c.texto_cartinha, c.presente_pedido,
+  c.instituicao_id, c.tag_id, c.numero_sequencial, c.foto_cartinha,
+  c.data_limite_entrega, c.status, t.nome as tag_nome
+`;
 
 interface CartinhaAnteriorRow extends RowDataPacket {
   status: string;
@@ -356,19 +366,33 @@ export async function buscarCartinhasParaCheckout(
 }
 
 // --- LISTAR CARTINHAS DISPONÍVEIS (home pública) ---
-export async function listarCartinhas(): Promise<CartinhaComTagRow[]> {
+const ITENS_POR_PAGINA_HOME = 12;
+
+export async function listarCartinhas(
+  pagina: number = 1,
+  itensPorPagina: number = ITENS_POR_PAGINA_HOME,
+): Promise<ListaCartinhasPublicaResultado> {
   try {
-    const [cartinhas] = await db.query<CartinhaComTagRow[]>(
-      `SELECT c.*, t.nome as tag_nome
+    const offset = (pagina - 1) * itensPorPagina;
+
+    const [[{ total }]] = await db.query<ContagemHomeRow[]>(
+      `SELECT COUNT(*) as total FROM cartinhas WHERE status IN ('disponivel', 'carente')`,
+    );
+
+    const [cartinhas] = await db.query<CartinhaPublicaRow[]>(
+      `SELECT ${COLUNAS_CARTINHA_PUBLICA}
        FROM cartinhas c
        LEFT JOIN tags t ON c.tag_id = t.id
        WHERE c.status IN ('disponivel', 'carente')
-       ORDER BY c.id DESC`,
+       ORDER BY c.id DESC
+       LIMIT ? OFFSET ?`,
+      [itensPorPagina, offset],
     );
-    return cartinhas;
+
+    return { cartinhas, total: Number(total) };
   } catch (err) {
     console.error("Erro ao listar cartinhas:", err);
-    return [];
+    return { cartinhas: [], total: 0 };
   }
 }
 
@@ -392,18 +416,15 @@ export async function contarCartinhasApadrinhadas(): Promise<number> {
 // --- LISTAR COM FILTROS (home pública) ---
 export async function listarCartinhasFiltradas(
   filtros: FiltrosCartinhas,
-): Promise<CartinhaComTagRow[]> {
+  pagina: number = 1,
+  itensPorPagina: number = ITENS_POR_PAGINA_HOME,
+): Promise<ListaCartinhasPublicaResultado> {
   try {
-    let query = `
-      SELECT c.*, t.nome as tag_nome
-      FROM cartinhas c
-      LEFT JOIN tags t ON c.tag_id = t.id
-      WHERE c.status IN ('disponivel', 'carente')
-    `;
+    const condicoes: string[] = ["c.status IN ('disponivel', 'carente')"];
     const params: (string | number)[] = [];
 
     if (filtros.tag_id !== undefined && filtros.tag_id !== null) {
-      query += " AND c.tag_id = ?";
+      condicoes.push("c.tag_id = ?");
       params.push(filtros.tag_id);
     }
     const idadeMin = filtros.idade_min;
@@ -412,20 +433,36 @@ export async function listarCartinhasFiltradas(
     const maxFinal = idadeMin !== undefined && idadeMax !== undefined && idadeMin > idadeMax ? idadeMin : idadeMax;
 
     if (minFinal !== undefined) {
-      query += " AND c.idade >= ?";
+      condicoes.push("c.idade >= ?");
       params.push(minFinal);
     }
     if (maxFinal !== undefined) {
-      query += " AND c.idade <= ?";
+      condicoes.push("c.idade <= ?");
       params.push(maxFinal);
     }
 
-    query += " ORDER BY c.id DESC";
-    const [cartinhas] = await db.query<CartinhaComTagRow[]>(query, params);
-    return cartinhas;
+    const where = condicoes.join(" AND ");
+    const offset = (pagina - 1) * itensPorPagina;
+
+    const [[{ total }]] = await db.query<ContagemHomeRow[]>(
+      `SELECT COUNT(*) as total FROM cartinhas c WHERE ${where}`,
+      params,
+    );
+
+    const [cartinhas] = await db.query<CartinhaPublicaRow[]>(
+      `SELECT ${COLUNAS_CARTINHA_PUBLICA}
+       FROM cartinhas c
+       LEFT JOIN tags t ON c.tag_id = t.id
+       WHERE ${where}
+       ORDER BY c.id DESC
+       LIMIT ? OFFSET ?`,
+      [...params, itensPorPagina, offset],
+    );
+
+    return { cartinhas, total: Number(total) };
   } catch (err) {
     console.error("Erro ao listar cartinhas filtradas:", err);
-    return [];
+    return { cartinhas: [], total: 0 };
   }
 }
 

@@ -1,11 +1,11 @@
 import Link from "next/link";
-import Image from "next/image";
 import { redirect } from "next/navigation";
 import { getUsuarioAutenticado } from "@/lib/auth";
 import db from "@/lib/db";
 import FormularioEditarPerfil from "@/app/components/usuario/FormularioEditarPerfil";
 import BotaoCancelarApadrinamento from "@/app/components/usuario/BotaoCancelarApadrinamento";
 import BotaoExcluirConta from "@/app/components/usuario/BotaoExcluirConta";
+import FotoCartinhaUsuario from "@/app/components/usuario/FotoCartinhaUsuario";
 import { STATUS_CARTINHA } from "@/lib/statusCartinha";
 import type { RowDataPacket } from "mysql2/promise";
 
@@ -147,7 +147,8 @@ export default async function UsuarioPage() {
             <div className="bg-white rounded-md border border-stone-200 p-12 text-center">
               <p className="text-4xl mb-4 text-brand">♥</p>
               <p className="text-stone-500 text-base mb-6">
-                Você ainda não apadrinhou nenhuma cartinha.
+                Você ainda não apadrinhou nenhuma cartinha. Que tal escolher
+                uma e transformar o Natal de uma criança?
               </p>
               <Link
                 href="/"
@@ -203,12 +204,9 @@ export default async function UsuarioPage() {
                       <div className="flex items-start gap-4">
                           {cartinha.foto_cartinha &&
                         !cartinha.foto_cartinha.startsWith("data:") ? (
-                          <Image
+                          <FotoCartinhaUsuario
                             src={cartinha.foto_cartinha}
-                            alt={cartinha.nome_crianca}
-                            width={64}
-                            height={64}
-                            className="w-16 h-16 rounded object-cover flex-shrink-0"
+                            nomeCrianca={cartinha.nome_crianca}
                           />
                         ) : (
                           <div className="w-16 h-16 rounded bg-cream-deep flex items-center justify-center flex-shrink-0">

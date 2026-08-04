@@ -25,10 +25,10 @@ export default function DuvidasFrequentes() {
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <a
-                href="mailto:contato@semprecrianca.com.br"
+                href="mailto:contato@semprecrianca.org"
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-ink text-white border border-ink px-5 py-2.5 rounded font-semibold text-[13px] hover:bg-white hover:text-ink transition-colors"
               >
-                contato@semprecrianca.com.br
+                contato@semprecrianca.org
               </a>
               <a
                 href="https://wa.me/5511999999999?text=Ol%C3%A1!%20Tenho%20uma%20d%C3%BAvida%20sobre%20o%20Natal%20Solid%C3%A1rio."

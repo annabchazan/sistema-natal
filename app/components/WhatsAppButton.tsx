@@ -8,6 +8,7 @@ const FAQ_RAPIDAS = FAQ_CARTINHAS.slice(0, 4);
 
 export default function WhatsAppButton() {
   const [isOpen, setIsOpen] = useState(false);
+  const [faqAbertaIndex, setFaqAbertaIndex] = useState<number | null>(null);
   const pathname = usePathname();
 
   const phoneNumber = "5511999999999"; // Substitua pelo número real
@@ -80,17 +81,27 @@ export default function WhatsAppButton() {
 
               {/* FAQ rápidas */}
               <div className="space-y-2.5 mb-6">
-                {FAQ_RAPIDAS.map((faq) => (
-                  <details
-                    key={faq.pergunta}
-                    className="border border-stone-200 rounded p-3"
-                  >
-                    <summary className="font-medium text-sm text-ink cursor-pointer hover:text-green-600">
-                      {faq.pergunta}
-                    </summary>
-                    <p className="text-stone-500 mt-2 text-[13px]">{faq.resposta}</p>
-                  </details>
-                ))}
+                {FAQ_RAPIDAS.map((faq, index) => {
+                  const aberta = faqAbertaIndex === index;
+                  return (
+                    <div
+                      key={faq.pergunta}
+                      className="border border-stone-200 rounded p-3"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setFaqAbertaIndex(aberta ? null : index)}
+                        aria-expanded={aberta}
+                        className="w-full text-left font-medium text-sm text-ink cursor-pointer hover:text-green-600"
+                      >
+                        {faq.pergunta}
+                      </button>
+                      {aberta && (
+                        <p className="text-stone-500 mt-2 text-[13px]">{faq.resposta}</p>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
 
               {/* Botão WhatsApp */}

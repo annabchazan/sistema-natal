@@ -20,9 +20,9 @@ export default function Footer() {
               <span className="font-bold text-[15px]">Natal Solidário</span>
             </div>
             <p className="text-stone-400 text-[13px] leading-7 mb-3 max-w-sm">
-              Uma iniciativa do Projeto Sempre Criança. Conectando padrinhos a
-              crianças de Niterói e São Gonçalo através do apadrinhamento de
-              cartinhas de Natal.
+              Uma iniciativa do Projeto Sempre Criança que aproxima pessoas e
+              histórias, levando carinho e alegria para crianças de Niterói e
+              São Gonçalo por meio do apadrinhamento de cartinhas de Natal.
             </p>
             <div className="flex gap-4 text-[13px] text-stone-400">
               <a
@@ -81,7 +81,7 @@ export default function Footer() {
           <div>
             <h2 className="font-bold text-[13px] mb-4">Contato</h2>
             <div className="space-y-2 text-[13px] text-stone-400 leading-6">
-              <p>contato@semprecrianca.com.br</p>
+              <p>contato@semprecrianca.org</p>
               <p>(21) 99999-9999</p>
               <p>Av. Rui Barbosa, 738 - loft 2</p>
               <p>São Francisco, Niterói - RJ</p>
@@ -92,14 +92,14 @@ export default function Footer() {
         <div className="border-t border-white/10 mt-10 pt-6 max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center gap-3 text-[12px] text-stone-400">
             <p>© 2026 Projeto Sempre Criança. Todos os direitos reservados.</p>
-            <div className="flex gap-6">
+            {/* <div className="flex gap-6">
               <Link href="/privacidade" className="text-brand hover:text-white transition-colors">
                 Política de Privacidade
               </Link>
               <Link href="/termos" className="text-brand hover:text-white transition-colors">
                 Termos de Uso
               </Link>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

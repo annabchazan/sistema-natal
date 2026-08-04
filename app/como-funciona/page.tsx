@@ -2,41 +2,42 @@ const passos = [
   {
     titulo: "Escolha uma cartinha",
     texto:
-      "Navegue pela nossa galeria de cartinhas e escolha aquela que mais tocou seu coração. Cada cartinha representa uma criança esperando por um pouco de magia natalina.",
+      "Navegue pela nossa galeria de cartinhas e escolha aquela que mais tocou seu coração. Cada cartinha representa uma criança com um desejo especial para o Natal.",
     itens: [
-      "Veja a foto da criança (quando disponível)",
-      "Leia os desejos e necessidades expressos na cartinha",
+      "Veja a foto da cartinha (quando disponível)",
+      "Leia com atenção os desejos e necessidades expressos pela criança",
       "Considere a idade e os interesses da criança",
+      "Procure doar o presente da forma mais próxima possível ao pedido realizado, respeitando a escolha e o sonho de cada criança",
     ],
   },
   {
     titulo: "Adicione ao carrinho",
     texto:
-      "Após escolher a cartinha, adicione-a ao seu carrinho de apadrinhamento. Você pode apadrinhar até 20 cartinhas por vez!",
+      "Após escolher a cartinha, adicione-a ao seu carrinho de apadrinhamento. Você pode apadrinhar até 20 cartinhas por vez.",
     itens: [
-      "Carrinho salvo no navegador",
-      "Visualize todas as suas escolhas",
-      "Modifique quantidades quando necessário",
+      "Seu carrinho ficará salvo no navegador para facilitar o retorno",
+      "Confira suas escolhas antes de finalizar",
     ],
   },
   {
-    titulo: "Leve os presentes",
+    titulo: "Entregue os presentes",
     texto:
-      "Leve os presentes até um de nossos pontos de entrega. Nossa equipe se encarrega de entregar tudo para as crianças no prazo correto.",
+      "Leve os presentes até um de nossos pontos de entrega, identificando-os com o número da cartinha e o nome da criança.",
     itens: [
+      "Não entregue o presente embrulhado, para que nossa equipe possa conferir os itens corretamente",
+      "Sempre que possível, doe também o papel de presente ou embalagem separadamente, para que o presente seja preparado com carinho",
       "Confira os pontos de entrega disponíveis",
-      "Respeite os prazos de entrega",
-      "Embrulhe os presentes com carinho",
+      "Respeite os prazos de entrega informados",
     ],
   },
   {
-    titulo: "Espalhe alegria",
+    titulo: "A magia chega até a criança",
     texto:
-      "Sua doação fará a diferença na vida de uma criança. Você receberá confirmação quando os presentes forem entregues!",
+      "Depois de receber os presentes, o Sempre Criança organiza tudo com muito cuidado para que cada criança receba o presente escolhido através da sua cartinha. Graças à sua participação, o desejo de uma criança se transforma em um momento inesquecível.",
     itens: [
-      "Acompanhe o status da sua doação",
-      "Receba agradecimentos das instituições",
-      "Faça parte dessa corrente de solidariedade",
+      "Os presentes são separados e preparados para a entrega",
+      "Cada pedido é entregue com carinho e atenção",
+      "As entregas são realizadas na Festa de Natal ou por meio das instituições parceiras",
     ],
   },
 ];
@@ -98,9 +99,9 @@ export default function ComoFunciona() {
                 Dicas importantes
               </h3>
               <ul className="space-y-1.5 text-[13.5px] text-stone-600">
-                <li>Verifique sempre os prazos de entrega das cartinhas</li>
-                <li>Entre em contato conosco se tiver dúvidas sobre algum pedido</li>
-                <li>Todas as doações são destinadas diretamente às crianças</li>
+                <li>Fique atento aos prazos indicados em cada cartinha para garantir que o presente chegue a tempo</li>
+                <li>Cada doação é entregue com carinho e destinada diretamente à criança escolhida</li>
+                <li>Em caso de dúvidas sobre o pedido da criança, nossa equipe está à disposição para ajudar</li>
               </ul>
             </div>
           </div>
