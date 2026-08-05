@@ -4,8 +4,7 @@ import { FAQ_CARTINHAS } from "@/app/data/faqCartinhas";
 export default function DuvidasFrequentes() {
   return (
     <div className="min-h-screen bg-cream py-14">
-      <div className="container mx-auto px-4">
-        <div className="max-w-3xl mx-auto">
+      <div className="max-w-3xl mx-auto px-4">
           <h1 className="text-[26px] font-bold text-center text-ink tracking-tight mb-3">
             Dúvidas frequentes
           </h1>
@@ -31,7 +30,7 @@ export default function DuvidasFrequentes() {
                 contato@semprecrianca.org
               </a>
               <a
-                href="https://wa.me/5511999999999?text=Ol%C3%A1!%20Tenho%20uma%20d%C3%BAvida%20sobre%20o%20Natal%20Solid%C3%A1rio."
+                href="https://api.whatsapp.com/send/?phone=5521995720162&text&type=phone_number&app_absent=0"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-verde-natal text-white border border-verde-natal px-5 py-2.5 rounded font-semibold text-[13px] hover:opacity-90 transition-opacity"
@@ -42,6 +41,5 @@ export default function DuvidasFrequentes() {
           </div>
         </div>
       </div>
-    </div>
   );
 }

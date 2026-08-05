@@ -45,8 +45,7 @@ const passos = [
 export default function ComoFunciona() {
   return (
     <div className="min-h-screen bg-cream py-14">
-      <div className="container mx-auto px-4">
-        <div className="max-w-3xl mx-auto">
+      <div className="max-w-3xl mx-auto px-4">
           <h1 className="text-[26px] font-bold text-center text-ink tracking-tight mb-8">
             Como funciona
           </h1>
@@ -107,6 +106,5 @@ export default function ComoFunciona() {
           </div>
         </div>
       </div>
-    </div>
   );
 }

@@ -153,8 +153,8 @@ export default function CadastroPage() {
 
   return (
     <div className="min-h-full bg-cream py-14 flex items-center justify-center">
-      <div className="container mx-auto px-4">
-        <div className="max-w-110 mx-auto bg-white border border-stone-200 border-t-[3px] border-t-brand rounded-md overflow-hidden">
+      <div className="max-w-110 mx-auto px-4">
+        <div className="bg-white border border-stone-200 border-t-[3px] border-t-brand rounded-md overflow-hidden">
           <div className="px-8 pt-8 pb-6 border-b border-stone-100">
             <h1 className="text-[19px] font-bold text-ink">Criar sua conta</h1>
             <p className="mt-1 text-[13px] text-stone-500">

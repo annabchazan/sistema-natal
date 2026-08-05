@@ -20,9 +20,8 @@ export default function EsqueciSenhaPage() {
 
   return (
     <div className="bg-cream py-14">
-      <div className="container mx-auto px-4">
-        <div className="max-w-110 mx-auto bg-white border border-stone-200 rounded-md overflow-hidden">
-
+      <div className="max-w-110 mx-auto px-4">
+        <div className="bg-white border border-stone-200 rounded-md overflow-hidden">
           <div className="px-8 pt-8 pb-6 border-b border-stone-100">
             <h1 className="text-[19px] font-bold text-ink">Esqueci minha senha</h1>
             <p className="mt-1 text-[13px] text-stone-500">
@@ -86,7 +85,6 @@ export default function EsqueciSenhaPage() {
               </form>
             )}
           </div>
-
         </div>
       </div>
     </div>

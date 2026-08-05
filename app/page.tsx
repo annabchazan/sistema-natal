@@ -22,7 +22,7 @@ export default async function Home() {
         totalApadrinhadas={totalApadrinhadas}
       />
 
-      <div className="container mx-auto px-4 md:px-8 py-14 bg-cream-deep rounded-md">
+      <div className="max-w-6xl mx-auto px-4 md:px-8 py-14">
         <h2 className="text-2xl font-bold text-center text-ink tracking-tight mb-8">
           Pontos de entrega
         </h2>

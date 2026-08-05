@@ -114,9 +114,7 @@ export default async function UsuarioPage() {
 
   return (
     <div className="min-h-screen bg-cream py-14">
-      <div className="container mx-auto px-4">
-        <div className="max-w-3xl mx-auto">
-
+      <div className="max-w-3xl mx-auto px-4">
         <div className="bg-white border border-stone-200 border-t-[3px] border-t-brand rounded-md px-8 py-7 flex items-center justify-between mb-9">
           <div>
             <h1 className="text-xl font-bold text-ink">Olá, {usuario.nome.split(" ")[0]}</h1>
@@ -304,8 +302,6 @@ export default async function UsuarioPage() {
             Ao excluir sua conta, seus dados serão removidos permanentemente.
           </p>
           <BotaoExcluirConta />
-        </div>
-
         </div>
       </div>
     </div>
