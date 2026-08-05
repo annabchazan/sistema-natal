@@ -52,6 +52,10 @@ export default async function ImprimirCrachasPage({ searchParams }: CrachaPagePr
 
       <style>{`
         @page { size: A4; margin: 10mm; }
+        * {
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
         .folha-crachas {
           display: grid;
           grid-template-columns: repeat(2, 1fr);
@@ -86,7 +90,7 @@ export default async function ImprimirCrachasPage({ searchParams }: CrachaPagePr
                   <div className="flex items-center gap-2">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src="/logo-sempre-crianca.png"
+                      src="/logo_natalina.png"
                       alt="Sempre Criança"
                       className="h-16 w-16 object-contain"
                     />
