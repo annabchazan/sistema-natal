@@ -82,7 +82,7 @@ export default function CampanhasIndex({ campanhas, canManage }: Props) {
             </button>
           ) : (
             <p className="text-xs text-stone-500 shrink-0">
-              Apenas Gerente ou Super Adm podem encerrar a campanha.
+              Apenas o Super Adm pode encerrar a campanha.
             </p>
           )}
         </div>

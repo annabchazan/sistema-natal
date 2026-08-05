@@ -67,7 +67,7 @@ export async function listarCampanhas(): Promise<CampanhaRow[]> {
 // demanda por obterOuCriarCampanhaAtiva) e a home pública para de listar as
 // cartinhas da campanha encerrada.
 export async function finalizarCampanha(): Promise<CampanhaState> {
-  const permissao = await validarPermissaoAdmin("manage");
+  const permissao = await validarPermissaoAdmin("users");
   if (!permissao.ok) {
     return { success: false, message: permissao.message };
   }

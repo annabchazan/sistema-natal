@@ -93,7 +93,7 @@ export default async function AdminPage({ searchParams }: AdminProps) {
   const precisaPontos = abaAtiva === "pontos";
   const precisaUsuarios = abaAtiva === "usuarios" && canManageUsers;
   const precisaDashboard = abaAtiva === "geral";
-  const precisaCampanhas = abaAtiva === "campanhas";
+  const precisaCampanhas = abaAtiva === "campanhas" && canManageUsers;
 
   const [cartinhas, instituicoes, tags, pontosEntrega, usuarios, dashboard, campanhas] = await Promise.all([
     precisaCartinhas
@@ -157,9 +157,11 @@ export default async function AdminPage({ searchParams }: AdminProps) {
     { id: "pontos",       label: "Pontos de Entrega" },
     { id: "crachas",      label: "Crachás" },
     { id: "exportar",     label: "Exportar" },
-    { id: "campanhas",    label: "Campanhas" },
     ...(canManageUsers
-      ? [{ id: "usuarios", label: "Usuários" }]
+      ? [
+          { id: "campanhas", label: "Campanhas" },
+          { id: "usuarios", label: "Usuários" },
+        ]
       : []),
   ];
   const abasPermitidas = new Set(abas.map((aba) => aba.id));
@@ -272,8 +274,8 @@ export default async function AdminPage({ searchParams }: AdminProps) {
 
             {abaAtiva === "exportar" && <ExportarIndex instituicoes={instituicoes} />}
 
-            {abaAtiva === "campanhas" && (
-              <CampanhasIndex campanhas={campanhas} canManage={canManage} />
+            {abaAtiva === "campanhas" && canManageUsers && (
+              <CampanhasIndex campanhas={campanhas} canManage={canManageUsers} />
             )}
 
             {abaAtiva === "usuarios" && canManageUsers && (
@@ -283,7 +285,7 @@ export default async function AdminPage({ searchParams }: AdminProps) {
                   <ul className="space-y-1">
                     <li><span className="font-semibold">Editor</span> — edita cartinhas, instituições, tags e pontos de entrega já cadastrados. Não pode criar, excluir, nem ver esta aba.</li>
                     <li><span className="font-semibold">Gerente</span> — além de editar, pode criar e excluir cartinhas, instituições, tags e pontos de entrega. Não vê esta aba.</li>
-                    <li><span className="font-semibold">Super Adm</span> — único que acessa esta aba: cadastra admins e muda o nível de qualquer um. Também pode tudo que o Gerente faz.</li>
+                    <li><span className="font-semibold">Super Adm</span> — único que acessa esta aba: cadastra admins e muda o nível de qualquer um. Também pode tudo que o Gerente faz, e é o único que encerra campanhas.</li>
                   </ul>
                 </div>
                 <FormularioUsuarioAdmin />
