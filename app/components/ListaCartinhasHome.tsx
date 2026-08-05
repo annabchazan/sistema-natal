@@ -1,7 +1,7 @@
 "use client";
 
 import { useCarrinhoApadrinhamento } from "@/app/hooks/useCarrinhoApadrinhamento";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import FotoLightbox from "@/app/components/FotoLightbox";
 import { useToast } from "@/app/components/Toast";
@@ -57,6 +57,7 @@ export default function ListaCartinhasHome({
   const [isCarregando, setIsCarregando] = useState(false);
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [fotoAberta, setFotoAberta] = useState<{ src: string; alt: string } | null>(null);
+  const topoListaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const estado: { [key: number]: boolean } = {};
@@ -66,7 +67,11 @@ export default function ListaCartinhasHome({
     setCarrinhoAtualizado(estado);
   }, [cartinhas, temCartinha]);
 
-  const buscarPagina = async (pagina: number, filtrosExplicitos?: FiltrosCartinhas) => {
+  const buscarPagina = async (
+    pagina: number,
+    filtrosExplicitos?: FiltrosCartinhas,
+    rolarParaTopo = false,
+  ) => {
     setIsCarregando(true);
     try {
       let filtros: FiltrosCartinhas;
@@ -83,6 +88,9 @@ export default function ListaCartinhasHome({
       setCartinhas(resultado.cartinhas);
       setTotal(resultado.total);
       setPaginaAtual(pagina);
+      if (rolarParaTopo) {
+        topoListaRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
     } catch (error) {
       console.error("Erro ao buscar cartinhas:", error);
     } finally {
@@ -148,18 +156,22 @@ export default function ListaCartinhasHome({
               </div>
             </div>
           </div>
-          {/* Trocar por banner real da festa de Natal: salvar em public/banner-natal.jpg
-              e substituir este bloco por <Image src="/banner-natal.jpg" alt="..." fill className="object-cover rounded-md" /> */}
-          <div className="h-56 lg:h-80 rounded-md bg-[repeating-linear-gradient(135deg,#F0EAE0,#F0EAE0_12px,#E7DFD2_12px,#E7DFD2_24px)] flex items-center justify-center">
-            <span className="text-xs text-stone-500 font-mono">banner da festa de Natal</span>
+          <div className="h-56 lg:h-80 rounded-md overflow-hidden">
+            <Image
+              src="/banner-natal.jpeg"
+              alt="Festa de Natal do Sempre Criança, com Papai Noel e crianças"
+              width={1290}
+              height={1260}
+              className="h-full w-full object-cover"
+            />
           </div>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 md:px-8 pb-16">
+      <div ref={topoListaRef} className="max-w-6xl mx-auto px-4 md:px-8 pb-16 scroll-mt-32">
         {/* Filtros */}
         <div className="flex flex-wrap items-end gap-6 border-b border-stone-200 pb-5 mb-8">
-          <div className="min-w-[180px]">
+          <div className="min-w-45">
             <label htmlFor="filtro-categoria" className="block text-[11px] font-semibold text-stone-500 uppercase tracking-wide mb-1.5">
               Categoria
             </label>
@@ -373,7 +385,7 @@ export default function ListaCartinhasHome({
           {total > ITENS_POR_PAGINA && (
             <div className="flex items-center justify-center gap-1.5 mt-12">
               <button
-                onClick={() => buscarPagina(Math.max(1, paginaAtual - 1))}
+                onClick={() => buscarPagina(Math.max(1, paginaAtual - 1), undefined, true)}
                 disabled={paginaAtual === 1 || isCarregando}
                 className="px-4 h-9 rounded border border-stone-300 text-stone-600 font-semibold text-[13px] hover:bg-cream-deep transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               >
@@ -383,7 +395,7 @@ export default function ListaCartinhasHome({
                 Página {paginaAtual} de {Math.max(1, Math.ceil(total / ITENS_POR_PAGINA))}
               </span>
               <button
-                onClick={() => buscarPagina(Math.min(Math.ceil(total / ITENS_POR_PAGINA), paginaAtual + 1))}
+                onClick={() => buscarPagina(Math.min(Math.ceil(total / ITENS_POR_PAGINA), paginaAtual + 1), undefined, true)}
                 disabled={paginaAtual === Math.ceil(total / ITENS_POR_PAGINA) || isCarregando}
                 className="px-4 h-9 rounded border border-stone-300 text-stone-600 font-semibold text-[13px] hover:bg-cream-deep transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               >
