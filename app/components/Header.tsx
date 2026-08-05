@@ -66,7 +66,7 @@ function IconeMenu() {
 
 function IconeSacolaVazia() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-9 h-9 mx-auto mb-2 text-stone-300">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-7 h-7 text-brand">
       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007Z" />
     </svg>
   );
@@ -104,22 +104,18 @@ export default function Header({ usuario }: { usuario: UsuarioMenu | null }) {
   return (
     <>
       <header className="bg-cream text-ink border-b border-stone-200 sticky top-0 z-40 print:hidden">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-3 flex items-center justify-between gap-4">
-          <Link href="/" className="flex items-center gap-3 flex-shrink-0">
-            <span className="w-[7px] h-6 bg-brand flex-shrink-0" />
+        <div className="max-w-6xl mx-auto px-4 md:px-8 py-3 flex items-center justify-between gap-4">
+          <Link href="/" className="flex items-center gap-3 ">
             <Image
-              src="/logo-sempre-crianca.png"
+              src="/logo_natalina.png"
               alt="Sempre Criança"
-              width={36}
-              height={36}
-              className="h-9 w-auto"
+              width={1026}
+              height={858}
+              className="h-16 w-auto md:h-22"
             />
-            <span className="text-sm font-bold tracking-tight hidden sm:inline">
-              Natal Solidário
-            </span>
           </Link>
 
-          <nav className="hidden lg:flex items-center gap-6 text-[13px] font-medium text-stone-600">
+          <nav className="hidden lg:flex items-center gap-6 text-sm font-medium text-stone-600">
             <Link href="/" className="relative py-1 hover:text-ink transition-colors after:content-[''] after:absolute after:left-0 after:-bottom-0.5 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:bg-brand after:transition-transform after:duration-300 hover:after:scale-x-100">Início</Link>
             <Link href="/quem-somos" className="relative py-1 hover:text-ink transition-colors after:content-[''] after:absolute after:left-0 after:-bottom-0.5 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:bg-brand after:transition-transform after:duration-300 hover:after:scale-x-100">Quem somos</Link>
             <Link href="/como-funciona" className="relative py-1 hover:text-ink transition-colors after:content-[''] after:absolute after:left-0 after:-bottom-0.5 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:bg-brand after:transition-transform after:duration-300 hover:after:scale-x-100">Como funciona</Link>
@@ -264,11 +260,11 @@ export default function Header({ usuario }: { usuario: UsuarioMenu | null }) {
                 setIsOpen((prev) => !prev);
                 setIsUserMenuOpen(false);
               }}
-              className="relative flex items-center gap-2 border border-ink rounded px-3.5 py-1.5 text-[13px] font-semibold hover:bg-ink hover:text-white transition-colors"
+              className="relative flex items-center justify-center border border-ink rounded px-3.5 py-1.5 text-[13px] font-semibold hover:bg-ink hover:text-white transition-colors"
             >
               Carrinho
               {cartinhas.length > 0 && (
-                <span className="bg-ink text-white group-hover:bg-white text-[10.5px] font-bold rounded-full w-4 h-4 flex items-center justify-center shrink-0">
+                <span className="absolute -top-1.5 -right-1.5 bg-ink text-white group-hover:bg-white text-[10.5px] font-bold rounded-full w-4 h-4 flex items-center justify-center shrink-0">
                   {cartinhas.length}
                 </span>
               )}
@@ -309,9 +305,25 @@ export default function Header({ usuario }: { usuario: UsuarioMenu | null }) {
         }
       >
         {cartinhas.length === 0 ? (
-          <div className="p-8 text-center text-stone-500">
-            <IconeSacolaVazia />
-            <p className="text-[12.5px]">Nenhuma cartinha selecionada ainda</p>
+          <div className="h-full flex flex-col items-center justify-center text-center px-8">
+            <div className="w-16 h-16 rounded-full bg-cream-deep flex items-center justify-center mb-4">
+              <IconeSacolaVazia />
+            </div>
+            <p className="font-semibold text-ink text-base mb-1">
+              Seu carrinho está vazio
+            </p>
+            <p className="text-stone-500 text-sm leading-6 max-w-[240px] mb-6">
+              Escolha uma cartinha e comece a espalhar alegria neste Natal.
+            </p>
+            <button
+              onClick={() => {
+                setIsOpen(false);
+                router.push("/");
+              }}
+              className="bg-ink text-white border border-ink px-5 py-2.5 rounded font-semibold text-sm hover:bg-white hover:text-ink transition-colors"
+            >
+              Ver cartinhas disponíveis
+            </button>
           </div>
         ) : (
           <div className="p-4 space-y-3">

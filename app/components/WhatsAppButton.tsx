@@ -11,7 +11,7 @@ export default function WhatsAppButton() {
   const [faqAbertaIndex, setFaqAbertaIndex] = useState<number | null>(null);
   const pathname = usePathname();
 
-  const phoneNumber = "5511999999999"; // Substitua pelo número real
+  const phoneNumber = "5521995720162";
   const message = "Olá! Tenho uma dúvida sobre o Natal Solidário.";
 
   if (pathname?.startsWith("/admin")) {
