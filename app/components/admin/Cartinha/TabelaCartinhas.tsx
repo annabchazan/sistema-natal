@@ -1,10 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { excluirCartinha } from "@/app/actions/cartinhas";
+import { useRouter } from "next/navigation";
+import { excluirCartinha, marcarCartinhasEntregues } from "@/app/actions/cartinhas";
 import { STATUS_CARTINHA } from "@/lib/statusCartinha";
 import { usePaginacao } from "@/app/hooks/usePaginacao";
 import { useExclusaoComConfirmacao } from "@/app/hooks/useExclusaoComConfirmacao";
+import { useToast } from "@/app/components/Toast";
 import Paginacao from "@/app/components/admin/Paginacao";
 import type { CartinhaItem } from "./types";
 
@@ -24,9 +26,14 @@ export default function TabelaCartinhas({
   onEdit: (cartinha: CartinhaItem) => void;
   canManage: boolean;
 }) {
+  const router = useRouter();
+  const { mostrarToast } = useToast();
+
   const [filtroStatus, setFiltroStatus] = useState("");
   const [filtroInstituicao, setFiltroInstituicao] = useState("");
   const [filtroCrachaNeon, setFiltroCrachaNeon] = useState("");
+  const [selecionados, setSelecionados] = useState<Set<number>>(new Set());
+  const [marcandoEntregues, setMarcandoEntregues] = useState(false);
 
   const instituicoesDisponiveis = useMemo(() => {
     const mapa = new Map<number, string>();
@@ -60,6 +67,52 @@ export default function TabelaCartinhas({
     setFiltroInstituicao("");
     setFiltroCrachaNeon("");
     setPaginaAtual(1);
+    setSelecionados(new Set());
+  };
+
+  // Só faz sentido selecionar cartinhas que ainda não estão entregues/canceladas
+  const idsSelecionaveis = useMemo(
+    () => dadosFiltrados.filter((item) => item.status !== "entregue" && item.status !== "cancelada").map((item) => item.id),
+    [dadosFiltrados],
+  );
+  const todosSelecionados =
+    idsSelecionaveis.length > 0 && idsSelecionaveis.every((id) => selecionados.has(id));
+
+  const alternarSelecaoItem = (id: number) => {
+    setSelecionados((prev) => {
+      const proximo = new Set(prev);
+      if (proximo.has(id)) {
+        proximo.delete(id);
+      } else {
+        proximo.add(id);
+      }
+      return proximo;
+    });
+  };
+
+  const alternarSelecaoTodos = () => {
+    setSelecionados(todosSelecionados ? new Set() : new Set(idsSelecionaveis));
+  };
+
+  const handleMarcarEntregues = async () => {
+    const total = selecionados.size;
+    if (total === 0) return;
+    if (
+      !confirm(
+        `Marcar ${total} cartinha${total !== 1 ? "s" : ""} como entregue${total !== 1 ? "s" : ""}? Um e-mail de confirmação será enviado aos padrinhos.`,
+      )
+    ) {
+      return;
+    }
+
+    setMarcandoEntregues(true);
+    const resultado = await marcarCartinhasEntregues(Array.from(selecionados));
+    mostrarToast(resultado.message, resultado.success ? "sucesso" : "erro");
+    setMarcandoEntregues(false);
+    if (resultado.success) {
+      setSelecionados(new Set());
+      router.refresh();
+    }
   };
 
   const metaDoItem = (item: CartinhaItem) => {
@@ -92,6 +145,7 @@ export default function TabelaCartinhas({
               onChange={(e) => {
                 setFiltroStatus(e.target.value);
                 setPaginaAtual(1);
+                setSelecionados(new Set());
               }}
               className="w-full appearance-none border border-stone-300 rounded pl-2 pr-8 py-1.5 text-sm text-ink bg-white focus:outline-none focus:border-ink"
             >
@@ -117,6 +171,7 @@ export default function TabelaCartinhas({
               onChange={(e) => {
                 setFiltroInstituicao(e.target.value);
                 setPaginaAtual(1);
+                setSelecionados(new Set());
               }}
               className="w-full appearance-none border border-stone-300 rounded pl-2 pr-8 py-1.5 text-sm text-ink bg-white focus:outline-none focus:border-ink"
             >
@@ -167,9 +222,41 @@ export default function TabelaCartinhas({
         </div>
       </div>
 
+      {selecionados.size > 0 && (
+        <div className="flex flex-wrap items-center gap-3 px-4 py-3 border-b border-stone-100 bg-brand/5">
+          <span className="text-sm font-semibold text-ink">
+            {selecionados.size} selecionada{selecionados.size !== 1 ? "s" : ""}
+          </span>
+          <button
+            onClick={handleMarcarEntregues}
+            disabled={marcandoEntregues}
+            className="bg-verde-natal text-white px-3.5 py-1.5 rounded font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-50"
+          >
+            {marcandoEntregues ? "Marcando..." : "Marcar como entregues"}
+          </button>
+          <button
+            onClick={() => setSelecionados(new Set())}
+            className="text-sm text-stone-500 hover:text-ink hover:underline"
+          >
+            Limpar seleção
+          </button>
+        </div>
+      )}
+
       <table className="hidden md:table w-full text-sm text-left text-stone-500">
         <thead className="text-xs text-stone-500 uppercase bg-cream-deep">
           <tr>
+            <th className="px-4 py-3 w-8">
+              {idsSelecionaveis.length > 0 && (
+                <input
+                  type="checkbox"
+                  checked={todosSelecionados}
+                  onChange={alternarSelecaoTodos}
+                  aria-label="Selecionar todas as cartinhas filtradas"
+                  className="w-4 h-4 accent-brand-dark cursor-pointer"
+                />
+              )}
+            </th>
             <th className="px-4 py-3">#</th>
             <th className="px-6 py-3">Criança</th>
             <th className="px-6 py-3">Presente</th>
@@ -182,9 +269,21 @@ export default function TabelaCartinhas({
         <tbody>
           {dadosPaginados.map((item) => {
             const { statusInfo, prazoVencido } = metaDoItem(item);
+            const podeSelecionar = item.status !== "entregue" && item.status !== "cancelada";
 
             return (
               <tr key={item.id} className="bg-white border-b border-stone-100 hover:bg-cream-deep">
+                <td className="px-4 py-4">
+                  {podeSelecionar && (
+                    <input
+                      type="checkbox"
+                      checked={selecionados.has(item.id)}
+                      onChange={() => alternarSelecaoItem(item.id)}
+                      aria-label={`Selecionar cartinha de ${item.nome_crianca}`}
+                      className="w-4 h-4 accent-brand-dark cursor-pointer"
+                    />
+                  )}
+                </td>
                 <td className="px-4 py-4 text-stone-500 text-xs">
                   {item.numero_sequencial ?? item.id}
                 </td>
@@ -239,7 +338,7 @@ export default function TabelaCartinhas({
 
           {dadosFiltrados.length === 0 && (
             <tr>
-              <td colSpan={7} className="px-6 py-8 text-center text-stone-500">
+              <td colSpan={8} className="px-6 py-8 text-center text-stone-500">
                 Nenhuma cartinha encontrada.
               </td>
             </tr>
@@ -250,16 +349,28 @@ export default function TabelaCartinhas({
       <div className="md:hidden divide-y divide-stone-100">
         {dadosPaginados.map((item) => {
           const { statusInfo, prazoVencido } = metaDoItem(item);
+          const podeSelecionar = item.status !== "entregue" && item.status !== "cancelada";
 
           return (
             <div key={item.id} className="p-4 space-y-2">
               <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-xs text-stone-500">#{item.numero_sequencial ?? item.id}</p>
-                  <p className="font-medium text-ink">
-                    {item.nome_crianca}
-                    <span className="text-stone-500 font-normal"> ({item.idade} anos)</span>
-                  </p>
+                <div className="flex items-start gap-2.5">
+                  {podeSelecionar && (
+                    <input
+                      type="checkbox"
+                      checked={selecionados.has(item.id)}
+                      onChange={() => alternarSelecaoItem(item.id)}
+                      aria-label={`Selecionar cartinha de ${item.nome_crianca}`}
+                      className="w-4 h-4 mt-0.5 accent-brand-dark cursor-pointer shrink-0"
+                    />
+                  )}
+                  <div>
+                    <p className="text-xs text-stone-500">#{item.numero_sequencial ?? item.id}</p>
+                    <p className="font-medium text-ink">
+                      {item.nome_crianca}
+                      <span className="text-stone-500 font-normal"> ({item.idade} anos)</span>
+                    </p>
+                  </div>
                 </div>
                 <span className={`shrink-0 px-2 py-1 rounded-full text-xs font-bold ${statusInfo.classes}`}>
                   {statusInfo.label}
