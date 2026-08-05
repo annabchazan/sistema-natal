@@ -4,6 +4,7 @@ import db from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { getUsuarioAutenticado, validarPermissaoAdmin } from "@/lib/auth";
 import { enviarConfirmacaoApadrinhamento, enviarNotificacaoEntrega, enviarCancelamentoApadrinamento, enviarAvisoDesistenciaEquipe } from "@/lib/email";
+import { obterOuCriarCampanhaAtiva } from "@/app/actions/campanhas";
 import type { RowDataPacket } from "mysql2/promise";
 
 export interface CartinhaState {
@@ -295,15 +296,16 @@ export async function salvarCartinha(
       }
     } else {
       const numeroSequencial = await gerarNumeroSequencial(instituicao_id);
+      const campanhaId = await obterOuCriarCampanhaAtiva();
       await db.query(
         `INSERT INTO cartinhas
-           (nome_crianca, idade, texto_cartinha, presente_pedido,
+           (campanha_id, nome_crianca, idade, texto_cartinha, presente_pedido,
             instituicao_id, tag_id, numero_sequencial,
             foto_cartinha, data_limite_entrega, status,
             necessidade_especial, observacao_especial)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
-          nome_crianca, idade, texto_cartinha, presente_pedido,
+          campanhaId, nome_crianca, idade, texto_cartinha, presente_pedido,
           instituicao_id, tag_id, numeroSequencial,
           fotoPath, data_limite_entrega || null, status,
           necessidade_especial, observacao_especial,
@@ -337,6 +339,74 @@ export async function excluirCartinha(id: number): Promise<CartinhaState> {
   }
 }
 
+interface CartinhaEntregaRow extends RowDataPacket {
+  id: number;
+  nome_crianca: string;
+  presente_pedido: string;
+  numero_sequencial: number;
+  padrinho_nome: string | null;
+  padrinho_email: string | null;
+}
+
+// --- MARCAR VÁRIAS CARTINHAS COMO ENTREGUES (ex: entrega em massa na Festa de Natal) ---
+export async function marcarCartinhasEntregues(ids: number[]): Promise<CartinhaState> {
+  const permissao = await validarPermissaoAdmin("edit");
+  if (!permissao.ok) {
+    return { success: false, message: permissao.message };
+  }
+
+  if (ids.length === 0) {
+    return { success: false, message: "Nenhuma cartinha selecionada." };
+  }
+
+  try {
+    const placeholders = ids.map(() => "?").join(",");
+    const [candidatas] = await db.query<CartinhaEntregaRow[]>(
+      `SELECT c.id, c.nome_crianca, c.presente_pedido, c.numero_sequencial,
+              u.nome AS padrinho_nome, u.email AS padrinho_email
+       FROM cartinhas c
+       LEFT JOIN usuarios u ON c.apadrinhado_por_usuario_id = u.id
+       WHERE c.id IN (${placeholders}) AND c.status NOT IN ('entregue', 'cancelada')`,
+      ids,
+    );
+
+    if (candidatas.length === 0) {
+      return { success: false, message: "As cartinhas selecionadas já estão entregues ou canceladas." };
+    }
+
+    const idsParaAtualizar = candidatas.map((c) => c.id);
+    const placeholdersAtualizar = idsParaAtualizar.map(() => "?").join(",");
+    await db.query(
+      `UPDATE cartinhas SET status = 'entregue' WHERE id IN (${placeholdersAtualizar})`,
+      idsParaAtualizar,
+    );
+
+    for (const cartinha of candidatas) {
+      if (cartinha.padrinho_email) {
+        enviarNotificacaoEntrega({
+          nomePadrinho: cartinha.padrinho_nome ?? "",
+          emailPadrinho: cartinha.padrinho_email,
+          nomeCrianca: cartinha.nome_crianca,
+          presentePedido: cartinha.presente_pedido,
+          numeroSequencial: cartinha.numero_sequencial,
+        }).catch((err) => console.error("Falha no e-mail de entrega:", err));
+      }
+    }
+
+    revalidatePath("/admin");
+    revalidatePath("/");
+
+    const total = candidatas.length;
+    return {
+      success: true,
+      message: `${total} cartinha${total !== 1 ? "s" : ""} marcada${total !== 1 ? "s" : ""} como entregue${total !== 1 ? "s" : ""}!`,
+    };
+  } catch (err) {
+    console.error("Erro ao marcar cartinhas como entregues:", err);
+    return { success: false, message: "Erro ao marcar cartinhas como entregues." };
+  }
+}
+
 interface CartinhaCheckoutRow extends RowDataPacket {
   id: number;
   nome_crianca: string;
@@ -344,6 +414,7 @@ interface CartinhaCheckoutRow extends RowDataPacket {
   texto_cartinha: string;
   presente_pedido: string;
   status: string;
+  foto_cartinha: string | null;
 }
 
 // --- BUSCAR DADOS ATUAIS DAS CARTINHAS DO CARRINHO (checkout) ---
@@ -354,7 +425,7 @@ export async function buscarCartinhasParaCheckout(
   try {
     const placeholders = ids.map(() => "?").join(",");
     const [cartinhas] = await db.query<CartinhaCheckoutRow[]>(
-      `SELECT id, nome_crianca, idade, texto_cartinha, presente_pedido, status
+      `SELECT id, nome_crianca, idade, texto_cartinha, presente_pedido, status, foto_cartinha
        FROM cartinhas WHERE id IN (${placeholders})`,
       ids,
     );
@@ -376,7 +447,9 @@ export async function listarCartinhas(
     const offset = (pagina - 1) * itensPorPagina;
 
     const [[{ total }]] = await db.query<ContagemHomeRow[]>(
-      `SELECT COUNT(*) as total FROM cartinhas WHERE status IN ('disponivel', 'carente')`,
+      `SELECT COUNT(*) as total FROM cartinhas
+       WHERE status IN ('disponivel', 'carente')
+         AND campanha_id = (SELECT id FROM campanhas WHERE data_encerramento IS NULL LIMIT 1)`,
     );
 
     const [cartinhas] = await db.query<CartinhaPublicaRow[]>(
@@ -384,6 +457,7 @@ export async function listarCartinhas(
        FROM cartinhas c
        LEFT JOIN tags t ON c.tag_id = t.id
        WHERE c.status IN ('disponivel', 'carente')
+         AND c.campanha_id = (SELECT id FROM campanhas WHERE data_encerramento IS NULL LIMIT 1)
        ORDER BY c.id DESC
        LIMIT ? OFFSET ?`,
       [itensPorPagina, offset],
@@ -404,7 +478,9 @@ interface ContagemHomeRow extends RowDataPacket {
 export async function contarCartinhasApadrinhadas(): Promise<number> {
   try {
     const [[{ total }]] = await db.query<ContagemHomeRow[]>(
-      `SELECT COUNT(*) as total FROM cartinhas WHERE status NOT IN ('disponivel', 'carente', 'cancelada')`,
+      `SELECT COUNT(*) as total FROM cartinhas
+       WHERE status NOT IN ('disponivel', 'carente', 'cancelada')
+         AND campanha_id = (SELECT id FROM campanhas WHERE data_encerramento IS NULL LIMIT 1)`,
     );
     return Number(total);
   } catch (err) {
@@ -420,7 +496,10 @@ export async function listarCartinhasFiltradas(
   itensPorPagina: number = ITENS_POR_PAGINA_HOME,
 ): Promise<ListaCartinhasPublicaResultado> {
   try {
-    const condicoes: string[] = ["c.status IN ('disponivel', 'carente')"];
+    const condicoes: string[] = [
+      "c.status IN ('disponivel', 'carente')",
+      "c.campanha_id = (SELECT id FROM campanhas WHERE data_encerramento IS NULL LIMIT 1)",
+    ];
     const params: (string | number)[] = [];
 
     if (filtros.tag_id !== undefined && filtros.tag_id !== null) {

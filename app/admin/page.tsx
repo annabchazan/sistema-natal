@@ -11,6 +11,7 @@ import ExportarIndex from "../components/admin/Exportar";
 import CrachasIndex from "../components/admin/Cracha";
 import DashboardMetricas from "../components/admin/DashboardMetricas";
 import AdminMobileNav from "../components/admin/AdminMobileNav";
+import CampanhasIndex from "../components/admin/Campanha";
 import {
   adminPodeCriarOuExcluir,
   adminPodeGerenciarPermissoes,
@@ -19,6 +20,7 @@ import {
 } from "@/lib/auth";
 import type { TagRow } from "@/app/actions/tags";
 import type { PontoEntregaRow } from "@/app/actions/pontosEntrega";
+import { listarCampanhas, type CampanhaRow } from "@/app/actions/campanhas";
 import type { RowDataPacket } from "mysql2/promise";
 
 interface AdminProps {
@@ -91,8 +93,9 @@ export default async function AdminPage({ searchParams }: AdminProps) {
   const precisaPontos = abaAtiva === "pontos";
   const precisaUsuarios = abaAtiva === "usuarios" && canManageUsers;
   const precisaDashboard = abaAtiva === "geral";
+  const precisaCampanhas = abaAtiva === "campanhas";
 
-  const [cartinhas, instituicoes, tags, pontosEntrega, usuarios, dashboard] = await Promise.all([
+  const [cartinhas, instituicoes, tags, pontosEntrega, usuarios, dashboard, campanhas] = await Promise.all([
     precisaCartinhas
       ? db
           .query<CartinhaAdminRow[]>(
@@ -138,6 +141,7 @@ export default async function AdminPage({ searchParams }: AdminProps) {
           totalVencidas,
         }))
       : Promise.resolve({ statusRows: [] as StatusCountRow[], totalPadrinhos: 0, totalVencidas: 0 }),
+    precisaCampanhas ? listarCampanhas() : Promise.resolve([] as CampanhaRow[]),
   ]);
 
   const porStatus: Record<string, number> = {};
@@ -153,6 +157,7 @@ export default async function AdminPage({ searchParams }: AdminProps) {
     { id: "pontos",       label: "Pontos de Entrega" },
     { id: "crachas",      label: "Crachás" },
     { id: "exportar",     label: "Exportar" },
+    { id: "campanhas",    label: "Campanhas" },
     ...(canManageUsers
       ? [{ id: "usuarios", label: "Usuários" }]
       : []),
@@ -266,6 +271,10 @@ export default async function AdminPage({ searchParams }: AdminProps) {
             )}
 
             {abaAtiva === "exportar" && <ExportarIndex instituicoes={instituicoes} />}
+
+            {abaAtiva === "campanhas" && (
+              <CampanhasIndex campanhas={campanhas} canManage={canManage} />
+            )}
 
             {abaAtiva === "usuarios" && canManageUsers && (
               <div className="space-y-8">

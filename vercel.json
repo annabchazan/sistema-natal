@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/lembretes",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/limpeza-campanhas",
+      "schedule": "0 8 * * *"
     }
   ]
 }
