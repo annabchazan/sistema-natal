@@ -3,7 +3,10 @@
 import { useCarrinhoApadrinhamento } from "@/app/hooks/useCarrinhoApadrinhamento";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { buscarCartinhasParaCheckout, finalizarApadrinamento } from "@/app/actions/cartinhas";
+import { useToast } from "@/app/components/Toast";
+import FotoLightbox from "@/app/components/FotoLightbox";
 
 interface DadosAtuais {
   nome_crianca: string;
@@ -11,23 +14,48 @@ interface DadosAtuais {
   texto_cartinha: string;
   presente_pedido: string;
   status: string;
+  foto_cartinha: string | null;
+}
+
+function IconeFechar() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+    </svg>
+  );
+}
+
+function IconeSacola() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6 text-brand" stroke="currentColor" strokeWidth="1.5">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M21 11.25v8.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 1 0 9.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1 1 14.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
+    </svg>
+  );
 }
 
 export default function CheckoutClient() {
-  const { cartinhas, isLoaded, limparCarrinho } = useCarrinhoApadrinhamento();
+  const { cartinhas, isLoaded, removerCartinha, limparCarrinho } = useCarrinhoApadrinhamento();
+  const { mostrarToast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [mensagem, setMensagem] = useState<{
     tipo: "sucesso" | "erro";
     texto: string;
   } | null>(null);
   const [dadosAtuais, setDadosAtuais] = useState<Record<number, DadosAtuais>>({});
+  const [fotoAberta, setFotoAberta] = useState<{ src: string; alt: string } | null>(null);
+  const [confirmado, setConfirmado] = useState(false);
   const router = useRouter();
 
+  const handleRemover = (id: number) => {
+    removerCartinha(id);
+    mostrarToast("Cartinha removida do carrinho.", "info");
+  };
+
   useEffect(() => {
-    if (isLoaded && cartinhas.length === 0) {
+    if (isLoaded && cartinhas.length === 0 && !confirmado) {
       router.push("/");
     }
-  }, [cartinhas, isLoaded, router]);
+  }, [cartinhas, isLoaded, router, confirmado]);
 
   useEffect(() => {
     if (!isLoaded || cartinhas.length === 0) return;
@@ -44,7 +72,10 @@ export default function CheckoutClient() {
   }, [isLoaded, cartinhas]);
 
   const indisponiveis = cartinhas.filter(
-    (c) => dadosAtuais[c.id] && dadosAtuais[c.id].status !== "disponivel",
+    (c) =>
+      dadosAtuais[c.id] &&
+      dadosAtuais[c.id].status !== "disponivel" &&
+      dadosAtuais[c.id].status !== "carente",
   );
 
   const handleFinalizarApadrinamento = async () => {
@@ -65,10 +96,8 @@ export default function CheckoutClient() {
 
       if (resultado.success) {
         setMensagem({ tipo: "sucesso", texto: resultado.message });
+        setConfirmado(true);
         limparCarrinho();
-        setTimeout(() => {
-          router.push("/usuario");
-        }, 2500);
       } else {
         setMensagem({ tipo: "erro", texto: resultado.message });
       }
@@ -81,6 +110,46 @@ export default function CheckoutClient() {
       setIsLoading(false);
     }
   };
+
+  if (confirmado) {
+    return (
+      <div className="min-h-full bg-cream-deep py-14 flex items-center justify-center">
+        <div className="max-w-lg mx-auto px-4 text-center">
+          <div className="bg-white border border-stone-200 border-t-[3px] border-t-verde-natal rounded-md p-10">
+            <div className="w-16 h-16 rounded-full bg-verde-natal/10 flex items-center justify-center mx-auto mb-5">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-8 h-8 text-verde-natal">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+              </svg>
+            </div>
+            <h1 className="text-2xl font-bold text-ink mb-2">
+              Você acabou de transformar um Natal!
+            </h1>
+            <p className="text-stone-600 text-sm leading-6 mb-8">
+              {mensagem?.texto} Seu carinho vai chegar até uma criança que
+              está contando os dias — obrigada por fazer parte disso. Fique
+              de olho no seu e-mail: avisaremos assim que o presente for
+              entregue, e você pode acompanhar cada passo pela sua área do
+              padrinho.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <a
+                href="/usuario"
+                className="inline-flex items-center justify-center gap-2 bg-ink text-white border border-ink px-5 py-2.5 rounded font-semibold text-[13px] hover:bg-white hover:text-ink transition-colors"
+              >
+                Ver minha área
+              </a>
+              <a
+                href="/pontos-entrega"
+                className="inline-flex items-center justify-center gap-2 bg-transparent text-ink border border-ink px-5 py-2.5 rounded font-semibold text-[13px] hover:bg-ink hover:text-white transition-colors"
+              >
+                Ver pontos de entrega
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!isLoaded || cartinhas.length === 0) {
     return (
@@ -95,8 +164,7 @@ export default function CheckoutClient() {
 
   return (
     <div className="min-h-full bg-cream-deep py-14">
-      <div className="container mx-auto px-4">
-        <div className="max-w-4xl mx-auto">
+      <div className="max-w-4xl mx-auto px-4">
           <h1 className="text-[26px] font-bold text-center text-ink tracking-tight mb-9">
             Finalizar Apadrinhamento
           </h1>
@@ -114,8 +182,8 @@ export default function CheckoutClient() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-6">
-            <div className="bg-white border border-stone-200 rounded-md p-7">
+          <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-6 lg:items-stretch">
+            <div className="bg-white border border-stone-200 rounded-md p-7 flex flex-col">
               <h2 className="text-sm font-bold text-ink mb-4">
                 Resumo das cartinhas
               </h2>
@@ -129,45 +197,89 @@ export default function CheckoutClient() {
                 </div>
               )}
 
-              <div>
+              <div className="flex-1 min-h-[200px] lg:min-h-0 lg:max-h-[400px] overflow-y-auto pr-2 scrollbar-fina">
                 {cartinhas.map((cartinha, index) => {
                   const atual = dadosAtuais[cartinha.id];
-                  const foiApadrinhada = atual && atual.status !== "disponivel";
+                  const dados = atual ?? cartinha;
+                  const foiApadrinhada =
+                    atual && atual.status !== "disponivel" && atual.status !== "carente";
+                  const temFoto = dados.foto_cartinha && !dados.foto_cartinha.startsWith("data:");
 
                   return (
                     <div
                       key={cartinha.id}
-                      className={`border-b border-stone-100 py-3.5 last:border-b-0 ${foiApadrinhada ? "opacity-50" : ""}`}
+                      className={`flex gap-3 border-b border-stone-100 py-3.5 last:border-b-0 ${foiApadrinhada ? "opacity-50" : ""}`}
                     >
-                      <div className="flex items-start justify-between mb-1.5">
-                        <h3 className="font-semibold text-sm text-ink">
-                          Nº {index + 1} · {(atual ?? cartinha).nome_crianca}
-                          {foiApadrinhada && (
-                            <span className="ml-2 text-xs font-normal text-vermelho-natal">
-                              (já apadrinhada)
+                      {temFoto ? (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setFotoAberta({
+                              src: dados.foto_cartinha!,
+                              alt: `Foto da cartinha de ${dados.nome_crianca}`,
+                            })
+                          }
+                          className="relative w-14 h-14 rounded overflow-hidden shrink-0 group cursor-zoom-in"
+                          aria-label={`Ver foto da cartinha de ${dados.nome_crianca} em tela cheia`}
+                        >
+                          <Image
+                            src={dados.foto_cartinha!}
+                            alt={dados.nome_crianca}
+                            width={56}
+                            height={56}
+                            className="w-14 h-14 rounded object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+                          <div className="absolute bottom-0.5 right-0.5 bg-black/50 text-white rounded-full p-1 z-10">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-2.5 h-2.5">
+                              <circle cx="11" cy="11" r="7" />
+                              <path strokeLinecap="round" d="m20 20-3.5-3.5M11 8v6M8 11h6" />
+                            </svg>
+                          </div>
+                        </button>
+                      ) : (
+                        <div className="w-14 h-14 rounded bg-cream-deep flex items-center justify-center shrink-0">
+                          <IconeSacola />
+                        </div>
+                      )}
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between mb-1.5 gap-2">
+                          <h3 className="font-semibold text-sm text-ink">
+                            Nº {index + 1} · {dados.nome_crianca}
+                            {foiApadrinhada && (
+                              <span className="ml-2 text-xs font-normal text-vermelho-natal">
+                                (já apadrinhada)
+                              </span>
+                            )}
+                          </h3>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-xs text-stone-500 whitespace-nowrap">
+                              {dados.idade} anos
                             </span>
-                          )}
-                        </h3>
-                        <span className="text-xs text-stone-500 whitespace-nowrap ml-2">
-                          {(atual ?? cartinha).idade} anos
-                        </span>
+                            <button
+                              type="button"
+                              onClick={() => handleRemover(cartinha.id)}
+                              aria-label={`Remover cartinha de ${dados.nome_crianca} do carrinho`}
+                              className="text-stone-400 hover:text-vermelho-natal transition-colors"
+                            >
+                              <IconeFechar />
+                            </button>
+                          </div>
+                        </div>
+
+                        <p className="text-[13px] text-stone-500 italic mb-2">
+                          &quot;{dados.texto_cartinha}&quot;
+                        </p>
+
+                        <p className="text-[12.5px] text-stone-500">
+                          Pedido: <strong className="text-stone-600">{dados.presente_pedido}</strong>
+                        </p>
                       </div>
-
-                      <p className="text-[13px] text-stone-500 italic mb-2">
-                        &quot;{(atual ?? cartinha).texto_cartinha}&quot;
-                      </p>
-
-                      <p className="text-[12.5px] text-stone-500">
-                        Pedido: <strong className="text-stone-600">{(atual ?? cartinha).presente_pedido}</strong>
-                      </p>
                     </div>
                   );
                 })}
               </div>
-
-              <p className="text-[11.5px] text-stone-500 mt-3.5 mb-3">
-                Consulte o prazo de entrega de cada cartinha nos Pontos de Entrega.
-              </p>
 
               <div className="pt-2 text-sm font-bold text-ink">
                 Total: {cartinhas.length} cartinha{cartinhas.length !== 1 ? "s" : ""}
@@ -249,7 +361,12 @@ export default function CheckoutClient() {
             </p>
           </div>
         </div>
+
+        <FotoLightbox
+          src={fotoAberta?.src ?? null}
+          alt={fotoAberta?.alt ?? ""}
+          onClose={() => setFotoAberta(null)}
+        />
       </div>
-    </div>
   );
 }

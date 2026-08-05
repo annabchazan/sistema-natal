@@ -70,3 +70,21 @@ body {
 ::placeholder {
   color: var(--color-stone-500);
 }
+
+.scrollbar-fina {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-stone-300) transparent;
+}
+.scrollbar-fina::-webkit-scrollbar {
+  width: 6px;
+}
+.scrollbar-fina::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-fina::-webkit-scrollbar-thumb {
+  background-color: var(--color-stone-300);
+  border-radius: 999px;
+}
+.scrollbar-fina::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-stone-400);
+}
