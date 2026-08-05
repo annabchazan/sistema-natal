@@ -21,11 +21,6 @@ export const FAQ_CARTINHAS: FaqItem[] = [
       "Você receberá uma confirmação por e-mail quando os presentes forem entregues às crianças, seja na Festa de Natal ou por meio das instituições parceiras. Além disso, sempre que possível, compartilharemos fotos e relatos da entrega para que você possa acompanhar esse momento especial.",
   },
   {
-    pergunta: "Posso escolher itens diferentes dos pedidos na cartinha?",
-    resposta:
-      "Preferencialmente, siga os pedidos descritos na cartinha para respeitar os desejos da criança. Caso algum item não esteja disponível, você pode substituí-lo por outro semelhante, de valor equivalente. Em caso de dúvidas, entre em contato conosco.",
-  },
-  {
     pergunta: "Quando devo entregar os presentes?",
     resposta:
       "Cada cartinha possui uma data limite de entrega. É importante respeitar esse prazo para que nossa equipe e as instituições parceiras tenham tempo de organizar tudo e garantir que os presentes cheguem às crianças no momento certo. Confira sempre a data informada ao escolher a cartinha.",
