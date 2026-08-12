@@ -52,9 +52,14 @@ export default async function ImprimirCrachasPage({ searchParams }: CrachaPagePr
 
       <style>{`
         @page { size: A4; margin: 10mm; }
-        * {
+        .cracha, .cracha * {
           -webkit-print-color-adjust: exact;
           print-color-adjust: exact;
+        }
+        @media print {
+          html, body {
+            background: #fff;
+          }
         }
         .folha-crachas {
           display: grid;

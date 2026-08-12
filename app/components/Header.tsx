@@ -116,7 +116,7 @@ export default function Header({ usuario }: { usuario: UsuarioMenu | null }) {
           </Link>
 
           <nav className="hidden lg:flex items-center gap-6 text-sm font-medium text-stone-600">
-            <Link href="/" className="relative py-1 hover:text-ink transition-colors after:content-[''] after:absolute after:left-0 after:-bottom-0.5 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:bg-brand after:transition-transform after:duration-300 hover:after:scale-x-100">Início</Link>
+            <Link href="/" className="relative py-1 hover:text-ink transition-colors after:content-[''] after:absolute after:left-0 after:-bottom-0.5 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:bg-brand after:transition-transform after:duration-300 hover:after:scale-x-100">Cartinhas</Link>
             <Link href="/quem-somos" className="relative py-1 hover:text-ink transition-colors after:content-[''] after:absolute after:left-0 after:-bottom-0.5 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:bg-brand after:transition-transform after:duration-300 hover:after:scale-x-100">Quem somos</Link>
             <Link href="/como-funciona" className="relative py-1 hover:text-ink transition-colors after:content-[''] after:absolute after:left-0 after:-bottom-0.5 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:bg-brand after:transition-transform after:duration-300 hover:after:scale-x-100">Como funciona</Link>
             <Link href="/duvidas-frequentes" className="relative py-1 hover:text-ink transition-colors after:content-[''] after:absolute after:left-0 after:-bottom-0.5 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:bg-brand after:transition-transform after:duration-300 hover:after:scale-x-100">Dúvidas frequentes</Link>
@@ -130,7 +130,7 @@ export default function Header({ usuario }: { usuario: UsuarioMenu | null }) {
                 setIsOpen(false);
                 setIsUserMenuOpen(false);
               }}
-              className="lg:hidden flex items-center justify-center w-9 h-9 rounded-full border border-stone-300 text-stone-600 hover:border-ink hover:text-ink transition-colors"
+              className="lg:hidden flex items-center justify-center w-9 h-9 rounded-full border border-ink text-ink hover:bg-ink hover:text-white transition-colors"
               aria-label={isMobileMenuOpen ? "Fechar menu" : "Abrir menu"}
             >
               {isMobileMenuOpen ? <IconeFechar className="w-4 h-4" /> : <IconeMenu />}
@@ -383,7 +383,7 @@ export default function Header({ usuario }: { usuario: UsuarioMenu | null }) {
             onClick={() => setIsMobileMenuOpen(false)}
             className="px-3 py-3 rounded hover:bg-cream-deep hover:text-ink transition-colors"
           >
-            Início
+            Cartinhas
           </Link>
           <Link
             href="/quem-somos"

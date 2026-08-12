@@ -53,7 +53,7 @@ export default function WhatsAppButton() {
           />
 
           {/* Modal */}
-          <div className="fixed bottom-24 right-6 w-80 max-w-sm bg-white rounded-md border border-stone-200 shadow-[0_8px_24px_rgba(30,27,23,.18)] z-50">
+          <div className="fixed bottom-24 right-6 left-6 sm:left-auto w-auto sm:w-80 max-h-[70vh] overflow-y-auto bg-white rounded-md border border-stone-200 shadow-[0_8px_24px_rgba(30,27,23,.18)] z-50">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-[15px] font-bold text-ink">
