@@ -12,6 +12,10 @@ const db =
     database: process.env.DB_NAME || "sistemanatal",
     port: parseInt(process.env.DB_PORT || "3306"),
     connectionLimit: 10,
+    ssl:
+      process.env.DB_SSL === "true"
+        ? { minVersion: "TLSv1.2", rejectUnauthorized: true }
+        : undefined,
   });
 
 if (process.env.NODE_ENV !== "production") {
