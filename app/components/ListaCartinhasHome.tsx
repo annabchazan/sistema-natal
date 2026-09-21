@@ -302,7 +302,7 @@ export default function ListaCartinhasHome({
                         src={cartinha.foto_cartinha}
                         alt={`Foto da cartinha de ${cartinha.nome_crianca}`}
                         fill
-                        className="object-cover"
+                        className="object-contain"
                       />
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors" />
                       <div className="absolute top-3 right-3 bg-black/50 text-white rounded-full p-1.5 z-10">

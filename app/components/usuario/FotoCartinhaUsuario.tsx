@@ -25,7 +25,7 @@ export default function FotoCartinhaUsuario({ src, nomeCrianca }: FotoCartinhaUs
           alt={nomeCrianca}
           width={64}
           height={64}
-          className="w-16 h-16 rounded object-cover"
+          className="w-16 h-16 rounded object-contain bg-white"
         />
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
         <div className="absolute bottom-1 right-1 bg-black/50 text-white rounded-full p-1 z-10">

@@ -338,7 +338,7 @@ export default function Header({ usuario }: { usuario: UsuarioMenu | null }) {
                     alt={cartinha.nome_crianca}
                     width={64}
                     height={64}
-                    className="w-16 h-16 rounded object-cover shrink-0"
+                    className="w-16 h-16 rounded object-contain bg-white shrink-0"
                   />
                 ) : (
                   <div className="w-16 h-16 rounded bg-white flex items-center justify-center shrink-0">

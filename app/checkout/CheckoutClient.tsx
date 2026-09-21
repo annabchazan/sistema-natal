@@ -227,7 +227,7 @@ export default function CheckoutClient() {
                             alt={dados.nome_crianca}
                             width={56}
                             height={56}
-                            className="w-14 h-14 rounded object-cover"
+                            className="w-14 h-14 rounded object-contain bg-white"
                           />
                           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
                           <div className="absolute bottom-0.5 right-0.5 bg-black/50 text-white rounded-full p-1 z-10">
