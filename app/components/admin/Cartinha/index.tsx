@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import FormularioCartinha from "./FormularioCartinha";
 import TabelaCartinhas from "./TabelaCartinhas";
 import type { CartinhaItem, InstituicaoOption, TagOption } from "./types";
@@ -20,10 +20,18 @@ export default function CartinhasIndex({
 }: Props) {
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [cartinhaEmEdicao, setCartinhaEmEdicao] = useState<CartinhaItem | null>(null);
+  const formularioRef = useRef<HTMLDivElement>(null);
+
+  const rolarAteFormulario = () => {
+    requestAnimationFrame(() => {
+      formularioRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  };
 
   const abrirFormularioEdicao = (cartinha: CartinhaItem) => {
     setCartinhaEmEdicao(cartinha);
     setMostrarFormulario(true);
+    rolarAteFormulario();
   };
 
   const fecharFormulario = () => {
@@ -51,6 +59,7 @@ export default function CartinhasIndex({
               } else {
                 setCartinhaEmEdicao(null);
                 setMostrarFormulario(true);
+                rolarAteFormulario();
               }
             }}
             className={`px-4 py-2 rounded font-bold text-sm transition-colors ${
@@ -65,7 +74,10 @@ export default function CartinhasIndex({
       </div>
 
       {mostrarFormulario && (
-        <div className="bg-white p-6 rounded-md border border-stone-200 animate-in slide-in-from-top duration-300">
+        <div
+          ref={formularioRef}
+          className="bg-white p-6 rounded-md border border-stone-200 animate-in slide-in-from-top duration-300 scroll-mt-4"
+        >
           <h3 className="text-base font-bold mb-4 text-ink">
             {cartinhaEmEdicao ? "Editar Cartinha" : "Nova Cartinha"}
           </h3>

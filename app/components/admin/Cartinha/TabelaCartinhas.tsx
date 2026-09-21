@@ -316,7 +316,7 @@ export default function TabelaCartinhas({
                     <span className="text-stone-300">—</span>
                   )}
                 </td>
-                <td className="p-4 text-right space-x-3">
+                <td className="p-4 text-right whitespace-nowrap space-x-3">
                   <button
                     onClick={() => onEdit(item)}
                     className="text-brand-dark hover:underline p-1.5"

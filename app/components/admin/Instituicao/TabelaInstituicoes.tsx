@@ -42,7 +42,7 @@ export default function TabelaInstituicoes({
               <td className="px-6 py-4">{item.responsavel}</td>
               <td className="px-6 py-4">{item.contato}</td>
               <td className="px-6 py-4">{item.quantidade_vagas ?? 0}</td>
-              <td className="px-6 py-4 text-right space-x-3">
+              <td className="px-6 py-4 text-right whitespace-nowrap space-x-3">
                 <button
                   onClick={() => onEdit(item)}
                   className="text-brand-dark hover:underline p-1.5"
