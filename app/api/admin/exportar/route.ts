@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import db from "@/lib/db";
 import { getUsuarioAutenticado, usuarioEhAdmin } from "@/lib/auth";
+import { formatarTelefoneCelular } from "@/app/utils/usuarioCadastro";
 import type { RowDataPacket } from "mysql2/promise";
 
 interface ExportacaoRow extends RowDataPacket {
@@ -75,7 +76,7 @@ const COLUNA_MAP: Record<string, { header: string; valor: (row: ExportacaoRow) =
   prazo:               { header: "Prazo de Entrega",       valor: (r) => formatarData(r.data_limite_entrega) },
   data_apadrinhamento: { header: "Data de Apadrinhamento", valor: (r) => formatarDataHora(r.data_apadrinamento) },
   padrinho_nome:       { header: "Padrinho",               valor: (r) => r.padrinho_nome ?? "" },
-  padrinho_telefone:   { header: "Telefone",               valor: (r) => r.padrinho_telefone ?? "" },
+  padrinho_telefone:   { header: "Telefone",               valor: (r) => r.padrinho_telefone ? formatarTelefoneCelular(r.padrinho_telefone) : "" },
   padrinho_email:      { header: "E-mail",                 valor: (r) => r.padrinho_email ?? "" },
 };
 

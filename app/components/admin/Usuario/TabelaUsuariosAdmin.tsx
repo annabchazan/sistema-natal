@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { usePaginacao } from "@/app/hooks/usePaginacao";
 import Paginacao from "@/app/components/admin/Paginacao";
+import { formatarTelefoneCelular } from "@/app/utils/usuarioCadastro";
 
 interface UsuarioItem {
   id: number;
@@ -96,7 +97,7 @@ export default function TabelaUsuariosAdmin({
               <div className="min-w-45 flex-1">
                 <p className="font-medium text-ink text-sm">{usuario.nome}</p>
                 <p className="text-xs text-stone-500 mt-0.5">
-                  {usuario.email} · {usuario.telefone}
+                  {usuario.email} · {formatarTelefoneCelular(usuario.telefone)}
                 </p>
                 {feedback[usuario.id] && (
                   <p className="text-xs text-stone-500 mt-1">{feedback[usuario.id]}</p>

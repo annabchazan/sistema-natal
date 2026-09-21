@@ -3,6 +3,7 @@
 import { cadastrarUsuarioAdmin } from "@/app/actions/auth";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { formatarTelefoneCelular } from "@/app/utils/usuarioCadastro";
 
 export default function FormularioUsuarioAdmin() {
   const router = useRouter();
@@ -74,10 +75,11 @@ export default function FormularioUsuarioAdmin() {
             </label>
             <input
               id="novo-usuario-telefone"
+              type="tel"
               value={telefone}
-              onChange={(event) => setTelefone(event.target.value)}
+              onChange={(event) => setTelefone(formatarTelefoneCelular(event.target.value))}
               required
-              placeholder="Telefone"
+              placeholder="(11) 91234-5678"
               className="w-full p-3 border border-stone-300 rounded text-sm outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand"
             />
           </div>

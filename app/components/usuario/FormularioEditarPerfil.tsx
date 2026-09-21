@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { atualizarPerfil } from "@/app/actions/auth";
+import { formatarTelefoneCelular } from "@/app/utils/usuarioCadastro";
 
 interface Props {
   usuario: {
@@ -13,6 +14,7 @@ interface Props {
 
 export default function FormularioEditarPerfil({ usuario }: Props) {
   const [aberto, setAberto] = useState(false);
+  const [telefone, setTelefone] = useState(formatarTelefoneCelular(usuario.telefone));
   const [alterarSenha, setAlterarSenha] = useState(false);
   const [mensagem, setMensagem] = useState<{ tipo: "sucesso" | "erro"; texto: string } | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -99,7 +101,9 @@ export default function FormularioEditarPerfil({ usuario }: Props) {
                 name="telefone"
                 type="tel"
                 required
-                defaultValue={usuario.telefone}
+                value={telefone}
+                onChange={(e) => setTelefone(formatarTelefoneCelular(e.target.value))}
+                placeholder="(11) 91234-5678"
                 className="w-full rounded border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand"
               />
             </div>
