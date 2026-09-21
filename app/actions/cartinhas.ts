@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getUsuarioAutenticado, validarPermissaoAdmin } from "@/lib/auth";
 import { enviarConfirmacaoApadrinhamento, enviarNotificacaoEntrega, enviarCancelamentoApadrinamento, enviarAvisoDesistenciaEquipe } from "@/lib/email";
 import { obterOuCriarCampanhaAtiva } from "@/app/actions/campanhas";
+import { NUMERACAO_MANUAL_CARTINHAS } from "@/lib/config";
 import type { RowDataPacket } from "mysql2/promise";
 
 export interface CartinhaState {
@@ -200,6 +201,9 @@ export async function salvarCartinha(
   const status: StatusCartinha = STATUS_PERMITIDOS.includes(statusRaw as StatusCartinha)
     ? (statusRaw as StatusCartinha)
     : "disponivel";
+  const numero_sequencial_manual = NUMERACAO_MANUAL_CARTINHAS
+    ? Number(formData.get("numero_sequencial"))
+    : null;
 
   const permissao = await validarPermissaoAdmin(id ? "edit" : "manage");
   if (!permissao.ok) {
@@ -222,6 +226,13 @@ export async function salvarCartinha(
     return { success: false, message: "Categoria (tag) inválida." };
   }
 
+  if (
+    NUMERACAO_MANUAL_CARTINHAS &&
+    (!Number.isInteger(numero_sequencial_manual) || (numero_sequencial_manual as number) <= 0)
+  ) {
+    return { success: false, message: "Número da cartinha inválido." };
+  }
+
   try {
     const [instituicaoExiste] = await db.query<CartinhaIdRow[]>(
       "SELECT id FROM instituicoes WHERE id = ? LIMIT 1",
@@ -229,6 +240,20 @@ export async function salvarCartinha(
     );
     if (instituicaoExiste.length === 0) {
       return { success: false, message: "Instituição não encontrada." };
+    }
+
+    if (NUMERACAO_MANUAL_CARTINHAS) {
+      const [duplicado] = await db.query<CartinhaIdRow[]>(
+        id
+          ? "SELECT id FROM cartinhas WHERE instituicao_id = ? AND numero_sequencial = ? AND id != ? LIMIT 1"
+          : "SELECT id FROM cartinhas WHERE instituicao_id = ? AND numero_sequencial = ? LIMIT 1",
+        id
+          ? [instituicao_id, numero_sequencial_manual, Number(id)]
+          : [instituicao_id, numero_sequencial_manual],
+      );
+      if (duplicado.length > 0) {
+        return { success: false, message: "Já existe uma cartinha com esse número nessa instituição." };
+      }
     }
 
     let fotoPath: string | null = null;
@@ -266,19 +291,35 @@ export async function salvarCartinha(
           : (anterior?.[0]?.foto_cartinha ?? null);
 
       await db.query(
-        `UPDATE cartinhas
-         SET nome_crianca = ?, idade = ?, texto_cartinha = ?, presente_pedido = ?,
-             instituicao_id = ?, tag_id = ?,
-             foto_cartinha = ?,
-             data_limite_entrega = ?, status = ?,
-             necessidade_especial = ?, observacao_especial = ?
-         WHERE id = ?`,
-        [
-          nome_crianca, idade, texto_cartinha, presente_pedido,
-          instituicao_id, tag_id, fotoFinal,
-          data_limite_entrega || null, status,
-          necessidade_especial, observacao_especial, Number(id),
-        ],
+        NUMERACAO_MANUAL_CARTINHAS
+          ? `UPDATE cartinhas
+             SET nome_crianca = ?, idade = ?, texto_cartinha = ?, presente_pedido = ?,
+                 instituicao_id = ?, tag_id = ?, numero_sequencial = ?,
+                 foto_cartinha = ?,
+                 data_limite_entrega = ?, status = ?,
+                 necessidade_especial = ?, observacao_especial = ?
+             WHERE id = ?`
+          : `UPDATE cartinhas
+             SET nome_crianca = ?, idade = ?, texto_cartinha = ?, presente_pedido = ?,
+                 instituicao_id = ?, tag_id = ?,
+                 foto_cartinha = ?,
+                 data_limite_entrega = ?, status = ?,
+                 necessidade_especial = ?, observacao_especial = ?
+             WHERE id = ?`,
+        NUMERACAO_MANUAL_CARTINHAS
+          ? [
+              nome_crianca, idade, texto_cartinha, presente_pedido,
+              instituicao_id, tag_id, numero_sequencial_manual,
+              fotoFinal,
+              data_limite_entrega || null, status,
+              necessidade_especial, observacao_especial, Number(id),
+            ]
+          : [
+              nome_crianca, idade, texto_cartinha, presente_pedido,
+              instituicao_id, tag_id, fotoFinal,
+              data_limite_entrega || null, status,
+              necessidade_especial, observacao_especial, Number(id),
+            ],
       );
 
       // Dispara e-mail ao padrinho quando o status muda para "entregue"
@@ -295,7 +336,9 @@ export async function salvarCartinha(
         }
       }
     } else {
-      const numeroSequencial = await gerarNumeroSequencial(instituicao_id);
+      const numeroSequencial = NUMERACAO_MANUAL_CARTINHAS
+        ? (numero_sequencial_manual as number)
+        : await gerarNumeroSequencial(instituicao_id);
       const campanhaId = await obterOuCriarCampanhaAtiva();
       await db.query(
         `INSERT INTO cartinhas

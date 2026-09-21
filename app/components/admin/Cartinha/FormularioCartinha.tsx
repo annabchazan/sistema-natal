@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { salvarCartinha, CartinhaState } from "@/app/actions/cartinhas";
+import { NUMERACAO_MANUAL_CARTINHAS } from "@/lib/config";
 import type { CartinhaItem, InstituicaoOption, TagOption } from "./types";
 
 interface FormProps {
@@ -66,6 +67,26 @@ export default function FormularioCartinha({
             />
           </div>
         </div>
+
+        {NUMERACAO_MANUAL_CARTINHAS && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Número da Cartinha
+            </label>
+            <input
+              name="numero_sequencial"
+              type="number"
+              required
+              min={1}
+              className="w-full p-2 border rounded-md"
+              placeholder="Número impresso na cartinha física"
+              defaultValue={cartinha?.numero_sequencial ?? ""}
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Digite o número já impresso na cartinha, por instituição.
+            </p>
+          </div>
+        )}
 
         <div>
           <label className="block text-sm font-medium text-gray-700">
