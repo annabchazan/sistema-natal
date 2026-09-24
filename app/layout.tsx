@@ -13,10 +13,38 @@ const poppins = Poppins({
   weight: ["400", "500", "600", "700", "800"],
 });
 
+const TITULO = "Natal Solidário - Apadrinhamento de Cartinhas";
+const DESCRICAO =
+  "Uma iniciativa do Projeto Sempre Criança. Conectando padrinhos a crianças de Niterói e São Gonçalo através do apadrinhamento de cartinhas de Natal.";
+
 export const metadata: Metadata = {
-  title: "Natal Solidário - Apadrinhamento de Cartinhas",
-  description:
-    "Uma iniciativa do Projeto Sempre Criança. Conectando padrinhos a crianças de Niterói e São Gonçalo através do apadrinhamento de cartinhas de Natal.",
+  // Domínio fixo (e não NEXT_PUBLIC_URL) pra a imagem de compartilhamento sempre sair
+  // com URL absoluta do domínio oficial, mesmo em deploy de preview.
+  metadataBase: new URL("https://natal.semprecrianca.org"),
+  title: TITULO,
+  description: DESCRICAO,
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    siteName: "Natal Solidário",
+    url: "/",
+    title: TITULO,
+    description: DESCRICAO,
+    images: [
+      {
+        url: "/banner-natal.jpeg",
+        width: 1080,
+        height: 720,
+        alt: "Voluntários do Projeto Sempre Criança reunidos com os braços para o alto",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITULO,
+    description: DESCRICAO,
+    images: ["/banner-natal.jpeg"],
+  },
 };
 
 export default async function RootLayout({
