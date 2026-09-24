@@ -12,6 +12,13 @@ vi.mock("@/lib/auth", () => ({
   validarPermissaoAdmin: vi.fn(),
 }));
 
+vi.mock("@/lib/rateLimit", () => ({
+  // Funções simples (não vi.fn) pra sobreviverem ao vi.resetAllMocks() do beforeEach.
+  dentroDoLimite: async () => true,
+  ipDaRequisicao: async () => "127.0.0.1",
+  limparContadoresAntigos: async () => undefined,
+}));
+
 vi.mock("@/lib/email", () => ({
   enviarConfirmacaoApadrinhamento: vi.fn().mockResolvedValue({ ok: true }),
   enviarNotificacaoEntrega: vi.fn().mockResolvedValue({ ok: true }),

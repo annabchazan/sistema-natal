@@ -1,14 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import db from "@/lib/db";
+import { cronAutorizado } from "@/lib/cron";
+import { limparContadoresAntigos } from "@/lib/rateLimit";
 import type { ResultSetHeader, RowDataPacket } from "mysql2/promise";
 
-// Vercel injeta o CRON_SECRET automaticamente no header Authorization; em testes manuais, passe Bearer <CRON_SECRET>.
-function autorizacaoValida(req: NextRequest): boolean {
-  const header = req.headers.get("authorization");
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return false;
-  return header === `Bearer ${secret}`;
-}
 
 interface CampanhaParaLimpar extends RowDataPacket {
   id: number;
@@ -21,7 +16,7 @@ interface CampanhaParaLimpar extends RowDataPacket {
 // pra sempre, e desistencias/lembretes_enviados sobrevivem por já guardarem
 // snapshot ou não precisarem do vínculo (ver migration_v12.sql).
 export async function GET(req: NextRequest) {
-  if (!autorizacaoValida(req)) {
+  if (!cronAutorizado(req)) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
@@ -34,6 +29,9 @@ export async function GET(req: NextRequest) {
     );
 
     let cartinhasRemovidas = 0;
+
+    // Aproveita o cron diário pra limpar contadores de rate limit vencidos.
+    await limparContadoresAntigos().catch((err) => console.error("Falha ao limpar rate_limit:", err));
 
     for (const campanha of pendentes) {
       const [resultado] = await db.query<ResultSetHeader>(

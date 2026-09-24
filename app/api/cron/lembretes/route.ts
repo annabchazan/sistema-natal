@@ -1,15 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import db from "@/lib/db";
+import { cronAutorizado } from "@/lib/cron";
 import { enviarLembreteEntrega } from "@/lib/email";
 import type { RowDataPacket } from "mysql2/promise";
 
-// Vercel injeta o CRON_SECRET automaticamente no header Authorization; em testes manuais, passe Bearer <CRON_SECRET>.
-function autorizacaoValida(req: NextRequest): boolean {
-  const header = req.headers.get("authorization");
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return false;
-  return header === `Bearer ${secret}`;
-}
 
 interface CartinhaLembrete extends RowDataPacket {
   id: number;
@@ -22,7 +16,7 @@ interface CartinhaLembrete extends RowDataPacket {
 }
 
 export async function GET(req: NextRequest) {
-  if (!autorizacaoValida(req)) {
+  if (!cronAutorizado(req)) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 

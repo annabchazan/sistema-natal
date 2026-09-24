@@ -3,6 +3,7 @@
 import db from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { validarPermissaoAdmin } from "@/lib/auth";
+import { idValido } from "@/lib/seguranca";
 import type { RowDataPacket } from "mysql2/promise";
 
 export interface TagsState {
@@ -27,8 +28,11 @@ export async function salvarTag(
     return { success: false, message: permissao.message };
   }
 
-  if (!nome) {
-    return { success: false, message: "Informe o nome da tag." };
+  if (!nome || nome.length > 60) {
+    return { success: false, message: "Informe o nome da tag (até 60 caracteres)." };
+  }
+  if (id !== "" && idValido(id) === null) {
+    return { success: false, message: "Tag inválida." };
   }
 
   try {

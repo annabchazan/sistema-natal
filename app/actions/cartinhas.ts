@@ -6,6 +6,9 @@ import { getUsuarioAutenticado, validarPermissaoAdmin } from "@/lib/auth";
 import { enviarConfirmacaoApadrinhamento, enviarNotificacaoEntrega, enviarCancelamentoApadrinamento, enviarAvisoDesistenciaEquipe } from "@/lib/email";
 import { obterOuCriarCampanhaAtiva } from "@/app/actions/campanhas";
 import { NUMERACAO_MANUAL_CARTINHAS } from "@/lib/config";
+import { tipoImagemDoArquivo } from "@/lib/imagem";
+import { dentroDoLimite } from "@/lib/rateLimit";
+import { idValido, idsValidos } from "@/lib/seguranca";
 import type { RowDataPacket } from "mysql2/promise";
 
 export interface CartinhaState {
@@ -112,9 +115,9 @@ async function uploadToCloudinary(file: File): Promise<string | null> {
   const formData = new FormData();
   formData.append("file", file);
 
-  if (uploadPreset) {
-    formData.append("upload_preset", uploadPreset);
-  } else if (apiKey && apiSecret) {
+  // Upload assinado (chave + segredo) tem prioridade: o preset sem assinatura deixa
+  // qualquer um que descubra o nome do preset enviar arquivos pra conta.
+  if (apiKey && apiSecret) {
     const timestamp = Math.floor(Date.now() / 1000);
     const paramString = `timestamp=${timestamp}`;
     const signature = crypto
@@ -124,6 +127,8 @@ async function uploadToCloudinary(file: File): Promise<string | null> {
     formData.append("api_key", apiKey);
     formData.append("timestamp", String(timestamp));
     formData.append("signature", signature);
+  } else if (uploadPreset) {
+    formData.append("upload_preset", uploadPreset);
   } else {
     return null;
   }
@@ -218,6 +223,19 @@ export async function salvarCartinha(
     return { success: false, message: "Preencha nome da criança, presente pedido e texto da cartinha." };
   }
 
+  if (
+    nome_crianca.length > 100 ||
+    presente_pedido.length > 500 ||
+    texto_cartinha.length > 5000 ||
+    (observacao_especial?.length ?? 0) > 1000
+  ) {
+    return { success: false, message: "Algum campo passou do tamanho máximo permitido." };
+  }
+
+  if (id && idValido(id) === null) {
+    return { success: false, message: "Cartinha inválida." };
+  }
+
   if (!Number.isInteger(instituicao_id) || instituicao_id <= 0) {
     return { success: false, message: "Selecione uma instituição válida." };
   }
@@ -262,8 +280,8 @@ export async function salvarCartinha(
       if (foto_cartinha.size > 5 * 1024 * 1024) {
         return { success: false, message: "Foto muito grande. Máximo 5MB." };
       }
-      const allowedTypes = ["image/jpeg", "image/png", "image/gif"];
-      if (!allowedTypes.includes(foto_cartinha.type)) {
+      // Tipo pela assinatura do conteúdo, não pelo Content-Type que o navegador informa.
+      if ((await tipoImagemDoArquivo(foto_cartinha)) === null) {
         return { success: false, message: "Tipo de arquivo não permitido. Use JPG, PNG ou GIF." };
       }
       const uploadedUrl = await uploadToCloudinary(foto_cartinha);
@@ -371,8 +389,12 @@ export async function excluirCartinha(id: number): Promise<CartinhaState> {
   if (!permissao.ok) {
     return { success: false, message: permissao.message };
   }
+  const idLimpo = idValido(id);
+  if (idLimpo === null) {
+    return { success: false, message: "Cartinha inválida." };
+  }
   try {
-    await db.query("DELETE FROM cartinhas WHERE id = ?", [id]);
+    await db.query("DELETE FROM cartinhas WHERE id = ?", [idLimpo]);
     revalidatePath("/admin");
     revalidatePath("/");
     return { success: true, message: "Cartinha removida com sucesso!" };
@@ -398,9 +420,11 @@ export async function marcarCartinhasEntregues(ids: number[]): Promise<CartinhaS
     return { success: false, message: permissao.message };
   }
 
-  if (ids.length === 0) {
+  const idsLimpos = idsValidos(ids, 1000);
+  if (!idsLimpos) {
     return { success: false, message: "Nenhuma cartinha selecionada." };
   }
+  ids = idsLimpos;
 
   try {
     const placeholders = ids.map(() => "?").join(",");
@@ -464,7 +488,10 @@ interface CartinhaCheckoutRow extends RowDataPacket {
 export async function buscarCartinhasParaCheckout(
   ids: number[],
 ): Promise<CartinhaCheckoutRow[]> {
-  if (ids.length === 0) return [];
+  // Mesmo limite do checkout (20): sem isso, qualquer um mandava milhares de ids de uma vez.
+  const idsLimpos = idsValidos(ids, 20);
+  if (!idsLimpos) return [];
+  ids = idsLimpos;
   try {
     const placeholders = ids.map(() => "?").join(",");
     const [cartinhas] = await db.query<CartinhaCheckoutRow[]>(
@@ -482,11 +509,20 @@ export async function buscarCartinhasParaCheckout(
 // --- LISTAR CARTINHAS DISPONÍVEIS (home pública) ---
 const ITENS_POR_PAGINA_HOME = 12;
 
+// Os argumentos vêm do navegador: sem clamp, `itensPorPagina` gigante ou `pagina` negativa
+// viram consulta enorme ou OFFSET inválido.
+function limitarPaginacao(pagina: number, itensPorPagina: number) {
+  const p = Number.isSafeInteger(pagina) && pagina >= 1 && pagina <= 10000 ? pagina : 1;
+  const n = Number.isSafeInteger(itensPorPagina) && itensPorPagina >= 1 ? Math.min(itensPorPagina, 60) : ITENS_POR_PAGINA_HOME;
+  return { pagina: p, itensPorPagina: n };
+}
+
 export async function listarCartinhas(
   pagina: number = 1,
   itensPorPagina: number = ITENS_POR_PAGINA_HOME,
 ): Promise<ListaCartinhasPublicaResultado> {
   try {
+    ({ pagina, itensPorPagina } = limitarPaginacao(pagina, itensPorPagina));
     const offset = (pagina - 1) * itensPorPagina;
 
     const [[{ total }]] = await db.query<ContagemHomeRow[]>(
@@ -564,6 +600,7 @@ export async function listarCartinhasFiltradas(
     }
 
     const where = condicoes.join(" AND ");
+    ({ pagina, itensPorPagina } = limitarPaginacao(pagina, itensPorPagina));
     const offset = (pagina - 1) * itensPorPagina;
 
     const [[{ total }]] = await db.query<ContagemHomeRow[]>(
@@ -598,7 +635,7 @@ export async function finalizarApadrinamento(
   if (!usuario) {
     return { success: false, message: "Você precisa estar logado para finalizar o apadrinhamento." };
   }
-  if (cartas_ids.length === 0) {
+  if (!Array.isArray(cartas_ids) || cartas_ids.length === 0) {
     return { success: false, message: "Nenhuma cartinha selecionada." };
   }
   if (cartas_ids.length > LIMITE_POR_CHECKOUT) {
@@ -606,6 +643,16 @@ export async function finalizarApadrinamento(
       success: false,
       message: `Você pode apadrinhar no máximo ${LIMITE_POR_CHECKOUT} cartinhas por vez.`,
     };
+  }
+  const idsLimpos = idsValidos(cartas_ids, LIMITE_POR_CHECKOUT);
+  if (!idsLimpos) {
+    return { success: false, message: "Cartinhas inválidas." };
+  }
+  cartas_ids = idsLimpos;
+
+  // Trava quem tenta acumular cartinhas em massa (uma conta só, muitas requisições).
+  if (!(await dentroDoLimite(`apadrinhar:usuario:${usuario.id}`, 20, 60 * 60))) {
+    return { success: false, message: "Muitas tentativas de apadrinhamento. Aguarde alguns minutos." };
   }
 
   const conn = await db.getConnection();
@@ -700,6 +747,9 @@ export async function cancelarApadrinamento(
   const usuario = await getUsuarioAutenticado();
   if (!usuario) {
     return { success: false, message: "Você precisa estar logado." };
+  }
+  if (idValido(cartinhaId) === null) {
+    return { success: false, message: "Cartinha inválida." };
   }
 
   const conn = await db.getConnection();
