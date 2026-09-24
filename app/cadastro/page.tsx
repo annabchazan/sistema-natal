@@ -127,8 +127,8 @@ export default function CadastroPage() {
       return;
     }
 
-    if (senha.length < 6) {
-      setErro("A senha deve ter pelo menos 6 caracteres.");
+    if (senha.length < 8) {
+      setErro("A senha deve ter pelo menos 8 caracteres.");
       setSalvando(false);
       return;
     }
@@ -254,7 +254,7 @@ export default function CadastroPage() {
                   value={formulario.senha}
                   onChange={(event) => handleChange("senha", event.target.value)}
                   className={classeInputSenha}
-                  placeholder="Crie uma senha"
+                  placeholder="Crie uma senha (mínimo 8 caracteres)"
                   autoComplete="new-password"
                 />
                 <button
