@@ -1,5 +1,6 @@
 import { Resend } from "resend";
-import { createElement } from "react";
+import { render } from "@react-email/render";
+import { createElement, type ReactElement } from "react";
 import ConfirmacaoApadrinhamento from "@/emails/ConfirmacaoApadrinhamento";
 import RecuperacaoSenha from "@/emails/RecuperacaoSenha";
 import LembreteEntrega from "@/emails/LembreteEntrega";
@@ -11,6 +12,16 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 const FROM = `${process.env.EMAIL_FROM_NAME ?? "Natal Solidário"} <${process.env.EMAIL_FROM ?? "onboarding@resend.dev"}>`;
 const EMAIL_EQUIPE_CARTINHAS = "cartinhas@semprecrianca.org";
+const REPLY_TO = "contato@semprecrianca.org";
+
+// Versão em texto puro junto do HTML e replyTo real: melhora a pontuação nos filtros de spam.
+async function montarCorpo(conteudo: ReactElement) {
+  return {
+    react: conteudo,
+    text: await render(conteudo, { plainText: true }),
+    replyTo: REPLY_TO,
+  };
+}
 
 interface CartinhaEmail {
   nome_crianca: string;
@@ -31,7 +42,7 @@ export async function enviarEmailRecuperacaoSenha({
       from: FROM,
       to: email,
       subject: "Redefinição de senha — Natal Solidário",
-      react: createElement(RecuperacaoSenha, { linkRedefinicao }),
+      ...(await montarCorpo(createElement(RecuperacaoSenha, { linkRedefinicao }))),
     });
     if (error) console.error("Resend erro (recuperação de senha):", error);
   } catch (err) {
@@ -54,8 +65,8 @@ export async function enviarConfirmacaoApadrinhamento({
     const { error } = await resend.emails.send({
       from: FROM,
       to: emailPadrinho,
-      subject: `🎄 Você apadrinhou ${total} cartinha${total !== 1 ? "s" : ""} de Natal!`,
-      react: createElement(ConfirmacaoApadrinhamento, { nomePadrinho, cartinhas }),
+      subject: `Você apadrinhou ${total} cartinha${total !== 1 ? "s" : ""} de Natal`,
+      ...(await montarCorpo(createElement(ConfirmacaoApadrinhamento, { nomePadrinho, cartinhas }))),
     });
 
     if (error) {
@@ -90,15 +101,15 @@ export async function enviarLembreteEntrega({
   const urlSite = process.env.NEXT_PUBLIC_URL ?? "http://localhost:3000";
   const assunto =
     tipo === "vencido"
-      ? `⚠️ Prazo vencido — presente de ${nomeCrianca} aguarda entrega`
-      : `⏰ Faltam 10 dias para entregar o presente de ${nomeCrianca}`;
+      ? `Prazo vencido — presente de ${nomeCrianca} aguarda entrega`
+      : `Faltam 10 dias para entregar o presente de ${nomeCrianca}`;
 
   try {
     const { error } = await resend.emails.send({
       from: FROM,
       to: emailPadrinho,
       subject: assunto,
-      react: createElement(LembreteEntrega, {
+      ...(await montarCorpo(createElement(LembreteEntrega, {
         nomePadrinho,
         nomeCrianca,
         presentePedido,
@@ -106,7 +117,7 @@ export async function enviarLembreteEntrega({
         numeroSequencial,
         tipo,
         urlSite,
-      }),
+      }))),
     });
     if (error) {
       console.error(`Resend erro (lembrete ${tipo}):`, error);
@@ -138,13 +149,13 @@ export async function enviarCancelamentoApadrinamento({
       from: FROM,
       to: emailPadrinho,
       subject: `Apadrinhamento de ${nomeCrianca} cancelado`,
-      react: createElement(CancelamentoApadrinamento, {
+      ...(await montarCorpo(createElement(CancelamentoApadrinamento, {
         nomePadrinho,
         nomeCrianca,
         presentePedido,
         numeroSequencial,
         urlSite,
-      }),
+      }))),
     });
     if (error) {
       console.error("Resend erro (cancelamento):", error);
@@ -173,12 +184,12 @@ export async function enviarAvisoDesistenciaEquipe({
       from: FROM,
       to: EMAIL_EQUIPE_CARTINHAS,
       subject: `Desistência: ${nomeCrianca}${numeroSequencial != null ? ` (#${numeroSequencial})` : ""}`,
-      react: createElement(AvisoDesistenciaEquipe, {
+      ...(await montarCorpo(createElement(AvisoDesistenciaEquipe, {
         nomePadrinho,
         emailPadrinho,
         nomeCrianca,
         numeroSequencial,
-      }),
+      }))),
     });
     if (error) {
       console.error("Resend erro (aviso desistência equipe):", error);
@@ -209,14 +220,14 @@ export async function enviarNotificacaoEntrega({
     const { error } = await resend.emails.send({
       from: FROM,
       to: emailPadrinho,
-      subject: `🎉 ${nomeCrianca} recebeu o presente! Obrigado, ${nomePadrinho.split(" ")[0]}!`,
-      react: createElement(PresenteEntregue, {
+      subject: `${nomeCrianca} recebeu o presente — obrigado, ${nomePadrinho.split(" ")[0]}`,
+      ...(await montarCorpo(createElement(PresenteEntregue, {
         nomePadrinho,
         nomeCrianca,
         presentePedido,
         numeroSequencial,
         urlSite,
-      }),
+      }))),
     });
     if (error) {
       console.error("Resend erro (presente entregue):", error);
