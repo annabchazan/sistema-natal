@@ -16,6 +16,8 @@ export default function FormularioEditarPerfil({ usuario }: Props) {
   const [aberto, setAberto] = useState(false);
   const [telefone, setTelefone] = useState(formatarTelefoneCelular(usuario.telefone));
   const [alterarSenha, setAlterarSenha] = useState(false);
+  const [emailDigitado, setEmailDigitado] = useState(usuario.email);
+  const emailMudou = emailDigitado.trim().toLowerCase() !== usuario.email.trim().toLowerCase();
   const [mensagem, setMensagem] = useState<{ tipo: "sucesso" | "erro"; texto: string } | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -117,7 +119,8 @@ export default function FormularioEditarPerfil({ usuario }: Props) {
               name="email"
               type="email"
               required
-              defaultValue={usuario.email}
+              value={emailDigitado}
+              onChange={(e) => setEmailDigitado(e.target.value)}
               className="w-full rounded border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand"
             />
           </div>
@@ -132,7 +135,7 @@ export default function FormularioEditarPerfil({ usuario }: Props) {
             </button>
           </div>
 
-          {alterarSenha && (
+          {(alterarSenha || emailMudou) && (
             <div className="space-y-4 rounded-md bg-cream-deep border border-stone-200 p-4">
               <div>
                 <label className="block text-[12.5px] font-medium text-stone-600 mb-1">
@@ -142,9 +145,17 @@ export default function FormularioEditarPerfil({ usuario }: Props) {
                   name="senhaAtual"
                   type="password"
                   autoComplete="current-password"
+                  required={emailMudou}
                   className="w-full rounded border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand"
                 />
+                {emailMudou && (
+                  <p className="mt-1 text-xs text-stone-500">
+                    Para trocar o e-mail, confirme sua senha atual.
+                  </p>
+                )}
               </div>
+              {alterarSenha && (
+              <>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[12.5px] font-medium text-stone-600 mb-1">
@@ -154,7 +165,7 @@ export default function FormularioEditarPerfil({ usuario }: Props) {
                     name="novaSenha"
                     type="password"
                     autoComplete="new-password"
-                    minLength={6}
+                    minLength={8}
                     className="w-full rounded border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand"
                   />
                 </div>
@@ -170,7 +181,9 @@ export default function FormularioEditarPerfil({ usuario }: Props) {
                   />
                 </div>
               </div>
-              <p className="text-xs text-stone-500">Mínimo de 6 caracteres.</p>
+              <p className="text-xs text-stone-500">Mínimo de 8 caracteres.</p>
+              </>
+              )}
             </div>
           )}
 

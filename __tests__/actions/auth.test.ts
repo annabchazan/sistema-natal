@@ -9,6 +9,14 @@ vi.mock("@/lib/auth", () => ({
   gerarHashSenha: vi.fn().mockReturnValue("salt:novohash"),
   validarSenha: vi.fn(),
   limparSessao: vi.fn(),
+  revogarSessoesDoUsuario: vi.fn(),
+}));
+
+vi.mock("@/lib/rateLimit", () => ({
+  // Funções simples (não vi.fn) pra sobreviverem ao vi.resetAllMocks() do beforeEach.
+  dentroDoLimite: async () => true,
+  ipDaRequisicao: async () => "127.0.0.1",
+  limparContadoresAntigos: async () => undefined,
 }));
 
 vi.mock("@/lib/email", () => ({
@@ -55,10 +63,24 @@ describe("redefinirSenha", () => {
     expect(res.message).toMatch(/inválido/i);
   });
 
-  it("rejeita senha com menos de 6 caracteres", async () => {
+  it("rejeita senha com menos de 8 caracteres", async () => {
     const res = await redefinirSenha("tokenvalido", "abc");
     expect(res.success).toBe(false);
-    expect(res.message).toMatch(/6 caracteres/i);
+    expect(res.message).toMatch(/8 caracteres/i);
+  });
+
+  it("rejeita senha comum", async () => {
+    const res = await redefinirSenha("tokenvalido", "12345678");
+    expect(res.success).toBe(false);
+    expect(res.message).toMatch(/comum/i);
+  });
+
+  it("procura o token pelo hash (o token puro nunca vai ao banco)", async () => {
+    mockDb.query.mockResolvedValue([[]]);
+    await redefinirSenha("tokenpuro", "novasenha123");
+    const params = mockDb.query.mock.calls[0][1] as string[];
+    expect(params[0]).not.toBe("tokenpuro");
+    expect(params[0]).toMatch(/^[0-9a-f]{64}$/);
   });
 
   it("rejeita token inexistente ou expirado no banco", async () => {
@@ -70,7 +92,7 @@ describe("redefinirSenha", () => {
 
   it("redefine senha com sucesso", async () => {
     mockDb.query
-      .mockResolvedValueOnce([[{ id: 5 }]])      // SELECT token válido
+      .mockResolvedValueOnce([[{ id: 5, tipo: "padrinho" }]]) // SELECT token válido
       .mockResolvedValueOnce([{ affectedRows: 1 }]); // UPDATE senha
     const res = await redefinirSenha("tokenok", "novasenha123");
     expect(res.success).toBe(true);
@@ -97,13 +119,28 @@ describe("atualizarPerfil", () => {
 
   it("rejeita e-mail já em uso por outro usuário", async () => {
     mockGetUsuario.mockResolvedValue(usuarioFake);
-    mockDb.query.mockResolvedValueOnce([[{ id: 99 }]]); // e-mail já existe
-    const res = await atualizarPerfil({ nome: "Padrinho", telefone: "21999999999", email: "outro@email.com" });
+    mockValidarSenha.mockReturnValue(true);
+    mockDb.query
+      .mockResolvedValueOnce([[{ senha: "salt:hash" }]]) // SELECT senha (troca de e-mail exige senha atual)
+      .mockResolvedValueOnce([[{ id: 99 }]]);            // e-mail já existe
+    const res = await atualizarPerfil({
+      nome: "Padrinho",
+      telefone: "21999999999",
+      email: "outro@email.com",
+      senhaAtual: "senhaatual",
+    });
     expect(res.success).toBe(false);
     expect(res.message).toMatch(/já está em uso/i);
   });
 
-  it("rejeita nova senha com menos de 6 caracteres", async () => {
+  it("exige a senha atual para trocar o e-mail", async () => {
+    mockGetUsuario.mockResolvedValue(usuarioFake);
+    const res = await atualizarPerfil({ nome: "Padrinho", telefone: "21999999999", email: "novo@email.com" });
+    expect(res.success).toBe(false);
+    expect(res.message).toMatch(/senha atual/i);
+  });
+
+  it("rejeita nova senha com menos de 8 caracteres", async () => {
     mockGetUsuario.mockResolvedValue(usuarioFake);
     // mesmo e-mail → sem query de verificação de email
     mockDb.query.mockResolvedValueOnce([[{ senha: "salt:hash" }]]); // SELECT senha
@@ -116,7 +153,7 @@ describe("atualizarPerfil", () => {
       novaSenha: "abc",
     });
     expect(res.success).toBe(false);
-    expect(res.message).toMatch(/6 caracteres/i);
+    expect(res.message).toMatch(/8 caracteres/i);
   });
 
   it("rejeita quando senha atual está incorreta", async () => {

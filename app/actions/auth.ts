@@ -9,17 +9,37 @@ import {
   getUsuarioAutenticado,
   HASH_SENHA_INEXISTENTE,
   limparSessao,
+  revogarSessoesDoUsuario,
   validarPermissaoAdmin,
   validarSenha,
   type AdminRole,
 } from "@/lib/auth";
 import { enviarEmailRecuperacaoSenha } from "@/lib/email";
+import { dentroDoLimite, ipDaRequisicao } from "@/lib/rateLimit";
+import {
+  SENHA_MAX,
+  SENHA_MIN_PADRINHO,
+  idValido,
+  minimoSenhaPorTipo,
+  sha256Hex,
+  validarDadosUsuario,
+  validarPoliticaSenha,
+} from "@/lib/seguranca";
 import { revalidatePath } from "next/cache";
 import type { ResultSetHeader, RowDataPacket } from "mysql2/promise";
 
 interface UsuarioIdRow extends RowDataPacket {
   id: number;
 }
+
+interface UsuarioResetRow extends RowDataPacket {
+  id: number;
+  tipo: "admin" | "padrinho";
+}
+
+const MSG_MUITAS_TENTATIVAS = "Muitas tentativas. Aguarde alguns minutos e tente de novo.";
+const TIPOS_USUARIO = ["admin", "padrinho"] as const;
+const PAPEIS_ADMIN = ["master", "full", "editor"] as const;
 
 interface UsuarioLoginRow extends RowDataPacket {
   id: number;
@@ -79,7 +99,18 @@ export async function cadastrarUsuario(
   const nome = input.nome.trim();
   const telefone = input.telefone.trim();
   const email = input.email.trim().toLowerCase();
-  const senha = input.senha;
+  const senha = String(input.senha ?? "");
+
+  const erroValidacao =
+    validarDadosUsuario({ nome, telefone, email }) ??
+    validarPoliticaSenha(senha, { min: SENHA_MIN_PADRINHO, email });
+  if (erroValidacao) {
+    return { success: false, message: erroValidacao };
+  }
+
+  if (!(await dentroDoLimite(`cadastro:ip:${await ipDaRequisicao()}`, 40, 60 * 60))) {
+    return { success: false, message: MSG_MUITAS_TENTATIVAS };
+  }
 
   try {
     const [existentes] = await db.query<UsuarioIdRow[]>(
@@ -108,8 +139,19 @@ export async function cadastrarUsuario(
 }
 
 export async function loginUsuario(input: LoginInput): Promise<AuthActionState> {
-  const email = input.email.trim().toLowerCase();
-  const senha = input.senha;
+  const email = String(input.email ?? "").trim().toLowerCase();
+  const senha = String(input.senha ?? "");
+
+  // Limita o tamanho antes de rodar o scrypt (evita gastar CPU com entrada gigante).
+  if (!email || email.length > 100 || !senha || senha.length > SENHA_MAX) {
+    return { success: false, message: "E-mail ou senha inválidos." };
+  }
+
+  // Além do bloqueio por e-mail (abaixo), limita por IP: cobre quem testa a mesma
+  // senha em vários e-mails.
+  if (!(await dentroDoLimite(`login:ip:${await ipDaRequisicao()}`, 60, 15 * 60))) {
+    return { success: false, message: MSG_MUITAS_TENTATIVAS };
+  }
 
   try {
     // Rastreado por e-mail digitado, não pelo id do usuário — ver calcularBloqueioAposFalha em lib/auth.ts.
@@ -193,15 +235,22 @@ export async function cadastrarUsuarioAdmin(
   const nome = input.nome.trim();
   const telefone = input.telefone.trim();
   const email = input.email.trim().toLowerCase();
-  const senha = input.senha;
+  const senha = String(input.senha ?? "");
   const tipo = input.tipo;
+
+  if (!TIPOS_USUARIO.includes(tipo)) {
+    return { success: false, message: "Tipo de usuário inválido." };
+  }
+  if (tipo === "admin" && !PAPEIS_ADMIN.includes(input.admin_role as (typeof PAPEIS_ADMIN)[number])) {
+    return { success: false, message: "Escolha o nível de acesso do administrador." };
+  }
   const adminRole = tipo === "admin" ? input.admin_role : null;
 
-  if (!nome || !telefone || !email || senha.length < 6) {
-    return {
-      success: false,
-      message: "Preencha nome, telefone, email e uma senha com pelo menos 6 caracteres.",
-    };
+  const erroValidacao =
+    validarDadosUsuario({ nome, telefone, email }) ??
+    validarPoliticaSenha(senha, { min: minimoSenhaPorTipo(tipo), email });
+  if (erroValidacao) {
+    return { success: false, message: erroValidacao };
   }
 
   if (tipo === "admin" && !adminRole) {
@@ -242,9 +291,18 @@ export async function solicitarRecuperacaoSenha(
   const MENSAGEM_PADRAO =
     "Se este e-mail estiver cadastrado, você receberá as instruções em instantes.";
 
-  const emailNormalizado = email.trim().toLowerCase();
-  if (!emailNormalizado) {
+  const emailNormalizado = String(email ?? "").trim().toLowerCase();
+  if (!emailNormalizado || emailNormalizado.length > 100) {
     return { success: false, message: "Informe um e-mail válido." };
+  }
+
+  // Cada pedido dispara um e-mail (custo no Resend): limita por IP e por destinatário.
+  // No limite por e-mail a resposta continua igual, pra não revelar nada.
+  if (!(await dentroDoLimite(`recuperacao:ip:${await ipDaRequisicao()}`, 10, 60 * 60))) {
+    return { success: false, message: MSG_MUITAS_TENTATIVAS };
+  }
+  if (!(await dentroDoLimite(`recuperacao:email:${emailNormalizado}`, 3, 60 * 60))) {
+    return { success: true, message: MENSAGEM_PADRAO };
   }
 
   try {
@@ -260,9 +318,10 @@ export async function solicitarRecuperacaoSenha(
     const token = crypto.randomBytes(32).toString("hex");
     const expiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hora
 
+    // No banco fica só o hash; o token em si só existe no link enviado por e-mail.
     await db.query(
       "UPDATE usuarios SET reset_token = ?, reset_token_expiry = ? WHERE id = ?",
-      [token, expiry, rows[0].id],
+      [sha256Hex(token), expiry, rows[0].id],
     );
 
     const baseUrl = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
@@ -284,19 +343,25 @@ export async function redefinirSenha(
   token: string,
   novaSenha: string,
 ): Promise<AuthActionState> {
-  if (!token) {
+  if (!token || typeof token !== "string" || token.length > 200) {
     return { success: false, message: "Link inválido. Solicite um novo." };
   }
-  if (novaSenha.length < 6) {
-    return { success: false, message: "A senha deve ter pelo menos 6 caracteres." };
+  novaSenha = String(novaSenha ?? "");
+  const erroSenha = validarPoliticaSenha(novaSenha, { min: SENHA_MIN_PADRINHO });
+  if (erroSenha) {
+    return { success: false, message: erroSenha };
+  }
+
+  if (!(await dentroDoLimite(`redefinir:ip:${await ipDaRequisicao()}`, 20, 60 * 60))) {
+    return { success: false, message: MSG_MUITAS_TENTATIVAS };
   }
 
   try {
-    const [rows] = await db.query<UsuarioIdRow[]>(
-      `SELECT id FROM usuarios
+    const [rows] = await db.query<UsuarioResetRow[]>(
+      `SELECT id, tipo FROM usuarios
        WHERE reset_token = ? AND reset_token_expiry > NOW()
        LIMIT 1`,
-      [token],
+      [sha256Hex(token)],
     );
 
     if (!rows?.length) {
@@ -306,11 +371,18 @@ export async function redefinirSenha(
       };
     }
 
+    const erroSenhaTipo = validarPoliticaSenha(novaSenha, { min: minimoSenhaPorTipo(rows[0].tipo) });
+    if (erroSenhaTipo) {
+      return { success: false, message: erroSenhaTipo };
+    }
+
     const novoHash = gerarHashSenha(novaSenha);
     await db.query(
       "UPDATE usuarios SET senha = ?, reset_token = NULL, reset_token_expiry = NULL WHERE id = ?",
       [novoHash, rows[0].id],
     );
+    // Quem redefine a senha geralmente perdeu o controle dela: derruba todas as sessões.
+    await revogarSessoesDoUsuario(rows[0].id);
 
     return {
       success: true,
@@ -334,12 +406,34 @@ export async function atualizarPerfil(input: {
     return { success: false, message: "Você precisa estar logado." };
   }
 
-  const nome = input.nome.trim();
-  const telefone = input.telefone.trim();
-  const email = input.email.trim().toLowerCase();
+  const nome = String(input.nome ?? "").trim();
+  const telefone = String(input.telefone ?? "").trim();
+  const email = String(input.email ?? "").trim().toLowerCase();
 
-  if (!nome || !telefone || !email) {
-    return { success: false, message: "Nome, telefone e e-mail são obrigatórios." };
+  const erroDados = validarDadosUsuario({ nome, telefone, email });
+  if (erroDados) {
+    return { success: false, message: erroDados };
+  }
+
+  // Trocar o e-mail muda pra onde vai a recuperação de senha: exige a senha atual,
+  // pra uma sessão esquecida aberta não virar tomada da conta.
+  if (email !== usuario.email) {
+    if (!input.senhaAtual) {
+      return { success: false, message: "Informe sua senha atual para alterar o e-mail." };
+    }
+    const [linhaSenha] = await db.query<UsuarioSenhaRow[]>(
+      "SELECT senha FROM usuarios WHERE id = ? LIMIT 1",
+      [usuario.id],
+    );
+    const hashAtual = linhaSenha?.[0]?.senha;
+    if (
+      !(await dentroDoLimite(`senha-atual:${usuario.id}`, 10, 15 * 60)) ||
+      !hashAtual ||
+      input.senhaAtual.length > SENHA_MAX ||
+      !validarSenha(input.senhaAtual, hashAtual)
+    ) {
+      return { success: false, message: "Senha atual incorreta." };
+    }
   }
 
   // Verifica se o novo e-mail já está em uso por outro usuário
@@ -364,11 +458,20 @@ export async function atualizarPerfil(input: {
       [usuario.id],
     );
     const senhaArmazenada = rows?.[0]?.senha;
-    if (!senhaArmazenada || !validarSenha(input.senhaAtual, senhaArmazenada)) {
+    if (
+      !(await dentroDoLimite(`senha-atual:${usuario.id}`, 10, 15 * 60)) ||
+      !senhaArmazenada ||
+      input.senhaAtual.length > SENHA_MAX ||
+      !validarSenha(input.senhaAtual, senhaArmazenada)
+    ) {
       return { success: false, message: "Senha atual incorreta." };
     }
-    if (input.novaSenha.length < 6) {
-      return { success: false, message: "A nova senha deve ter pelo menos 6 caracteres." };
+    const erroNovaSenha = validarPoliticaSenha(input.novaSenha, {
+      min: minimoSenhaPorTipo(usuario.tipo),
+      email,
+    });
+    if (erroNovaSenha) {
+      return { success: false, message: erroNovaSenha };
     }
     novoHash = gerarHashSenha(input.novaSenha);
   }
@@ -379,6 +482,8 @@ export async function atualizarPerfil(input: {
         "UPDATE usuarios SET nome = ?, telefone = ?, email = ?, senha = ? WHERE id = ?",
         [nome, telefone, email, novoHash, usuario.id],
       );
+      // Mantém só a sessão de quem trocou a senha; as outras (ex.: outro aparelho) caem.
+      await revogarSessoesDoUsuario(usuario.id, true);
     } else {
       await db.query(
         "UPDATE usuarios SET nome = ?, telefone = ?, email = ? WHERE id = ?",
@@ -493,9 +598,18 @@ export async function atualizarPermissoesUsuario(input: {
     return { success: false, message: permissao.message };
   }
 
+  const usuarioIdAlvo = idValido(input.usuarioId);
+  if (usuarioIdAlvo === null || !TIPOS_USUARIO.includes(input.tipo)) {
+    return { success: false, message: "Dados inválidos." };
+  }
+  input = { ...input, usuarioId: usuarioIdAlvo };
+
   const adminRole = input.tipo === "admin" ? input.admin_role : null;
 
-  if (input.tipo === "admin" && !adminRole) {
+  if (
+    input.tipo === "admin" &&
+    (!adminRole || !PAPEIS_ADMIN.includes(adminRole))
+  ) {
     return {
       success: false,
       message: "Escolha o nível de acesso do administrador.",

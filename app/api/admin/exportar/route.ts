@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import db from "@/lib/db";
 import { getUsuarioAutenticado, usuarioEhAdmin } from "@/lib/auth";
+import { dentroDoLimite } from "@/lib/rateLimit";
 import { formatarTelefoneCelular } from "@/app/utils/usuarioCadastro";
 import type { RowDataPacket } from "mysql2/promise";
 
@@ -88,6 +89,11 @@ export async function GET(req: NextRequest) {
     return new NextResponse("Acesso negado", { status: 403 });
   }
 
+  // A exportação leva telefone e e-mail de todos os padrinhos: limita pra conter vazamento por sessão roubada.
+  if (!(await dentroDoLimite(`exportar:usuario:${usuario.id}`, 10, 60 * 60))) {
+    return new NextResponse("Muitas exportações. Aguarde alguns minutos.", { status: 429 });
+  }
+
   const { searchParams } = req.nextUrl;
 
   // --- Filtro de status ---
@@ -171,6 +177,8 @@ export async function GET(req: NextRequest) {
       status: 200,
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
+        "Cache-Control": "private, no-store",
+        "X-Content-Type-Options": "nosniff",
         "Content-Disposition": `attachment; filename="cartinhas-natal-${hoje}.csv"`,
       },
     });

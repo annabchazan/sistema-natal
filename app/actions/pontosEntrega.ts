@@ -3,6 +3,7 @@
 import db from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { validarPermissaoAdmin } from "@/lib/auth";
+import { idValido } from "@/lib/seguranca";
 import type { RowDataPacket } from "mysql2/promise";
 
 export interface PontoEntregaState {
@@ -31,7 +32,11 @@ export async function salvarPontoEntrega(
     return { success: false, message: permissao.message };
   }
 
-  if (!nome || !endereco || !horario) {
+  if (
+    !nome || !endereco || !horario ||
+    nome.length > 150 || endereco.length > 300 || horario.length > 150 ||
+    (id !== "" && idValido(id) === null)
+  ) {
     return {
       success: false,
       message: "Preencha nome, endereço e horário do ponto de entrega.",

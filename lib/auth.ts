@@ -1,7 +1,9 @@
-import { createHmac, randomBytes, scryptSync, timingSafeEqual } from "crypto";
+import { randomBytes, scryptSync, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import db from "@/lib/db";
+import { SESSION_COOKIE } from "@/lib/sessaoCookie";
+import { sha256Hex } from "@/lib/seguranca";
 import type { RowDataPacket } from "mysql2/promise";
 
 export type TipoUsuario = "admin" | "padrinho";
@@ -18,15 +20,8 @@ export interface UsuarioAutenticado {
 
 interface UsuarioRow extends RowDataPacket, UsuarioAutenticado {}
 
-export const SESSION_COOKIE = "sistema_natal_session";
+export { SESSION_COOKIE };
 const SESSION_MAX_AGE = 60 * 60 * 24 * 7;
-function getAuthSecret() {
-  const secret = process.env.AUTH_SECRET;
-  if (!secret) {
-    throw new Error("AUTH_SECRET não está definida. Adicione-a ao .env.local antes de iniciar o servidor.");
-  }
-  return secret;
-}
 
 export function gerarHashSenha(senha: string) {
   const salt = randomBytes(16).toString("hex");
@@ -35,11 +30,12 @@ export function gerarHashSenha(senha: string) {
 }
 
 export function validarSenha(senha: string, hashArmazenado: string) {
-  if (!hashArmazenado.includes(":")) {
-    return senha === hashArmazenado;
+  const partes = hashArmazenado.split(":");
+  if (partes.length !== 2) {
+    return false;
   }
 
-  const [salt, hashOriginal] = hashArmazenado.split(":");
+  const [salt, hashOriginal] = partes;
   const hashCalculado = scryptSync(senha, salt, 64);
   const hashBuffer = Buffer.from(hashOriginal, "hex");
 
@@ -77,48 +73,21 @@ export function calcularBloqueioAposFalha(
   return { tentativas, bloqueadoAte: null };
 }
 
-function assinarSessao(payload: string) {
-  return createHmac("sha256", getAuthSecret()).update(payload).digest("hex");
-}
-
-function criarValorSessao(usuarioId: number) {
-  const expiresAt = Date.now() + SESSION_MAX_AGE * 1000;
-  const nonce = randomBytes(12).toString("hex");
-  const payload = `${usuarioId}.${expiresAt}.${nonce}`;
-  const assinatura = assinarSessao(payload);
-  return `${payload}.${assinatura}`;
-}
-
-function lerUsuarioIdDaSessao(valor: string | undefined) {
-  if (!valor) {
-    return null;
-  }
-
-  const partes = valor.split(".");
-
-  if (partes.length !== 4) {
-    return null;
-  }
-
-  const [usuarioId, expiresAt, nonce, assinatura] = partes;
-  const payload = `${usuarioId}.${expiresAt}.${nonce}`;
-  const assinaturaEsperada = assinarSessao(payload);
-
-  if (assinatura !== assinaturaEsperada) {
-    return null;
-  }
-
-  if (Number(expiresAt) < Date.now()) {
-    return null;
-  }
-
-  const id = Number(usuarioId);
-  return Number.isFinite(id) ? id : null;
-}
+// A sessão é um token aleatório no cookie; no banco fica só o SHA-256 dele (tabela sessoes).
+// Assim logout, troca de senha e exclusão de conta derrubam a sessão no servidor.
+const FORMATO_TOKEN = /^[0-9a-f]{64}$/;
 
 export async function criarSessao(usuarioId: number) {
+  const token = randomBytes(32).toString("hex");
+
+  await db.query("DELETE FROM sessoes WHERE usuario_id = ? AND expira_em < NOW()", [usuarioId]);
+  await db.query(
+    "INSERT INTO sessoes (token_hash, usuario_id, expira_em) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL ? SECOND))",
+    [sha256Hex(token), usuarioId, SESSION_MAX_AGE],
+  );
+
   const cookieStore = await cookies();
-  cookieStore.set(SESSION_COOKIE, criarValorSessao(usuarioId), {
+  cookieStore.set(SESSION_COOKIE, token, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
@@ -129,21 +98,50 @@ export async function criarSessao(usuarioId: number) {
 
 export async function limparSessao() {
   const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE)?.value;
+
+  if (token && FORMATO_TOKEN.test(token)) {
+    await db.query("DELETE FROM sessoes WHERE token_hash = ?", [sha256Hex(token)]);
+  }
+
   cookieStore.delete(SESSION_COOKIE);
+}
+
+// Derruba as sessões do usuário (troca/redefinição de senha). Com `manterAtual`,
+// preserva a sessão de quem acabou de trocar a senha.
+export async function revogarSessoesDoUsuario(usuarioId: number, manterAtual = false) {
+  let hashAtual: string | null = null;
+
+  if (manterAtual) {
+    const cookieStore = await cookies();
+    const token = cookieStore.get(SESSION_COOKIE)?.value;
+    if (token && FORMATO_TOKEN.test(token)) {
+      hashAtual = sha256Hex(token);
+    }
+  }
+
+  if (hashAtual) {
+    await db.query("DELETE FROM sessoes WHERE usuario_id = ? AND token_hash <> ?", [usuarioId, hashAtual]);
+  } else {
+    await db.query("DELETE FROM sessoes WHERE usuario_id = ?", [usuarioId]);
+  }
 }
 
 export async function getUsuarioAutenticado(): Promise<UsuarioAutenticado | null> {
   const cookieStore = await cookies();
-  const valorSessao = cookieStore.get(SESSION_COOKIE)?.value;
-  const usuarioId = lerUsuarioIdDaSessao(valorSessao);
+  const token = cookieStore.get(SESSION_COOKIE)?.value;
 
-  if (!usuarioId) {
+  if (!token || !FORMATO_TOKEN.test(token)) {
     return null;
   }
 
   const [rows] = await db.query<UsuarioRow[]>(
-    "SELECT id, nome, telefone, email, tipo, admin_role FROM usuarios WHERE id = ? LIMIT 1",
-    [usuarioId],
+    `SELECT u.id, u.nome, u.telefone, u.email, u.tipo, u.admin_role
+     FROM sessoes s
+     JOIN usuarios u ON u.id = s.usuario_id
+     WHERE s.token_hash = ? AND s.expira_em > NOW()
+     LIMIT 1`,
+    [sha256Hex(token)],
   );
 
   return rows[0] ?? null;

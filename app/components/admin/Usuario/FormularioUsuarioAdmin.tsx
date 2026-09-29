@@ -110,7 +110,7 @@ export default function FormularioUsuarioAdmin() {
               value={senha}
               onChange={(event) => setSenha(event.target.value)}
               required
-              placeholder="Senha"
+              placeholder="Mínimo 8 caracteres"
               className="w-full p-3 border border-stone-300 rounded text-sm outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand"
             />
           </div>
