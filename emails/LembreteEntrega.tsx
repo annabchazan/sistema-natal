@@ -129,7 +129,7 @@ export default function LembreteEntrega({
                   <strong>1.</strong> Compre o presente pedido pela criança.
                 </Text>
                 <Text style={estilos.passo}>
-                  <strong>2.</strong> Leve embrulhado a um dos nossos pontos de entrega até a data limite.
+                  <strong>2.</strong> Leve a um dos nossos pontos de entrega até a data limite, <strong>sem embrulhar</strong> (nossa equipe confere os itens antes). Se puder, leve também papel de presente para a embalagem.
                 </Text>
                 <Text style={estilos.passo}>
                   <strong>3.</strong> Acompanhe o status pela sua área no site.
