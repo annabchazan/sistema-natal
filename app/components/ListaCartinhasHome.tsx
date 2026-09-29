@@ -1,7 +1,7 @@
 "use client";
 
 import { useCarrinhoApadrinhamento } from "@/app/hooks/useCarrinhoApadrinhamento";
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import Image from "next/image";
 import FotoLightbox from "@/app/components/FotoLightbox";
 import { useToast } from "@/app/components/Toast";
@@ -45,9 +45,6 @@ export default function ListaCartinhasHome({
   const { adicionarCartinha, removerCartinha, temCartinha } =
     useCarrinhoApadrinhamento();
   const { mostrarToast } = useToast();
-  const [carrinhoAtualizado, setCarrinhoAtualizado] = useState<{
-    [key: number]: boolean;
-  }>({});
   const [cartinhas, setCartinhas] = useState<Cartinha[]>(cartinhasIniciais);
   const [total, setTotal] = useState(totalInicial);
 
@@ -58,14 +55,6 @@ export default function ListaCartinhasHome({
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [fotoAberta, setFotoAberta] = useState<{ src: string; alt: string } | null>(null);
   const topoListaRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const estado: { [key: number]: boolean } = {};
-    cartinhas.forEach((c) => {
-      estado[c.id] = temCartinha(c.id);
-    });
-    setCarrinhoAtualizado(estado);
-  }, [cartinhas, temCartinha]);
 
   const buscarPagina = async (
     pagina: number,
@@ -108,19 +97,11 @@ export default function ListaCartinhasHome({
   };
 
   const handleApadrinhar = (cartinha: Cartinha) => {
-    if (carrinhoAtualizado[cartinha.id]) {
+    if (temCartinha(cartinha.id)) {
       removerCartinha(cartinha.id);
-      setCarrinhoAtualizado((prev) => ({
-        ...prev,
-        [cartinha.id]: false,
-      }));
       mostrarToast("Cartinha removida do carrinho.", "info");
     } else {
       adicionarCartinha(cartinha);
-      setCarrinhoAtualizado((prev) => ({
-        ...prev,
-        [cartinha.id]: true,
-      }));
       mostrarToast("Cartinha adicionada ao carrinho!", "sucesso");
     }
   };
@@ -353,12 +334,12 @@ export default function ListaCartinhasHome({
                   <button
                     onClick={() => handleApadrinhar(cartinha)}
                     className={`w-full py-2.5 rounded font-semibold text-[13.5px] transition-colors flex items-center justify-center gap-1.5 ${
-                      carrinhoAtualizado[cartinha.id]
+                      temCartinha(cartinha.id)
                         ? "bg-brand/10 text-brand-dark border border-brand hover:bg-brand/20"
                         : "bg-brand-dark text-white hover:bg-brand-darker"
                     }`}
                   >
-                    {carrinhoAtualizado[cartinha.id] && (
+                    {temCartinha(cartinha.id) && (
                       <svg
                         viewBox="0 0 24 24"
                         fill="none"
@@ -373,7 +354,7 @@ export default function ListaCartinhasHome({
                         />
                       </svg>
                     )}
-                    {carrinhoAtualizado[cartinha.id]
+                    {temCartinha(cartinha.id)
                       ? "No carrinho"
                       : "Apadrinhar"}
                   </button>
