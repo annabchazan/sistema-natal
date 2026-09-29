@@ -5,6 +5,7 @@ import { Suspense, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { loginUsuario } from "@/app/actions/auth";
 import { emailValido } from "@/app/utils/usuarioCadastro";
+import { caminhoInternoSeguro } from "@/app/utils/redirecionamento";
 
 function IconeEmail() {
   return (
@@ -85,7 +86,8 @@ function LoginForm() {
         return;
       }
 
-      const next = searchParams.get("next");
+      // Só aceita caminho interno: um ?next=https://site-falso.com viraria phishing pós-login.
+      const next = caminhoInternoSeguro(searchParams.get("next"));
       router.push(next || resultado.redirectTo || "/usuario");
       router.refresh();
     });

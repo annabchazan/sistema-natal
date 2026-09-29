@@ -1,0 +1,6 @@
+#!/bin/sh
+# Ordem: lint -> security (testes + gate + audit) -> build. Nunca use --no-verify.
+set -e
+npm run lint
+npm run security
+npm run build

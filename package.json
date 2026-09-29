@@ -8,16 +8,19 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "security": "vitest run && node scripts/scan-dependencias.mjs",
+    "security:gate": "vitest run __tests__/seguranca",
+    "prepare": "node scripts/instalar-hooks.mjs"
   },
   "dependencies": {
     "@react-email/components": "^1.0.12",
     "cloudinary": "^2.9.0",
-    "mysql2": "^3.20.0",
-    "next": "16.1.6",
+    "mysql2": "^3.24.4",
+    "next": "^16.3.6",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "resend": "^6.12.0"
+    "resend": "^6.28.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -25,7 +28,7 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "eslint": "^9",
-    "eslint-config-next": "16.1.6",
+    "eslint-config-next": "^16.3.6",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vite-tsconfig-paths": "^6.1.1",

@@ -33,9 +33,12 @@ describe("validarSenha", () => {
     expect(validarSenha("qualquer", "semformato")).toBe(false);
   });
 
-  it("suporta formato legado (plain text)", () => {
-    // Hash sem ':' cai no fallback de comparação direta
-    expect(validarSenha("senhaexata", "senhaexata")).toBe(true);
-    expect(validarSenha("outrasenha", "senhaexata")).toBe(false);
+  it("recusa hash em texto puro (sem ':'), mesmo com a senha exata", () => {
+    expect(validarSenha("senhaexata", "senhaexata")).toBe(false);
+  });
+
+  it("recusa hash com formato inválido", () => {
+    expect(validarSenha("x", "a:b:c")).toBe(false);
+    expect(validarSenha("x", "salt:zzzz")).toBe(false);
   });
 });

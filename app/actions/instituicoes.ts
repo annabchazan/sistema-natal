@@ -3,6 +3,7 @@
 import db from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { validarPermissaoAdmin } from "@/lib/auth";
+import { idValido } from "@/lib/seguranca";
 
 export interface InstituicaoState {
   success: boolean;
@@ -24,7 +25,12 @@ export async function salvarInstituicao(
     return { success: false, message: permissao.message };
   }
 
-  if (!nome || !responsavel || !contato || !Number.isFinite(quantidadeVagas)) {
+  if (
+    !nome || !responsavel || !contato ||
+    nome.length > 150 || responsavel.length > 150 || contato.length > 150 ||
+    !Number.isInteger(quantidadeVagas) || quantidadeVagas < 0 || quantidadeVagas > 100000 ||
+    (id !== "" && idValido(id) === null)
+  ) {
     return {
       success: false,
       message: "Preencha todos os campos da instituição corretamente.",
