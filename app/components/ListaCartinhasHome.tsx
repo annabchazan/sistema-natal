@@ -120,6 +120,71 @@ export default function ListaCartinhasHome({
     Number(filtrosAplicados.tag_id !== undefined) +
     Number(filtrosAplicados.idade_min !== undefined || filtrosAplicados.idade_max !== undefined);
 
+  type ChaveFiltro = "nome" | "instituicao" | "tag" | "idade";
+
+  const removerFiltro = (chave: ChaveFiltro) => {
+    const filtros = { ...filtrosAplicados };
+    if (chave === "nome") {
+      delete filtros.nome_crianca;
+      setBuscaNome("");
+    } else if (chave === "instituicao") {
+      delete filtros.instituicao_id;
+      setFiltroInstituicao("");
+    } else if (chave === "tag") {
+      delete filtros.tag_id;
+      setFiltroTag("");
+    } else {
+      delete filtros.idade_min;
+      delete filtros.idade_max;
+      setFiltroIdadeMin("");
+      setFiltroIdadeMax("");
+    }
+    buscarPagina(1, filtros);
+  };
+
+  const chipsAtivos: { chave: ChaveFiltro; rotulo: string }[] = [];
+  if (filtrosAplicados.nome_crianca) {
+    chipsAtivos.push({ chave: "nome", rotulo: `Nome: ${filtrosAplicados.nome_crianca}` });
+  }
+  if (filtrosAplicados.instituicao_id !== undefined) {
+    const nome = instituicoes.find((i) => i.id === filtrosAplicados.instituicao_id)?.nome_instituicao;
+    chipsAtivos.push({ chave: "instituicao", rotulo: `Instituição: ${nome ?? filtrosAplicados.instituicao_id}` });
+  }
+  if (filtrosAplicados.tag_id !== undefined) {
+    const nome = tags.find((t) => t.id === filtrosAplicados.tag_id)?.nome;
+    chipsAtivos.push({ chave: "tag", rotulo: `Categoria: ${nome ?? filtrosAplicados.tag_id}` });
+  }
+  if (filtrosAplicados.idade_min !== undefined || filtrosAplicados.idade_max !== undefined) {
+    const { idade_min: min, idade_max: max } = filtrosAplicados;
+    const rotulo =
+      min !== undefined && max !== undefined
+        ? `Idade: ${min} a ${max} anos`
+        : min !== undefined
+          ? `Idade: a partir de ${min}`
+          : `Idade: até ${max}`;
+    chipsAtivos.push({ chave: "idade", rotulo });
+  }
+
+  const listaChips = chipsAtivos.length > 0 && (
+    <ul className="flex flex-wrap gap-2 mb-6" aria-label="Filtros aplicados">
+      {chipsAtivos.map((chip) => (
+        <li key={chip.chave}>
+          <button
+            onClick={() => removerFiltro(chip.chave)}
+            disabled={isCarregando}
+            aria-label={`Remover filtro ${chip.rotulo}`}
+            className="flex items-center gap-1.5 bg-white text-ink border border-stone-300 rounded-full pl-3 pr-2 py-1 text-[12.5px] hover:bg-cream-deep transition-colors disabled:opacity-50"
+          >
+            {chip.rotulo}
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="w-3.5 h-3.5" aria-hidden="true">
+              <path strokeLinecap="round" d="M6 6l12 12M18 6 6 18" />
+            </svg>
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+
   const classeRotulo = "block text-[11px] font-semibold text-stone-500 uppercase tracking-wide mb-1.5";
   const classeCampo = "w-full h-9 border-0 border-b-[1.5px] border-stone-300 bg-transparent text-sm text-ink focus:outline-none focus:border-ink";
 
@@ -355,6 +420,8 @@ export default function ListaCartinhasHome({
             {renderCampos("menu-filtro")}
           </div>
         </Drawer>
+
+        {listaChips}
 
         {total === 0 ? (
           <div className="text-center py-20">
