@@ -25,7 +25,7 @@ interface CartinhaUsuarioRow extends RowDataPacket {
 const FLUXO = ["apadrinhada", "conferida", "embrulhado", "entregue"] as const;
 
 const MENSAGEM_STATUS: Record<string, string> = {
-  apadrinhada: "Aguardando conferência pela equipe.",
+  apadrinhada: "Apadrinhamento confirmado! A equipe vai conferir o presente quando ele for entregue.",
   conferida: "Presente conferido! Em breve será embrulhado.",
   embrulhado: "Presente embrulhado e pronto para entrega.",
   entregue: "Presente entregue à criança. Muito obrigado!",
