@@ -62,8 +62,8 @@ export default function ConfirmacaoApadrinhamento({
               Que alegria, {primeiroNome}!
             </Heading>
             <Text style={estilos.texto}>
-              Seu apadrinhamento foi confirmado com sucesso. Você vai transformar
-              o Natal de {totalCartinhas === 1 ? "uma criança especial" : `${totalCartinhas} crianças especiais`}.
+              Seu apadrinhamento foi confirmado com sucesso. Você vai tornar o
+              Natal de {totalCartinhas === 1 ? "uma criança" : `${totalCartinhas} crianças`} muito mais especial.
               Obrigado por fazer parte disso!
             </Text>
           </Section>
