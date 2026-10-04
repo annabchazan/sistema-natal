@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { listarCartinhas, contarCartinhasApadrinhadas } from "@/app/actions/cartinhas";
 import { listarTags } from "@/app/actions/tags";
+import { listarInstituicoesComCartinhas } from "@/app/actions/instituicoes";
 import { listarPontosEntrega } from "@/app/actions/pontosEntrega";
 import ListaCartinhasHome from "@/app/components/ListaCartinhasHome";
 import MapaPontosEntrega from "@/app/components/MapaPontosEntrega";
@@ -11,6 +12,7 @@ export default async function Home() {
   const { cartinhas, total: totalCartinhas } = await listarCartinhas();
   const pontosEntrega = await listarPontosEntrega();
   const tags = await listarTags();
+  const instituicoes = await listarInstituicoesComCartinhas();
   const totalApadrinhadas = await contarCartinhasApadrinhadas();
 
   return (
@@ -19,6 +21,7 @@ export default async function Home() {
         cartinhas={cartinhas}
         totalInicial={totalCartinhas}
         tags={tags}
+        instituicoes={instituicoes}
         totalApadrinhadas={totalApadrinhadas}
       />
 

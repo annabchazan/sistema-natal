@@ -18,8 +18,17 @@ export interface CartinhaState {
 
 export interface FiltrosCartinhas {
   tag_id?: number;
+  instituicao_id?: number;
+  nome_crianca?: string;
   idade_min?: number;
   idade_max?: number;
+}
+
+const LIMITE_BUSCA_NOME = 100;
+
+// Escapa os curingas do LIKE pra busca tratar "%" e "_" digitados como texto.
+function escaparLike(valor: string) {
+  return valor.replace(/[\\%_]/g, (c) => `\\${c}`);
 }
 
 // Apenas as colunas que a listagem pública (home) precisa exibir.
@@ -581,9 +590,23 @@ export async function listarCartinhasFiltradas(
     ];
     const params: (string | number)[] = [];
 
-    if (filtros.tag_id !== undefined && filtros.tag_id !== null) {
+    const tagId = idValido(filtros.tag_id);
+    if (tagId !== null) {
       condicoes.push("c.tag_id = ?");
-      params.push(filtros.tag_id);
+      params.push(tagId);
+    }
+    const instituicaoId = idValido(filtros.instituicao_id);
+    if (instituicaoId !== null) {
+      condicoes.push("c.instituicao_id = ?");
+      params.push(instituicaoId);
+    }
+    const nomeBusca =
+      typeof filtros.nome_crianca === "string"
+        ? filtros.nome_crianca.trim().slice(0, LIMITE_BUSCA_NOME)
+        : "";
+    if (nomeBusca) {
+      condicoes.push("c.nome_crianca LIKE ?");
+      params.push(`%${escaparLike(nomeBusca)}%`);
     }
     const idadeMin = filtros.idade_min;
     const idadeMax = filtros.idade_max;

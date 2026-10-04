@@ -12,7 +12,7 @@ vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 import db from "@/lib/db";
 import { validarPermissaoAdmin } from "@/lib/auth";
-import { salvarInstituicao, excluirInstituicao } from "@/app/actions/instituicoes";
+import { salvarInstituicao, excluirInstituicao, listarInstituicoesComCartinhas } from "@/app/actions/instituicoes";
 
 const mockDb = db as unknown as { query: ReturnType<typeof vi.fn> };
 const mockPermissao = vi.mocked(validarPermissaoAdmin);
@@ -153,5 +153,21 @@ describe("excluirInstituicao", () => {
     const res = await excluirInstituicao(1);
     expect(res.success).toBe(false);
     expect(res.message).toMatch(/cartinhas vinculadas/i);
+  });
+});
+
+describe("listarInstituicoesComCartinhas", () => {
+  it("retorna só id e nome, sem contato nem responsável", async () => {
+    mockDb.query.mockResolvedValue([[{ id: 1, nome_instituicao: "Lar A" }]]);
+    const res = await listarInstituicoesComCartinhas();
+    expect(res).toEqual([{ id: 1, nome_instituicao: "Lar A" }]);
+    const sql = mockDb.query.mock.calls[0][0] as string;
+    expect(sql).toMatch(/SELECT DISTINCT i\.id, i\.nome_instituicao\s/);
+    expect(sql).not.toMatch(/contato|responsavel/);
+  });
+
+  it("retorna lista vazia quando o banco falha", async () => {
+    mockDb.query.mockRejectedValue(new Error("db fora"));
+    expect(await listarInstituicoesComCartinhas()).toEqual([]);
   });
 });
