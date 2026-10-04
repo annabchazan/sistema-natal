@@ -23,8 +23,13 @@ import type { PontoEntregaRow } from "@/app/actions/pontosEntrega";
 import { listarCampanhas, type CampanhaRow } from "@/app/actions/campanhas";
 import type { RowDataPacket } from "mysql2/promise";
 
+// Escapa os curingas do LIKE pra busca tratar "%" e "_" digitados como texto.
+function escaparLike(valor: string) {
+  return valor.replace(/[\\%_]/g, (c) => `\\${c}`);
+}
+
 interface AdminProps {
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; busca_usuario?: string }>;
 }
 
 interface CartinhaAdminRow extends RowDataPacket {
@@ -80,8 +85,11 @@ export default async function AdminPage({ searchParams }: AdminProps) {
   const usuario = await requireAdminAccess();
   const canManage = adminPodeCriarOuExcluir(usuario);
   const canManageUsers = adminPodeGerenciarPermissoes(usuario);
-  const { tab } = await searchParams;
+  const { tab, busca_usuario } = await searchParams;
   const abaAtiva = tab || "geral";
+  // Padrinhos só entram na aba de usuários quando alguém busca por eles (mín. 2 letras).
+  const buscaUsuario = (busca_usuario ?? "").trim().slice(0, 100);
+  const buscandoPadrinho = buscaUsuario.length >= 2;
 
   const precisaCartinhas = abaAtiva === "cartinhas" || abaAtiva === "crachas";
   const precisaInstituicoes =
@@ -124,7 +132,16 @@ export default async function AdminPage({ searchParams }: AdminProps) {
     precisaUsuarios
       ? db
           .query<UsuarioAdminRow[]>(
-            "SELECT id, nome, telefone, email, tipo, admin_role FROM usuarios ORDER BY nome ASC",
+            buscandoPadrinho
+              ? `(SELECT id, nome, telefone, email, tipo, admin_role FROM usuarios WHERE tipo = 'admin')
+                 UNION
+                 (SELECT id, nome, telefone, email, tipo, admin_role FROM usuarios
+                  WHERE tipo = 'padrinho' AND (nome LIKE ? OR email LIKE ?) LIMIT 20)
+                 ORDER BY nome ASC`
+              : "SELECT id, nome, telefone, email, tipo, admin_role FROM usuarios WHERE tipo = 'admin' ORDER BY nome ASC",
+            buscandoPadrinho
+              ? [`%${escaparLike(buscaUsuario)}%`, `%${escaparLike(buscaUsuario)}%`]
+              : [],
           )
           .then(([rows]) => rows)
       : Promise.resolve([]),
@@ -289,7 +306,7 @@ export default async function AdminPage({ searchParams }: AdminProps) {
                   </ul>
                 </div>
                 <FormularioUsuarioAdmin />
-                <TabelaUsuariosAdmin dados={usuarios} />
+                <TabelaUsuariosAdmin dados={usuarios} busca={buscaUsuario} buscandoPadrinho={buscandoPadrinho} />
               </div>
             )}
           </section>

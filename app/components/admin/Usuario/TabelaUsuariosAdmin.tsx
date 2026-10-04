@@ -18,8 +18,12 @@ interface UsuarioItem {
 
 export default function TabelaUsuariosAdmin({
   dados,
+  busca = "",
+  buscandoPadrinho = false,
 }: {
   dados: UsuarioItem[];
+  busca?: string;
+  buscandoPadrinho?: boolean;
 }) {
   const router = useRouter();
   const [drafts, setDrafts] = useState<Record<number, Pick<UsuarioItem, "tipo" | "admin_role">>>(
@@ -82,7 +86,42 @@ export default function TabelaUsuariosAdmin({
   return (
     <div className="bg-white rounded-md border border-stone-200 overflow-hidden">
       <div className="p-4 border-b border-stone-100">
-        <h2 className="font-bold text-sm text-ink">Usuários cadastrados</h2>
+        <h2 className="font-bold text-sm text-ink">Administradores</h2>
+        <p className="text-xs text-stone-500 mt-1">
+          Para dar acesso de admin a um padrinho que já tem cadastro, busque por nome ou e-mail.
+        </p>
+        <form method="get" action="/admin" className="mt-3 flex gap-2">
+          <input type="hidden" name="tab" value="usuarios" />
+          <label htmlFor="busca-usuario" className="sr-only">
+            Buscar padrinho por nome ou e-mail
+          </label>
+          <input
+            id="busca-usuario"
+            type="search"
+            name="busca_usuario"
+            defaultValue={busca}
+            placeholder="Buscar padrinho por nome ou e-mail"
+            maxLength={100}
+            className="flex-1 min-w-0 p-2 border border-stone-300 rounded text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand"
+          />
+          <button
+            type="submit"
+            className="px-4 py-2 rounded bg-ink text-white font-semibold text-sm hover:bg-stone-600"
+          >
+            Buscar
+          </button>
+          {busca && (
+            <a
+              href="/admin?tab=usuarios"
+              className="px-4 py-2 rounded border border-stone-300 text-stone-600 font-semibold text-sm hover:bg-cream-deep flex items-center"
+            >
+              Limpar
+            </a>
+          )}
+        </form>
+        {busca && !buscandoPadrinho && (
+          <p className="text-xs text-stone-500 mt-2">Digite pelo menos 2 letras para buscar padrinhos.</p>
+        )}
       </div>
 
       <div className="divide-y divide-stone-100">
@@ -160,7 +199,7 @@ export default function TabelaUsuariosAdmin({
 
         {dados.length === 0 && (
           <p className="px-4 py-8 text-center text-stone-500 text-sm">
-            Nenhum usuário encontrado.
+            Nenhum administrador encontrado.
           </p>
         )}
       </div>
