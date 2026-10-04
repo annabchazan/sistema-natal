@@ -56,7 +56,7 @@ export default function Drawer({
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`fixed top-0 ${posicao} h-full ${width} bg-white z-60 shadow-[0_0_32px_rgba(30,27,23,.15)] transition-transform duration-200 ease-out flex flex-col ${
+        className={`fixed top-0 ${posicao} h-dvh ${width} bg-white z-60 shadow-[0_0_32px_rgba(30,27,23,.15)] transition-transform duration-200 ease-out flex flex-col ${
           isOpen ? "translate-x-0" : translacaoFechado
         }`}
       >
