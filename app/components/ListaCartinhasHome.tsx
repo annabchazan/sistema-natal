@@ -186,7 +186,7 @@ export default function ListaCartinhasHome({
   );
 
   const classeRotulo = "block text-[11px] font-semibold text-stone-500 uppercase tracking-wide mb-1.5";
-  const classeCampo = "w-full h-9 border-0 border-b-[1.5px] border-stone-300 bg-transparent text-sm text-ink focus:outline-none focus:border-ink";
+  const classeCampo = "w-full h-11 md:h-9 border-0 border-b-[1.5px] border-stone-300 bg-transparent text-base md:text-sm text-ink focus:outline-none focus:border-ink";
 
   // Os mesmos campos aparecem na barra (desktop) e no menu (celular); o prefixo evita id repetido.
   const renderCampos = (prefixo: string) => (
@@ -198,6 +198,7 @@ export default function ListaCartinhasHome({
         <input
           id={`${prefixo}-nome`}
           type="search"
+          enterKeyHint="search"
           value={buscaNome}
           onChange={(e) => setBuscaNome(e.target.value)}
           onKeyDown={(e) => {
