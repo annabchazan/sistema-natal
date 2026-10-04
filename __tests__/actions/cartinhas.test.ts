@@ -31,7 +31,7 @@ vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 import db from "@/lib/db";
 import { getUsuarioAutenticado } from "@/lib/auth";
 import { enviarConfirmacaoApadrinhamento, enviarCancelamentoApadrinamento, enviarAvisoDesistenciaEquipe } from "@/lib/email";
-import { finalizarApadrinamento, cancelarApadrinamento, gerarNumeroSequencial } from "@/app/actions/cartinhas";
+import { finalizarApadrinamento, cancelarApadrinamento, gerarNumeroSequencial, listarCartinhasFiltradas } from "@/app/actions/cartinhas";
 
 const mockDb = db as unknown as {
   query: ReturnType<typeof vi.fn>;
@@ -188,5 +188,56 @@ describe("cancelarApadrinamento", () => {
     expect(res.success).toBe(true);
     expect(res.message).toMatch(/cancelado/i);
     expect(conn.commit).toHaveBeenCalled();
+  });
+});
+
+// ─── listarCartinhasFiltradas ──────────────────────────────────────────────
+
+describe("listarCartinhasFiltradas", () => {
+  function mockListagem() {
+    mockDb.query
+      .mockResolvedValueOnce([[{ total: 0 }]])
+      .mockResolvedValueOnce([[]]);
+  }
+
+  it("filtra por instituição", async () => {
+    mockListagem();
+    await listarCartinhasFiltradas({ instituicao_id: 3 });
+    const [sql, params] = mockDb.query.mock.calls[0];
+    expect(sql).toContain("c.instituicao_id = ?");
+    expect(params).toEqual([3]);
+  });
+
+  it("ignora instituição inválida", async () => {
+    mockListagem();
+    await listarCartinhasFiltradas({ instituicao_id: -1 });
+    const [sql, params] = mockDb.query.mock.calls[0];
+    expect(sql).not.toContain("instituicao_id");
+    expect(params).toEqual([]);
+  });
+
+  it("busca por nome com LIKE parametrizado e escapa curingas", async () => {
+    mockListagem();
+    await listarCartinhasFiltradas({ nome_crianca: "  Ana_%  " });
+    const [sql, params] = mockDb.query.mock.calls[0];
+    expect(sql).toContain("c.nome_crianca LIKE ?");
+    expect(params).toEqual(["%Ana\\_\\%%"]);
+  });
+
+  it("ignora busca vazia e corta nome longo", async () => {
+    mockListagem();
+    await listarCartinhasFiltradas({ nome_crianca: "   " });
+    expect(mockDb.query.mock.calls[0][0]).not.toContain("LIKE");
+
+    mockListagem();
+    await listarCartinhasFiltradas({ nome_crianca: "a".repeat(500) });
+    const params = mockDb.query.mock.calls[2][1] as string[];
+    expect(params[0]).toHaveLength(102);
+  });
+
+  it("combina instituição, nome e categoria", async () => {
+    mockListagem();
+    await listarCartinhasFiltradas({ tag_id: 2, instituicao_id: 5, nome_crianca: "Lu" });
+    expect(mockDb.query.mock.calls[0][1]).toEqual([2, 5, "%Lu%"]);
   });
 });

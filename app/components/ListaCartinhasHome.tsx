@@ -4,6 +4,7 @@ import { useCarrinhoApadrinhamento } from "@/app/hooks/useCarrinhoApadrinhamento
 import { useState, useRef } from "react";
 import Image from "next/image";
 import FotoLightbox from "@/app/components/FotoLightbox";
+import Drawer from "@/app/components/Drawer";
 import { useToast } from "@/app/components/Toast";
 import {
   listarCartinhasFiltradas,
@@ -29,17 +30,24 @@ interface Tag {
   nome: string;
 }
 
+interface Instituicao {
+  id: number;
+  nome_instituicao: string;
+}
+
 const ITENS_POR_PAGINA = 12;
 
 export default function ListaCartinhasHome({
   cartinhas: cartinhasIniciais,
   totalInicial,
   tags,
+  instituicoes,
   totalApadrinhadas = 0,
 }: {
   cartinhas: Cartinha[];
   totalInicial: number;
   tags: Tag[];
+  instituicoes: Instituicao[];
   totalApadrinhadas?: number;
 }) {
   const { adicionarCartinha, removerCartinha, temCartinha } =
@@ -48,34 +56,31 @@ export default function ListaCartinhasHome({
   const [cartinhas, setCartinhas] = useState<Cartinha[]>(cartinhasIniciais);
   const [total, setTotal] = useState(totalInicial);
 
+  const [buscaNome, setBuscaNome] = useState<string>("");
+  const [filtroInstituicao, setFiltroInstituicao] = useState<string>("");
   const [filtroTag, setFiltroTag] = useState<string>("");
   const [filtroIdadeMin, setFiltroIdadeMin] = useState<string>("");
   const [filtroIdadeMax, setFiltroIdadeMax] = useState<string>("");
+  const [filtrosAplicados, setFiltrosAplicados] = useState<FiltrosCartinhas>({});
+  const [menuFiltrosAberto, setMenuFiltrosAberto] = useState(false);
   const [isCarregando, setIsCarregando] = useState(false);
+  const mostrarFiltroInstituicao = instituicoes.length > 1;
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [fotoAberta, setFotoAberta] = useState<{ src: string; alt: string } | null>(null);
   const topoListaRef = useRef<HTMLDivElement>(null);
 
+  // A paginação reaproveita os filtros já aplicados, não o que está digitado nos campos.
   const buscarPagina = async (
     pagina: number,
-    filtrosExplicitos?: FiltrosCartinhas,
+    filtros: FiltrosCartinhas = filtrosAplicados,
     rolarParaTopo = false,
   ) => {
     setIsCarregando(true);
     try {
-      let filtros: FiltrosCartinhas;
-      if (filtrosExplicitos) {
-        filtros = filtrosExplicitos;
-      } else {
-        filtros = {};
-        if (filtroTag)      filtros.tag_id    = parseInt(filtroTag);
-        if (filtroIdadeMin) filtros.idade_min = parseInt(filtroIdadeMin);
-        if (filtroIdadeMax) filtros.idade_max = parseInt(filtroIdadeMax);
-      }
-
       const resultado = await listarCartinhasFiltradas(filtros, pagina, ITENS_POR_PAGINA);
       setCartinhas(resultado.cartinhas);
       setTotal(resultado.total);
+      setFiltrosAplicados(filtros);
       setPaginaAtual(pagina);
       if (rolarParaTopo) {
         topoListaRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -87,14 +92,133 @@ export default function ListaCartinhasHome({
     }
   };
 
-  const aplicarFiltros = () => buscarPagina(1);
+  const aplicarFiltros = () => {
+    const filtros: FiltrosCartinhas = {};
+    if (buscaNome.trim())  filtros.nome_crianca   = buscaNome.trim();
+    if (filtroInstituicao) filtros.instituicao_id = parseInt(filtroInstituicao);
+    if (filtroTag)         filtros.tag_id         = parseInt(filtroTag);
+    if (filtroIdadeMin)    filtros.idade_min      = parseInt(filtroIdadeMin);
+    if (filtroIdadeMax)    filtros.idade_max      = parseInt(filtroIdadeMax);
+    setMenuFiltrosAberto(false);
+    buscarPagina(1, filtros);
+  };
 
   const limparFiltros = () => {
+    setBuscaNome("");
+    setFiltroInstituicao("");
     setFiltroTag("");
     setFiltroIdadeMin("");
     setFiltroIdadeMax("");
+    setMenuFiltrosAberto(false);
     buscarPagina(1, {});
   };
+
+  // Idade mín. e máx. contam como um filtro só.
+  const quantidadeFiltrosAtivos =
+    Number(Boolean(filtrosAplicados.nome_crianca)) +
+    Number(filtrosAplicados.instituicao_id !== undefined) +
+    Number(filtrosAplicados.tag_id !== undefined) +
+    Number(filtrosAplicados.idade_min !== undefined || filtrosAplicados.idade_max !== undefined);
+
+  const classeRotulo = "block text-[11px] font-semibold text-stone-500 uppercase tracking-wide mb-1.5";
+  const classeCampo = "w-full h-9 border-0 border-b-[1.5px] border-stone-300 bg-transparent text-sm text-ink focus:outline-none focus:border-ink";
+
+  // Os mesmos campos aparecem na barra (desktop) e no menu (celular); o prefixo evita id repetido.
+  const renderCampos = (prefixo: string) => (
+    <>
+      <div className="col-span-2 lg:col-span-1">
+        <label htmlFor={`${prefixo}-nome`} className={classeRotulo}>
+          Nome da criança
+        </label>
+        <input
+          id={`${prefixo}-nome`}
+          type="search"
+          value={buscaNome}
+          onChange={(e) => setBuscaNome(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") aplicarFiltros();
+          }}
+          placeholder="Buscar pelo nome"
+          maxLength={100}
+          className={`${classeCampo} placeholder:text-stone-400`}
+        />
+      </div>
+
+      {mostrarFiltroInstituicao && (
+        <div className="col-span-2 lg:col-span-1">
+          <label htmlFor={`${prefixo}-instituicao`} className={classeRotulo}>
+            Instituição
+          </label>
+          <select
+            id={`${prefixo}-instituicao`}
+            value={filtroInstituicao}
+            onChange={(e) => setFiltroInstituicao(e.target.value)}
+            className={classeCampo}
+          >
+            <option value="">Todas as instituições</option>
+            {instituicoes.map((instituicao) => (
+              <option key={instituicao.id} value={instituicao.id}>
+                {instituicao.nome_instituicao}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      <div className="col-span-2 lg:col-span-1">
+        <label htmlFor={`${prefixo}-categoria`} className={classeRotulo}>
+          Categoria
+        </label>
+        <select
+          id={`${prefixo}-categoria`}
+          value={filtroTag}
+          onChange={(e) => setFiltroTag(e.target.value)}
+          className={classeCampo}
+        >
+          <option value="">Todas as categorias</option>
+          {tags.map((tag) => (
+            <option key={tag.id} value={tag.id}>
+              {tag.nome}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label htmlFor={`${prefixo}-idade-min`} className={classeRotulo}>
+          Idade mín.
+        </label>
+        <input
+          id={`${prefixo}-idade-min`}
+          type="number"
+          value={filtroIdadeMin}
+          onChange={(e) => setFiltroIdadeMin(e.target.value)}
+          placeholder="0"
+          min="0"
+          max="18"
+          className={classeCampo}
+        />
+      </div>
+
+      <div>
+        <label htmlFor={`${prefixo}-idade-max`} className={classeRotulo}>
+          Idade máx.
+        </label>
+        <input
+          id={`${prefixo}-idade-max`}
+          type="number"
+          value={filtroIdadeMax}
+          onChange={(e) => setFiltroIdadeMax(e.target.value)}
+          placeholder="12"
+          min="0"
+          max="18"
+          className={classeCampo}
+        />
+      </div>
+    </>
+  );
+
+  const contagemEncontradas = `${total} ${total === 1 ? "cartinha encontrada" : "cartinhas encontradas"}`;
 
   const handleApadrinhar = (cartinha: Cartinha) => {
     if (temCartinha(cartinha.id)) {
@@ -150,78 +274,87 @@ export default function ListaCartinhasHome({
       </div>
 
       <div ref={topoListaRef} className="max-w-6xl mx-auto px-4 md:px-8 pb-16 scroll-mt-32">
-        {/* Filtros */}
-        <div className="flex flex-wrap items-end gap-6 border-b border-stone-200 pb-5 mb-8">
-          <div className="min-w-45">
-            <label htmlFor="filtro-categoria" className="block text-[11px] font-semibold text-stone-500 uppercase tracking-wide mb-1.5">
-              Categoria
-            </label>
-            <select
-              id="filtro-categoria"
-              value={filtroTag}
-              onChange={(e) => setFiltroTag(e.target.value)}
-              className="w-full border-0 border-b-[1.5px] border-stone-300 bg-transparent py-1.5 text-sm text-ink focus:outline-none focus:border-ink"
+        {/* Filtros: barra no desktop/tablet */}
+        <div className="hidden md:block border-b border-stone-200 pb-5 mb-8">
+          <div
+            className={`grid grid-cols-4 gap-x-6 gap-y-5 items-end ${
+              mostrarFiltroInstituicao
+                ? "lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1.3fr)_minmax(0,1fr)_6rem_6rem]"
+                : "lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_6rem_6rem]"
+            }`}
+          >
+            {renderCampos("filtro")}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3 mt-5">
+            <button
+              onClick={aplicarFiltros}
+              disabled={isCarregando}
+              className="bg-ink text-white border border-ink px-5 py-2 rounded font-semibold text-[13px] hover:bg-white hover:text-ink transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <option value="">Todas as categorias</option>
-              {tags.map((tag) => (
-                <option key={tag.id} value={tag.id}>
-                  {tag.nome}
-                </option>
-              ))}
-            </select>
-          </div>
+              {isCarregando ? "Filtrando..." : "Filtrar"}
+            </button>
+            <button
+              onClick={limparFiltros}
+              disabled={isCarregando}
+              className="bg-transparent text-stone-500 border border-stone-300 px-5 py-2 rounded font-semibold text-[13px] hover:bg-cream-deep transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Limpar
+            </button>
 
-          <div className="w-28">
-            <label htmlFor="filtro-idade-min" className="block text-[11px] font-semibold text-stone-500 uppercase tracking-wide mb-1.5">
-              Idade mín.
-            </label>
-            <input
-              id="filtro-idade-min"
-              type="number"
-              value={filtroIdadeMin}
-              onChange={(e) => setFiltroIdadeMin(e.target.value)}
-              placeholder="0"
-              min="0"
-              max="18"
-              className="w-full border-0 border-b-[1.5px] border-stone-300 bg-transparent py-1.5 text-sm text-ink focus:outline-none focus:border-ink"
-            />
-          </div>
-
-          <div className="w-28">
-            <label htmlFor="filtro-idade-max" className="block text-[11px] font-semibold text-stone-500 uppercase tracking-wide mb-1.5">
-              Idade máx.
-            </label>
-            <input
-              id="filtro-idade-max"
-              type="number"
-              value={filtroIdadeMax}
-              onChange={(e) => setFiltroIdadeMax(e.target.value)}
-              placeholder="12"
-              min="0"
-              max="18"
-              className="w-full border-0 border-b-[1.5px] border-stone-300 bg-transparent py-1.5 text-sm text-ink focus:outline-none focus:border-ink"
-            />
-          </div>
-
-          <button
-            onClick={aplicarFiltros}
-            disabled={isCarregando}
-            className="bg-ink text-white border border-ink px-5 py-2 rounded font-semibold text-[13px] hover:bg-white hover:text-ink transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isCarregando ? "Filtrando..." : "Filtrar"}
-          </button>
-          <button
-            onClick={limparFiltros}
-            disabled={isCarregando}
-            className="bg-transparent text-stone-500 border border-stone-300 px-5 py-2 rounded font-semibold text-[13px] hover:bg-cream-deep transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Limpar
-          </button>
-
-          <div className="ml-auto text-[13px] text-stone-500 self-center">
-            {total} {total === 1 ? "cartinha encontrada" : "cartinhas encontradas"}
+            <div className="ml-auto text-[13px] text-stone-500">{contagemEncontradas}</div>
           </div>
         </div>
+
+        {/* Filtros: botão + menu no celular */}
+        <div className="md:hidden flex items-center justify-between gap-3 border-b border-stone-200 pb-4 mb-6">
+          <button
+            onClick={() => setMenuFiltrosAberto(true)}
+            aria-haspopup="dialog"
+            className="shrink-0 whitespace-nowrap flex items-center gap-2 bg-transparent text-ink border border-ink px-4 py-2 rounded font-semibold text-[13px] hover:bg-cream-deep transition-colors"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4" aria-hidden="true">
+              <path strokeLinecap="round" d="M4 6h16M7 12h10M10 18h4" />
+            </svg>
+            Filtros
+            {quantidadeFiltrosAtivos > 0 && (
+              <span className="bg-brand-dark text-white rounded-full min-w-5 h-5 px-1.5 text-[11px] leading-5 text-center">
+                {quantidadeFiltrosAtivos}
+              </span>
+            )}
+          </button>
+          <div className="text-[13px] text-stone-500 text-right">{contagemEncontradas}</div>
+        </div>
+
+        <Drawer
+          isOpen={menuFiltrosAberto}
+          onClose={() => setMenuFiltrosAberto(false)}
+          side="right"
+          title="Filtrar cartinhas"
+          width="w-80 max-w-[90vw]"
+          footer={
+            <div className="flex gap-3 p-4">
+              <button
+                onClick={limparFiltros}
+                disabled={isCarregando}
+                className="flex-1 bg-transparent text-stone-500 border border-stone-300 py-2.5 rounded font-semibold text-[13px] hover:bg-cream-deep transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Limpar
+              </button>
+              <button
+                onClick={aplicarFiltros}
+                disabled={isCarregando}
+                className="flex-2 bg-ink text-white border border-ink py-2.5 rounded font-semibold text-[13px] hover:bg-white hover:text-ink transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isCarregando ? "Filtrando..." : "Aplicar filtros"}
+              </button>
+            </div>
+          }
+        >
+          <div className="grid grid-cols-2 gap-x-5 gap-y-6 p-5">
+            {renderCampos("menu-filtro")}
+          </div>
+        </Drawer>
 
         {total === 0 ? (
           <div className="text-center py-20">

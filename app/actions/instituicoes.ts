@@ -4,10 +4,17 @@ import db from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { validarPermissaoAdmin } from "@/lib/auth";
 import { idValido } from "@/lib/seguranca";
+import type { RowDataPacket } from "mysql2/promise";
 
 export interface InstituicaoState {
   success: boolean;
   message: string;
+}
+
+// Só o que o filtro da home precisa. Contato e responsável não saem num payload público.
+export interface InstituicaoPublicaRow extends RowDataPacket {
+  id: number;
+  nome_instituicao: string;
 }
 
 export async function salvarInstituicao(
@@ -86,5 +93,24 @@ export async function excluirInstituicao(id: number): Promise<InstituicaoState> 
       message:
         "Não foi possível excluir a instituição. Verifique se existem cartinhas vinculadas.",
     };
+  }
+}
+
+// --- LISTA PÚBLICA (filtro da home) ---
+// Só instituições com cartinha disponível na campanha ativa, pra não oferecer opção vazia.
+export async function listarInstituicoesComCartinhas(): Promise<InstituicaoPublicaRow[]> {
+  try {
+    const [instituicoes] = await db.query<InstituicaoPublicaRow[]>(
+      `SELECT DISTINCT i.id, i.nome_instituicao
+       FROM instituicoes i
+       JOIN cartinhas c ON c.instituicao_id = i.id
+       WHERE c.status IN ('disponivel', 'carente')
+         AND c.campanha_id = (SELECT id FROM campanhas WHERE data_encerramento IS NULL LIMIT 1)
+       ORDER BY i.nome_instituicao ASC`,
+    );
+    return instituicoes;
+  } catch (err) {
+    console.error("Erro ao listar instituições:", err);
+    return [];
   }
 }

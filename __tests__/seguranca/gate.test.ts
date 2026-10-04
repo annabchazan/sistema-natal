@@ -34,6 +34,7 @@ const ACOES_PUBLICAS: Record<string, string> = {
   "app/actions/auth.ts": "cadastrarUsuario loginUsuario logoutUsuario buscarUsuarioAutenticado solicitarRecuperacaoSenha redefinirSenha",
   "app/actions/cartinhas.ts": "gerarNumeroSequencial buscarCartinhasParaCheckout listarCartinhas contarCartinhasApadrinhadas listarCartinhasFiltradas",
   "app/actions/campanhas.ts": "obterOuCriarCampanhaAtiva listarCampanhas",
+  "app/actions/instituicoes.ts": "listarInstituicoesComCartinhas",
   "app/actions/pontosEntrega.ts": "listarPontosEntrega",
   "app/actions/tags.ts": "listarTags",
 };
