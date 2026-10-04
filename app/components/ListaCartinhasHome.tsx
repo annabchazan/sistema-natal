@@ -445,7 +445,7 @@ export default function ListaCartinhasHome({
                 className="bg-white border border-stone-200 rounded-md overflow-hidden hover:shadow-[0_8px_24px_rgba(30,27,23,.08)] transition-shadow"
               >
                 <div
-                  className={`relative h-60 bg-[repeating-linear-gradient(135deg,#F0EAE0,#F0EAE0_10px,#E7DFD2_10px,#E7DFD2_20px)] ${
+                  className={`relative aspect-10/7 md:aspect-auto md:h-60 bg-[repeating-linear-gradient(135deg,#F0EAE0,#F0EAE0_10px,#E7DFD2_10px,#E7DFD2_20px)] ${
                     cartinha.foto_cartinha ? "group cursor-zoom-in" : ""
                   }`}
                   role={cartinha.foto_cartinha ? "button" : undefined}
