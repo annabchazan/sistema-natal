@@ -10,6 +10,8 @@ import {
   Section,
   Text,
 } from "@react-email/components";
+import Cabecalho from "./Cabecalho";
+import { cores, estilos } from "./tema";
 
 interface LembreteEntregaProps {
   nomePadrinho: string;
@@ -47,8 +49,9 @@ export default function LembreteEntrega({
     ? `⚠️ O prazo para entregar o presente de ${nomeCrianca} venceu`
     : `⏰ Faltam 10 dias para entregar o presente de ${nomeCrianca}`;
 
-  const corDestaque = vencido ? "#dc2626" : "#d97706";
-  const emoji = vencido ? "⚠️" : "⏰";
+  // Vermelho do Natal só quando o prazo venceu; senão, o laranja da marca.
+  const corDestaque = vencido ? cores.vermelho : cores.marca;
+  const corTexto = vencido ? cores.vermelho : cores.marcaEscura;
 
   return (
     <Html lang="pt-BR">
@@ -57,21 +60,17 @@ export default function LembreteEntrega({
       <Body style={estilos.body}>
         <Container style={estilos.container}>
 
-          {/* Cabeçalho */}
-          <Section style={{ ...estilos.cabecalho, background: vencido ? "#dc2626" : "#d97706" }}>
-            <Text style={estilos.emojiGrande}>{emoji}</Text>
-            <Heading style={estilos.tituloCabecalho}>Natal Solidário</Heading>
-            <Text style={estilos.subtituloCabecalho}>
-              {vencido ? "Prazo de entrega vencido" : "Lembrete de entrega"}
-            </Text>
-          </Section>
+          <Cabecalho
+            rotulo={`Natal Solidário · ${vencido ? "Prazo de entrega vencido" : "Lembrete de entrega"}`}
+            urlSite={urlSite}
+          />
 
           {/* Saudação */}
           <Section style={estilos.conteudo}>
             <Heading as="h2" style={estilos.saudacao}>
               Olá, {primeiroNome}!
             </Heading>
-            <Text style={estilos.texto}>
+            <Text style={{ ...estilos.texto, margin: "0" }}>
               {vencido ? (
                 <>
                   O prazo para entregar o presente de <strong>{nomeCrianca}</strong> já passou.
@@ -91,17 +90,17 @@ export default function LembreteEntrega({
 
           {/* Card da cartinha */}
           <Section style={estilos.conteudo}>
-            <Heading as="h3" style={estilos.tituloSecao}>🎁 Detalhes da cartinha</Heading>
-            <Section style={{ ...estilos.card, borderColor: corDestaque }}>
-              <Text style={{ ...estilos.nomeCartinha, color: corDestaque }}>
+            <Heading as="h3" style={estilos.tituloSecao}>Detalhes da cartinha</Heading>
+            <Section style={{ ...estilos.card, borderLeftColor: corDestaque }}>
+              <Text style={estilos.nomeCartinha}>
                 {numeroSequencial != null ? `#${numeroSequencial} — ` : ""}
                 {nomeCrianca}
               </Text>
               <Text style={estilos.detalhe}>
                 <strong>Presente desejado:</strong> {presentePedido}
               </Text>
-              <Text style={{ ...estilos.prazo, color: corDestaque }}>
-                📅 {vencido ? "Prazo vencido em: " : "Entregar até: "}
+              <Text style={{ ...estilos.status, color: corTexto }}>
+                {vencido ? "Prazo vencido em " : "Entregar até "}
                 {formatarData(dataLimite)}
               </Text>
             </Section>
@@ -139,11 +138,11 @@ export default function LembreteEntrega({
           </Section>
 
           {/* Botões */}
-          <Section style={estilos.secaoBotoes}>
-            <Button href={`${urlSite}/pontos-entrega`} style={estilos.botaoPrimario}>
+          <Section style={estilos.secaoBotao}>
+            <Button href={`${urlSite}/pontos-entrega`} style={estilos.botao}>
               Ver pontos de entrega
             </Button>
-            <Text style={estilos.separador}> </Text>
+            <Text style={{ display: "block", height: "8px", margin: "0" }}> </Text>
             <Button href={`${urlSite}/usuario`} style={estilos.botaoSecundario}>
               Minha área
             </Button>
@@ -160,10 +159,10 @@ export default function LembreteEntrega({
               </a>{" "}
               ou fale conosco pelo WhatsApp.
             </Text>
-            <Text style={estilos.textoRodape}>
+            <Text style={{ ...estilos.textoRodape, color: cores.textoCorpo }}>
               Com carinho,
               <br />
-              <strong>Equipe Natal Solidário</strong> 🎅
+              <strong>Equipe Sempre Criança</strong> 🎅
             </Text>
           </Section>
 
@@ -172,134 +171,3 @@ export default function LembreteEntrega({
     </Html>
   );
 }
-
-const estilos = {
-  body: {
-    backgroundColor: "#f9fafb",
-    fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
-    margin: "0",
-    padding: "20px 0",
-  },
-  container: {
-    backgroundColor: "#ffffff",
-    borderRadius: "12px",
-    margin: "0 auto",
-    maxWidth: "560px",
-    overflow: "hidden",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-  },
-  cabecalho: {
-    padding: "32px 40px",
-    textAlign: "center" as const,
-  },
-  emojiGrande: {
-    fontSize: "48px",
-    margin: "0 0 8px 0",
-    lineHeight: "1",
-  },
-  tituloCabecalho: {
-    color: "#ffffff",
-    fontSize: "26px",
-    fontWeight: "700",
-    margin: "0 0 4px 0",
-  },
-  subtituloCabecalho: {
-    color: "rgba(255,255,255,0.9)",
-    fontSize: "14px",
-    margin: "0",
-  },
-  conteudo: {
-    padding: "28px 40px",
-  },
-  saudacao: {
-    color: "#111827",
-    fontSize: "22px",
-    fontWeight: "700",
-    margin: "0 0 12px 0",
-  },
-  texto: {
-    color: "#374151",
-    fontSize: "15px",
-    lineHeight: "1.6",
-    margin: "0",
-  },
-  divisor: {
-    borderColor: "#e5e7eb",
-    margin: "0 40px",
-  },
-  tituloSecao: {
-    color: "#111827",
-    fontSize: "16px",
-    fontWeight: "700",
-    margin: "0 0 16px 0",
-  },
-  card: {
-    backgroundColor: "#fff7ed",
-    border: "1px solid",
-    borderRadius: "8px",
-    padding: "16px 20px",
-  },
-  nomeCartinha: {
-    fontSize: "16px",
-    fontWeight: "700",
-    margin: "0 0 6px 0",
-  },
-  detalhe: {
-    color: "#374151",
-    fontSize: "14px",
-    margin: "0 0 4px 0",
-  },
-  prazo: {
-    fontSize: "13px",
-    fontWeight: "600",
-    margin: "0",
-  },
-  passo: {
-    color: "#374151",
-    fontSize: "14px",
-    lineHeight: "1.6",
-    margin: "0 0 8px 0",
-  },
-  secaoBotoes: {
-    padding: "8px 40px 28px",
-    textAlign: "center" as const,
-  },
-  botaoPrimario: {
-    backgroundColor: "#16a34a",
-    borderRadius: "8px",
-    color: "#ffffff",
-    display: "inline-block",
-    fontSize: "14px",
-    fontWeight: "700",
-    padding: "12px 24px",
-    textDecoration: "none",
-    marginBottom: "8px",
-  },
-  separador: {
-    display: "block",
-    height: "8px",
-  },
-  botaoSecundario: {
-    backgroundColor: "#f3f4f6",
-    borderRadius: "8px",
-    color: "#374151",
-    display: "inline-block",
-    fontSize: "14px",
-    fontWeight: "600",
-    padding: "12px 24px",
-    textDecoration: "none",
-  },
-  rodape: {
-    backgroundColor: "#f9fafb",
-    padding: "24px 40px",
-  },
-  textoRodape: {
-    color: "#9ca3af",
-    fontSize: "13px",
-    lineHeight: "1.6",
-    margin: "0 0 8px 0",
-  },
-  link: {
-    color: "#dc2626",
-  },
-};

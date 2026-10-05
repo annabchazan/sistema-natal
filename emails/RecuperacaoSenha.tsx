@@ -10,6 +10,8 @@ import {
   Section,
   Text,
 } from "@react-email/components";
+import Cabecalho from "./Cabecalho";
+import { cores, estilos } from "./tema";
 
 interface RecuperacaoSenhaProps {
   linkRedefinicao: string;
@@ -23,11 +25,7 @@ export default function RecuperacaoSenha({ linkRedefinicao }: RecuperacaoSenhaPr
       <Body style={estilos.body}>
         <Container style={estilos.container}>
 
-          <Section style={estilos.cabecalho}>
-            <Text style={estilos.emoji}>🎄</Text>
-            <Heading style={estilos.titulo}>Natal Solidário</Heading>
-            <Text style={estilos.subtitulo}>Redefinição de senha</Text>
-          </Section>
+          <Cabecalho rotulo="Natal Solidário · Redefinição de senha" />
 
           <Section style={estilos.conteudo}>
             <Heading as="h2" style={estilos.saudacao}>
@@ -52,20 +50,20 @@ export default function RecuperacaoSenha({ linkRedefinicao }: RecuperacaoSenhaPr
           <Hr style={estilos.divisor} />
 
           <Section style={estilos.conteudo}>
-            <Text style={estilos.textoAvisoTitulo}>
+            <Text style={{ ...estilos.textoRodape, fontWeight: "600", margin: "0 0 4px 0" }}>
               Não solicitou a redefinição?
             </Text>
-            <Text style={estilos.textoAviso}>
+            <Text style={{ ...estilos.textoRodape, margin: "0" }}>
               Se você não fez essa solicitação, pode ignorar este e-mail com
               segurança. Sua senha permanece a mesma.
             </Text>
           </Section>
 
           <Section style={estilos.rodape}>
-            <Text style={estilos.textoRodape}>
+            <Text style={{ ...estilos.textoRodape, color: cores.textoCorpo, margin: "0" }}>
               Com carinho,
               <br />
-              <strong>Equipe Natal Solidário</strong> 🎅
+              <strong>Equipe Sempre Criança</strong> 🎅
             </Text>
           </Section>
 
@@ -74,47 +72,3 @@ export default function RecuperacaoSenha({ linkRedefinicao }: RecuperacaoSenhaPr
     </Html>
   );
 }
-
-const estilos = {
-  body: {
-    backgroundColor: "#f9fafb",
-    fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
-    margin: "0",
-    padding: "20px 0",
-  },
-  container: {
-    backgroundColor: "#ffffff",
-    borderRadius: "12px",
-    margin: "0 auto",
-    maxWidth: "520px",
-    overflow: "hidden",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-  },
-  cabecalho: {
-    background: "linear-gradient(135deg, #dc2626 0%, #16a34a 100%)",
-    padding: "32px 40px",
-    textAlign: "center" as const,
-  },
-  emoji: { fontSize: "48px", margin: "0 0 8px 0", lineHeight: "1" },
-  titulo: { color: "#ffffff", fontSize: "24px", fontWeight: "700", margin: "0 0 4px 0" },
-  subtitulo: { color: "rgba(255,255,255,0.85)", fontSize: "14px", margin: "0" },
-  conteudo: { padding: "28px 40px" },
-  saudacao: { color: "#111827", fontSize: "20px", fontWeight: "700", margin: "0 0 12px 0" },
-  texto: { color: "#374151", fontSize: "15px", lineHeight: "1.6", margin: "0 0 12px 0" },
-  secaoBotao: { padding: "0 40px 28px", textAlign: "center" as const },
-  botao: {
-    backgroundColor: "#dc2626",
-    borderRadius: "8px",
-    color: "#ffffff",
-    display: "inline-block",
-    fontSize: "15px",
-    fontWeight: "700",
-    padding: "14px 32px",
-    textDecoration: "none",
-  },
-  divisor: { borderColor: "#e5e7eb", margin: "0 40px" },
-  textoAvisoTitulo: { color: "#6b7280", fontSize: "13px", fontWeight: "600", margin: "0 0 4px 0" },
-  textoAviso: { color: "#9ca3af", fontSize: "13px", lineHeight: "1.6", margin: "0" },
-  rodape: { backgroundColor: "#f9fafb", padding: "20px 40px" },
-  textoRodape: { color: "#9ca3af", fontSize: "13px", lineHeight: "1.6", margin: "0" },
-};
