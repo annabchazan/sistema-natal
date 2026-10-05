@@ -144,7 +144,7 @@ export default function ListaCartinhasHome({
 
   const chipsAtivos: { chave: ChaveFiltro; rotulo: string }[] = [];
   if (filtrosAplicados.nome_crianca) {
-    chipsAtivos.push({ chave: "nome", rotulo: `Nome: ${filtrosAplicados.nome_crianca}` });
+    chipsAtivos.push({ chave: "nome", rotulo: `Busca: ${filtrosAplicados.nome_crianca}` });
   }
   if (filtrosAplicados.instituicao_id !== undefined) {
     const nome = instituicoes.find((i) => i.id === filtrosAplicados.instituicao_id)?.nome_instituicao;
@@ -193,7 +193,7 @@ export default function ListaCartinhasHome({
     <>
       <div className="col-span-2 lg:col-span-1">
         <label htmlFor={`${prefixo}-nome`} className={classeRotulo}>
-          Nome da criança
+          Nome ou presente
         </label>
         <input
           id={`${prefixo}-nome`}
@@ -204,7 +204,7 @@ export default function ListaCartinhasHome({
           onKeyDown={(e) => {
             if (e.key === "Enter") aplicarFiltros();
           }}
-          placeholder="Buscar pelo nome"
+          placeholder="Nome, bola, boneca..."
           maxLength={100}
           className={`${classeCampo} placeholder:text-stone-400`}
         />

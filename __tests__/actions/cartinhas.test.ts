@@ -216,12 +216,12 @@ describe("listarCartinhasFiltradas", () => {
     expect(params).toEqual([]);
   });
 
-  it("busca por nome com LIKE parametrizado e escapa curingas", async () => {
+  it("busca por nome ou presente com LIKE parametrizado e escapa curingas", async () => {
     mockListagem();
     await listarCartinhasFiltradas({ nome_crianca: "  Ana_%  " });
     const [sql, params] = mockDb.query.mock.calls[0];
-    expect(sql).toContain("c.nome_crianca LIKE ?");
-    expect(params).toEqual(["%Ana\\_\\%%"]);
+    expect(sql).toContain("(c.nome_crianca LIKE ? OR c.presente_pedido LIKE ?)");
+    expect(params).toEqual(["%Ana\\_\\%%", "%Ana\\_\\%%"]);
   });
 
   it("ignora busca vazia e corta nome longo", async () => {
@@ -238,6 +238,6 @@ describe("listarCartinhasFiltradas", () => {
   it("combina instituição, nome e categoria", async () => {
     mockListagem();
     await listarCartinhasFiltradas({ tag_id: 2, instituicao_id: 5, nome_crianca: "Lu" });
-    expect(mockDb.query.mock.calls[0][1]).toEqual([2, 5, "%Lu%"]);
+    expect(mockDb.query.mock.calls[0][1]).toEqual([2, 5, "%Lu%", "%Lu%"]);
   });
 });

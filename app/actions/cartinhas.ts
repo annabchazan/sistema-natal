@@ -605,8 +605,10 @@ export async function listarCartinhasFiltradas(
         ? filtros.nome_crianca.trim().slice(0, LIMITE_BUSCA_NOME)
         : "";
     if (nomeBusca) {
-      condicoes.push("c.nome_crianca LIKE ?");
-      params.push(`%${escaparLike(nomeBusca)}%`);
+      // Busca única: bate no nome da criança ou no presente pedido (ex.: "bola", "boneca").
+      condicoes.push("(c.nome_crianca LIKE ? OR c.presente_pedido LIKE ?)");
+      const termo = `%${escaparLike(nomeBusca)}%`;
+      params.push(termo, termo);
     }
     const idadeMin = filtros.idade_min;
     const idadeMax = filtros.idade_max;
