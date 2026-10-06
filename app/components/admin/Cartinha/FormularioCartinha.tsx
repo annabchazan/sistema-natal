@@ -4,6 +4,7 @@ import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { salvarCartinha, CartinhaState } from "@/app/actions/cartinhas";
 import { NUMERACAO_MANUAL_CARTINHAS } from "@/lib/config";
+import { dataISO, hojeNoBrasil } from "@/app/utils/datas";
 import type { CartinhaItem, InstituicaoOption, TagOption } from "./types";
 
 interface FormProps {
@@ -33,6 +34,12 @@ export default function FormularioCartinha({
       }
     }
   }, [state.success, onSuccess, router]);
+
+  // Ao editar uma cartinha com prazo já vencido, o mínimo não pode barrar o próprio prazo dela,
+  // senão o navegador impede salvar qualquer outra alteração.
+  const prazoAtual = dataISO(cartinha?.data_limite_entrega);
+  const hoje = hojeNoBrasil();
+  const minimoPrazo = prazoAtual && prazoAtual < hoje ? prazoAtual : hoje;
 
   return (
     <>
@@ -171,8 +178,8 @@ export default function FormularioCartinha({
               name="data_limite_entrega"
               type="date"
               className="w-full p-2 border rounded-md"
-              min={new Date().toISOString().split("T")[0]}
-              defaultValue={cartinha?.data_limite_entrega ?? ""}
+              min={minimoPrazo}
+              defaultValue={prazoAtual}
             />
             <p className="text-xs text-gray-500 mt-1">
               Quando o presente deve ser entregue

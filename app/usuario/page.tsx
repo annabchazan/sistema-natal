@@ -7,6 +7,7 @@ import BotaoCancelarApadrinamento from "@/app/components/usuario/BotaoCancelarAp
 import BotaoExcluirConta from "@/app/components/usuario/BotaoExcluirConta";
 import FotoCartinhaUsuario from "@/app/components/usuario/FotoCartinhaUsuario";
 import { STATUS_CARTINHA } from "@/lib/statusCartinha";
+import { diasAtePrazo } from "@/app/utils/datas";
 import type { RowDataPacket } from "mysql2/promise";
 
 interface CartinhaUsuarioRow extends RowDataPacket {
@@ -109,9 +110,6 @@ export default async function UsuarioPage() {
     [usuario.id],
   );
 
-  const hoje = new Date();
-  hoje.setHours(0, 0, 0, 0);
-
   return (
     <div className="min-h-screen bg-cream py-14">
       <div className="max-w-3xl mx-auto px-4">
@@ -167,14 +165,7 @@ export default async function UsuarioPage() {
                 mensagem: MENSAGEM_STATUS[cartinha.status] ?? "",
               };
 
-              const prazo = cartinha.data_limite_entrega
-                ? new Date(cartinha.data_limite_entrega)
-                : null;
-              if (prazo) prazo.setHours(0, 0, 0, 0);
-
-              const diasRestantes = prazo
-                ? Math.ceil((prazo.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24))
-                : null;
+              const diasRestantes = diasAtePrazo(cartinha.data_limite_entrega);
 
               const statusAtivo =
                 cartinha.status !== "entregue" && cartinha.status !== "cancelada";
@@ -255,7 +246,7 @@ export default async function UsuarioPage() {
                       </span>
 
                       <div className="flex items-center gap-3">
-                        {prazo && statusAtivo && (
+                        {diasRestantes !== null && statusAtivo && (
                           <span
                             className={`flex items-center gap-1.5 font-semibold ${
                               prazoVencido

@@ -7,6 +7,7 @@ import { STATUS_CARTINHA } from "@/lib/statusCartinha";
 import { usePaginacao } from "@/app/hooks/usePaginacao";
 import { useExclusaoComConfirmacao } from "@/app/hooks/useExclusaoComConfirmacao";
 import { useToast } from "@/app/components/Toast";
+import { diasAtePrazo, formatarDataCurta } from "@/app/utils/datas";
 import Paginacao from "@/app/components/admin/Paginacao";
 import type { CartinhaItem } from "./types";
 
@@ -120,14 +121,12 @@ export default function TabelaCartinhas({
       label: item.status,
       classes: "bg-stone-100 text-stone-600",
     };
-    const hoje = new Date();
-    hoje.setHours(0, 0, 0, 0);
-    const prazoVencido = Boolean(
-      item.data_limite_entrega &&
-        new Date(item.data_limite_entrega) < hoje &&
-        item.status !== "entregue" &&
-        item.status !== "cancelada",
-    );
+    const diasRestantes = diasAtePrazo(item.data_limite_entrega);
+    const prazoVencido =
+      diasRestantes !== null &&
+      diasRestantes < 0 &&
+      item.status !== "entregue" &&
+      item.status !== "cancelada";
     return { statusInfo, prazoVencido };
   };
 
@@ -309,7 +308,7 @@ export default function TabelaCartinhas({
                 <td className="px-6 py-4">
                   {item.data_limite_entrega ? (
                     <span className={prazoVencido ? "text-vermelho-natal font-semibold" : "text-stone-500"}>
-                      {new Date(item.data_limite_entrega).toLocaleDateString("pt-BR")}
+                      {formatarDataCurta(item.data_limite_entrega)}
                       {prazoVencido && " (!)"}
                     </span>
                   ) : (
@@ -396,7 +395,7 @@ export default function TabelaCartinhas({
                 <span className="text-stone-500">Prazo:</span>{" "}
                 {item.data_limite_entrega ? (
                   <span className={prazoVencido ? "text-vermelho-natal font-semibold" : ""}>
-                    {new Date(item.data_limite_entrega).toLocaleDateString("pt-BR")}
+                    {formatarDataCurta(item.data_limite_entrega)}
                     {prazoVencido && " (!)"}
                   </span>
                 ) : (

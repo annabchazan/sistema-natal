@@ -5,6 +5,7 @@ import { useState, useRef } from "react";
 import Image from "next/image";
 import FotoLightbox from "@/app/components/FotoLightbox";
 import Drawer from "@/app/components/Drawer";
+import { formatarDataCurta } from "@/app/utils/datas";
 import { useToast } from "@/app/components/Toast";
 import {
   listarCartinhasFiltradas,
@@ -527,7 +528,7 @@ export default function ListaCartinhasHome({
                     </span>
                     {cartinha.data_limite_entrega && (
                       <span className="text-stone-500 whitespace-nowrap">
-                        Até {new Date(cartinha.data_limite_entrega).toLocaleDateString("pt-BR")}
+                        Até {formatarDataCurta(cartinha.data_limite_entrega)}
                       </span>
                     )}
                   </div>
