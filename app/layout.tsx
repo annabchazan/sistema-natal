@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "@/app/components/Header";
 import Footer from "@/app/components/Footer";
 import WhatsAppButton from "@/app/components/WhatsAppButton";
+import InstalarAppBanner from "@/app/components/InstalarAppBanner";
 import { ToastProvider } from "@/app/components/Toast";
 import { getUsuarioAutenticado } from "@/lib/auth";
 
@@ -66,6 +67,7 @@ export default async function RootLayout({
           <main className="grow">{children}</main>
           <Footer />
           <WhatsAppButton />
+          <InstalarAppBanner logado={usuario !== null} />
         </ToastProvider>
       </body>
     </html>
