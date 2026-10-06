@@ -566,25 +566,34 @@ export default function ListaCartinhasHome({
           </div>
 
           {total > ITENS_POR_PAGINA && (
-            <div className="flex items-center justify-center gap-1.5 mt-12">
-              <button
-                onClick={() => buscarPagina(Math.max(1, paginaAtual - 1), undefined, true)}
-                disabled={paginaAtual === 1 || isCarregando}
-                className="px-4 h-9 rounded border border-stone-300 text-stone-600 font-semibold text-[13px] hover:bg-cream-deep transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-              >
-                Anterior
-              </button>
-              <span className="text-stone-500 text-[13px] mx-3">
-                Página {paginaAtual} de {Math.max(1, Math.ceil(total / ITENS_POR_PAGINA))}
-              </span>
-              <button
-                onClick={() => buscarPagina(Math.min(Math.ceil(total / ITENS_POR_PAGINA), paginaAtual + 1), undefined, true)}
-                disabled={paginaAtual === Math.ceil(total / ITENS_POR_PAGINA) || isCarregando}
-                className="px-4 h-9 rounded border border-stone-300 text-stone-600 font-semibold text-[13px] hover:bg-cream-deep transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-              >
-                Próxima
-              </button>
-            </div>
+            <nav
+              aria-label="Paginação das cartinhas"
+              className="mt-8 sm:mt-12 pt-5 sm:pt-8 border-t border-stone-200 flex flex-col items-center gap-3 sm:gap-4"
+            >
+              <p className="text-stone-600 text-[13px] sm:text-[14px] text-center">
+                Mostrando página <strong>{paginaAtual}</strong> de{" "}
+                <strong>{Math.max(1, Math.ceil(total / ITENS_POR_PAGINA))}</strong>
+                {paginaAtual < Math.ceil(total / ITENS_POR_PAGINA) && (
+                  <> — ainda tem mais cartinhas esperando um padrinho!</>
+                )}
+              </p>
+              <div className="flex items-center justify-center gap-2 sm:gap-3 w-full">
+                <button
+                  onClick={() => buscarPagina(Math.max(1, paginaAtual - 1), undefined, true)}
+                  disabled={paginaAtual === 1 || isCarregando}
+                  className="flex-1 sm:flex-none sm:min-w-40 py-2.5 px-4 rounded border-2 border-brand-dark text-brand-dark font-semibold text-[13.5px] hover:bg-brand/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  ← Anterior
+                </button>
+                <button
+                  onClick={() => buscarPagina(Math.min(Math.ceil(total / ITENS_POR_PAGINA), paginaAtual + 1), undefined, true)}
+                  disabled={paginaAtual === Math.ceil(total / ITENS_POR_PAGINA) || isCarregando}
+                  className="flex-1 sm:flex-none sm:min-w-40 py-2.5 px-4 rounded bg-brand-dark text-white font-semibold text-[13.5px] hover:bg-brand-darker transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  Próxima →
+                </button>
+              </div>
+            </nav>
           )}
           </>
         )}
