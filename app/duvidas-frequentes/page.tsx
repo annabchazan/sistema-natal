@@ -1,11 +1,21 @@
+import BarraPagina from "@/app/components/BarraPagina";
+import BannerPagina from "@/app/components/BannerPagina";
 import FaqAccordion from "@/app/components/FaqAccordion";
 import { FAQ_CARTINHAS } from "@/app/data/faqCartinhas";
 
 export default function DuvidasFrequentes() {
   return (
-    <div className="min-h-screen bg-cream py-14">
-      <div className="max-w-3xl mx-auto px-4">
-          <h1 className="text-[26px] font-bold text-center text-ink tracking-tight mb-3">
+    <div className="min-h-screen bg-cream">
+      <BannerPagina nome="duvidas-frequentes" alt="Natal Solidário, Sempre Criança — Dúvidas frequentes" />
+      <BarraPagina
+        href="https://api.whatsapp.com/send/?phone=5521995720162&text&type=phone_number&app_absent=0"
+        rotulo="Falar no WhatsApp"
+        externo
+      >
+        Não achou sua resposta? Fale com a nossa equipe.
+      </BarraPagina>
+      <div className="max-w-3xl mx-auto px-4 py-14">
+          <h1 className="sr-only">
             Dúvidas frequentes
           </h1>
           <p className="text-center text-[13.5px] text-stone-500 mb-8 max-w-lg mx-auto">

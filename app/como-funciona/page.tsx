@@ -1,3 +1,6 @@
+import BarraPagina from "@/app/components/BarraPagina";
+import BannerPagina from "@/app/components/BannerPagina";
+
 const passos = [
   {
     titulo: "Escolha uma cartinha",
@@ -44,9 +47,13 @@ const passos = [
 
 export default function ComoFunciona() {
   return (
-    <div className="min-h-screen bg-cream py-14">
-      <div className="max-w-3xl mx-auto px-4">
-          <h1 className="text-[26px] font-bold text-center text-ink tracking-tight mb-8">
+    <div className="min-h-screen bg-cream">
+      <BannerPagina nome="como-funciona" alt="Natal Solidário, Sempre Criança — Como funciona" />
+      <BarraPagina href="/" rotulo="Ver cartinhas">
+        Pronto para apadrinhar? Escolha uma cartinha e transforme o Natal de uma criança.
+      </BarraPagina>
+      <div className="max-w-3xl mx-auto px-4 py-14">
+          <h1 className="sr-only">
             Como funciona
           </h1>
 

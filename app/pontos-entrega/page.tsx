@@ -1,15 +1,21 @@
 import { listarPontosEntrega } from "@/app/actions/pontosEntrega";
+import BarraPagina from "@/app/components/BarraPagina";
+import BannerPagina from "@/app/components/BannerPagina";
 import MapaPontosEntrega from "@/app/components/MapaPontosEntrega";
 
 export default async function PontosEntrega() {
   const pontos = await listarPontosEntrega();
 
   return (
-    <div className="min-h-full bg-cream py-14">
-      <div className="max-w-6xl mx-auto px-4 md:px-8">
-        <h2 className="text-2xl font-bold text-center text-ink tracking-tight mb-2">
+    <div className="min-h-full bg-cream">
+      <BannerPagina nome="pontos-de-entrega" alt="Natal Solidário, Sempre Criança — Pontos de entrega" />
+      <BarraPagina href="/" rotulo="Ver cartinhas">
+        Já escolheu a cartinha? Confira o prazo de entrega indicado nela.
+      </BarraPagina>
+      <div className="max-w-6xl mx-auto px-4 md:px-8 py-14">
+        <h1 className="sr-only">
           Pontos de entrega
-        </h2>
+        </h1>
         <p className="text-center text-stone-500 text-sm mb-7">
           Leve o presente até um dos locais abaixo, dentro do prazo indicado na cartinha
         </p>

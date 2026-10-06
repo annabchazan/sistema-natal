@@ -1,3 +1,6 @@
+import BarraPagina from "@/app/components/BarraPagina";
+import BannerPagina from "@/app/components/BannerPagina";
+
 const VALORES = [
   {
     nome: "Respeito",
@@ -24,28 +27,14 @@ const VALORES = [
 export default function QuemSomos() {
   return (
     <div className="min-h-screen bg-cream">
-      {/* Trocar por foto real da instituição: salvar em public/banner-quem-somos.jpg
-          e substituir este bloco por <Image src="/banner-quem-somos.jpg" alt="..." fill className="object-cover" /> */}
-      <div className="relative h-28 sm:h-36 w-full bg-[repeating-linear-gradient(135deg,#F0EAE0,#F0EAE0_12px,#E7DFD2_12px,#E7DFD2_24px)] flex items-center justify-center">
-        <span className="text-xs text-stone-500 font-mono">foto da instituição</span>
-      </div>
+      <BannerPagina nome="quem-somos" alt="Projeto Sempre Criança, desde 2002 — Quem somos" />
 
-      <a
-        href="https://www.semprecrianca.org"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="group flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-4 bg-ink text-white text-center px-4 py-3 hover:bg-stone-600 transition-colors"
-      >
-        <span className="text-[13px] sm:text-sm">
-          Uma iniciativa do <strong>Projeto Sempre Criança</strong> — conheça o trabalho da ONG por trás do Natal Solidário.
-        </span>
-        <span className="inline-flex items-center gap-1 text-[12.5px] font-bold text-brand whitespace-nowrap group-hover:underline">
-          Visitar site →
-        </span>
-      </a>
+      <BarraPagina href="https://www.semprecrianca.org" rotulo="Visitar site" externo>
+        Uma iniciativa do <strong>Projeto Sempre Criança</strong> — conheça o trabalho da ONG por trás do Natal Solidário.
+      </BarraPagina>
 
       <div className="max-w-3xl mx-auto px-4 py-14">
-        <h1 className="text-[26px] font-bold text-center text-ink tracking-tight mb-2">
+        <h1 className="sr-only">
           Quem somos
         </h1>
         <p className="text-center text-stone-500 text-sm mb-10">
