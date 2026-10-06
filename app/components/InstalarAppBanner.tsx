@@ -14,7 +14,8 @@ const CLASSE_BOTAO =
  * Faixa fixa no rodapé (só celular) convidando padrinhos e equipe logados a
  * instalar o app. Visitante não vê: o foco dele é conhecer as cartinhas.
  * Android abre o diálogo nativo; iPhone não tem isso, então mostra o passo a
- * passo do Safari. A coluna da direita fica livre pro botão do WhatsApp.
+ * passo do Safari. Fica por cima do botão do WhatsApp (z-60 contra z-50), que
+ * volta a aparecer quando o banner é dispensado.
  */
 export default function InstalarAppBanner({ logado }: { logado: boolean }) {
   const { plataforma, instalar, dispensarBanner } = useInstalarApp();
@@ -28,7 +29,7 @@ export default function InstalarAppBanner({ logado }: { logado: boolean }) {
     <div
       role="region"
       aria-label="Instalar o aplicativo"
-      className="fixed inset-x-0 bottom-0 z-40 border-t-2 border-brand bg-white py-3 pl-4 pr-24 shadow-[0_-2px_8px_rgba(30,27,23,.08)] sm:hidden print:hidden"
+      className="fixed inset-x-0 bottom-0 z-60 border-t-2 border-brand bg-white py-3 px-4 shadow-[0_-2px_8px_rgba(30,27,23,.08)] sm:hidden print:hidden"
     >
       <div className="flex items-start gap-3">
         {/* eslint-disable-next-line @next/next/no-img-element -- ícone estático de 40px, sem ganho com next/image */}
