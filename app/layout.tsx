@@ -45,6 +45,8 @@ export const metadata: Metadata = {
     description: DESCRICAO,
     images: ["/banner-natal.jpeg"],
   },
+  // iPhone: abre em tela cheia quando adicionado à Tela de Início (o ícone vem de apple-icon.png).
+  appleWebApp: { capable: true, title: "Natal Solidário" },
 };
 
 export default async function RootLayout({

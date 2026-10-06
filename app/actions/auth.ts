@@ -386,7 +386,7 @@ export async function redefinirSenha(
 
     return {
       success: true,
-      message: "Senha redefinida com sucesso! Faça login com sua nova senha.",
+      message: "Senha redefinida com sucesso! Faça login com sua nova senha. Se você usa o app instalado no celular, volte a ele e entre por lá.",
     };
   } catch (err) {
     console.error("Erro ao redefinir senha:", err);

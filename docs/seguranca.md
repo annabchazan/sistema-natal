@@ -35,6 +35,8 @@ Este documento descreve os controles de segurança que já existem, as decisões
 
 **Senha mínima de 8 para todos** (padrinho e admin): equipe pequena, login já protegido por bloqueio e recusa de senhas comuns. Senhas antigas mais curtas continuam valendo no login; a regra só vale ao definir uma senha nova.
 
+**App instalável (PWA) sem service worker.** O `manifest.webmanifest` (gerado de `app/manifest.ts`) é estático e público: só nome, cores e ícones. Não há service worker, então nenhuma página fica em cache no aparelho e o app instalado sempre busca a versão atual. O banner de instalar aparece só para quem está logado e guarda no `localStorage` apenas a data em que foi dispensado.
+
 ## Segredos e chaves
 
 Todos ficam nas variáveis de ambiente da Vercel (`vercel env`) e em `.env.local` (fora do git):
