@@ -1,11 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 
 import { useInstalarApp } from "@/app/hooks/useInstalarApp";
-// Importado aqui pra o módulo rodar em toda página, logado ou não (ver instalacaoApp.ts).
-import "@/app/utils/instalacaoApp";
 
 const CLASSE_BOTAO =
   "mt-3 w-full bg-brand-dark text-white py-2.5 rounded font-bold text-[14px] hover:bg-brand-darker transition-colors";
@@ -21,12 +19,36 @@ export default function InstalarAppBanner({ logado }: { logado: boolean }) {
   const { plataforma, instalar, dispensarBanner } = useInstalarApp();
   const [passosAbertos, setPassosAbertos] = useState(false);
   const pathname = usePathname();
+  const faixa = useRef<HTMLDivElement>(null);
 
   // Fluxos de senha: a pessoa está no meio de outra coisa.
-  if (!logado || plataforma === "nenhuma" || pathname?.endsWith("-senha")) return null;
+  const visivel = logado && plataforma !== "nenhuma" && !pathname?.endsWith("-senha");
+
+  // A faixa é fixa e cobriria o rodapé e o fim dos formulários; reservamos o
+  // espaço dela no fim da página enquanto ela estiver na tela (e quando os
+  // passos do iOS abrem e ela cresce).
+  useEffect(() => {
+    const el = faixa.current;
+    if (!visivel || !el) return;
+    const reservar = () => {
+      document.body.style.paddingBottom = window.matchMedia("(min-width: 640px)").matches ? "" : `${el.offsetHeight}px`;
+    };
+    reservar();
+    const observador = new ResizeObserver(reservar);
+    observador.observe(el);
+    window.addEventListener("resize", reservar);
+    return () => {
+      observador.disconnect();
+      window.removeEventListener("resize", reservar);
+      document.body.style.paddingBottom = "";
+    };
+  }, [visivel, passosAbertos]);
+
+  if (!visivel) return null;
 
   return (
     <div
+      ref={faixa}
       role="region"
       aria-label="Instalar o aplicativo"
       className="fixed inset-x-0 bottom-0 z-60 border-t-2 border-brand bg-white py-3 px-4 shadow-[0_-2px_8px_rgba(30,27,23,.08)] sm:hidden print:hidden"
@@ -69,7 +91,7 @@ export default function InstalarAppBanner({ logado }: { logado: boolean }) {
             <ol className="mt-3 flex flex-col gap-2 text-[13px] text-stone-500">
               <li className="flex items-center gap-1.5">
                 <span className="font-bold text-ink">1.</span> Toque em
-                <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4 text-ink" stroke="currentColor" strokeWidth="1.5" aria-label="Compartilhar">
+                <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4 text-ink" stroke="currentColor" strokeWidth="1.5" role="img" aria-label="Compartilhar">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M10 12.5V3m0 0L7 6m3-3l3 3M7 9H5.5a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-6a1 1 0 0 0-1-1H13" />
                 </svg>
                 na barra do Safari.

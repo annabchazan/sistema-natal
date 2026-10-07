@@ -28,7 +28,11 @@ export function useInstalarApp(): InstalarApp {
   const [escondido, setEscondido] = useState(false);
 
   const instalar = useCallback(async () => {
-    if (await instalarAgora()) setEscondido(true);
+    const resultado = await instalarAgora();
+    if (resultado === "indisponivel") return;
+    // Quem cancelou o diálogo não quer ser perguntado de novo a cada página.
+    if (resultado === "recusado") dispensar();
+    setEscondido(true);
   }, []);
 
   const dispensarBanner = useCallback(() => {

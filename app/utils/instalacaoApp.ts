@@ -1,10 +1,11 @@
 // Estado de instalação do app no celular. O Chrome (Android) dispara
 // `beforeinstallprompt` uma vez, logo no carregamento da página — muitas vezes
 // antes do login, quando o banner ainda não aparece. Por isso o evento é
-// capturado aqui, num módulo que o layout raiz carrega em toda página (via
-// InstalarAppBanner, mesmo deslogado), e o banner só lê o estado guardado. No
-// iOS não existe esse evento: a instalação é manual (Compartilhar → Adicionar
-// à Tela de Início).
+// capturado aqui, em escopo de módulo (efeito colateral no import), e o banner
+// só lê o estado guardado. O módulo roda em toda página porque o layout raiz
+// monta o InstalarAppBanner, mesmo deslogado, e o hook dele importa este
+// arquivo. No iOS não existe esse evento: a instalação é manual (Compartilhar
+// → Adicionar à Tela de Início).
 
 export type PlataformaInstalacao = "android" | "ios-safari" | "ios-outro-navegador" | "nenhuma";
 
@@ -19,6 +20,8 @@ const DISPENSA_DIAS = 30;
 
 // Navegadores que no iOS não oferecem "Adicionar à Tela de Início" (ou são embutidos em outros apps).
 const IOS_NAO_SAFARI = /CriOS|FxiOS|EdgiOS|OPiOS|GSA\/|FBAN|FBAV|Instagram|Line\/|MicroMessenger|Twitter/i;
+// O Safari de verdade sempre traz "Safari/" no UA; webviews (WhatsApp, Telegram, Gmail...) não.
+const TOKEN_SAFARI = /Safari\//;
 
 /**
  * Qual caminho de instalação vale pra este aparelho. `temPromptNativo` é se o
@@ -31,7 +34,7 @@ export function detectarPlataforma(
 ): PlataformaInstalacao {
   // iPadOS 13+ se identifica como Macintosh; o toque diferencia de um Mac.
   const ios = /iPhone|iPad|iPod/.test(userAgent) || (/Macintosh/.test(userAgent) && maxTouchPoints > 1);
-  if (ios) return IOS_NAO_SAFARI.test(userAgent) ? "ios-outro-navegador" : "ios-safari";
+  if (ios) return IOS_NAO_SAFARI.test(userAgent) || !TOKEN_SAFARI.test(userAgent) ? "ios-outro-navegador" : "ios-safari";
   if (/Android/.test(userAgent) && temPromptNativo) return "android";
   return "nenhuma";
 }
@@ -88,13 +91,23 @@ export function temPromptNativo(): boolean {
   return promptAdiado !== null;
 }
 
-/** Abre o diálogo nativo de instalação. Devolve true se a pessoa aceitou. */
-export async function instalarAgora(): Promise<boolean> {
-  if (!promptAdiado) return false;
+export type ResultadoInstalacao = "aceito" | "recusado" | "indisponivel";
+
+/**
+ * Abre o diálogo nativo de instalação. "recusado" também cobre falha ao abrir
+ * o diálogo: o evento só vale uma vez, então em ambos os casos o banner não
+ * tem mais o que oferecer nesta visita.
+ */
+export async function instalarAgora(): Promise<ResultadoInstalacao> {
+  if (!promptAdiado) return "indisponivel";
   const evento = promptAdiado;
   promptAdiado = null; // o evento só pode ser usado uma vez
   avisar();
-  await evento.prompt();
-  const { outcome } = await evento.userChoice;
-  return outcome === "accepted";
+  try {
+    await evento.prompt();
+    const { outcome } = await evento.userChoice;
+    return outcome === "accepted" ? "aceito" : "recusado";
+  } catch {
+    return "recusado";
+  }
 }
