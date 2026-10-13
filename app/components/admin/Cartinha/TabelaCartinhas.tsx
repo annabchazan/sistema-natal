@@ -30,6 +30,7 @@ export default function TabelaCartinhas({
   const router = useRouter();
   const { mostrarToast } = useToast();
 
+  const [filtroNumero, setFiltroNumero] = useState("");
   const [filtroStatus, setFiltroStatus] = useState("");
   const [filtroInstituicao, setFiltroInstituicao] = useState("");
   const [filtroCrachaNeon, setFiltroCrachaNeon] = useState("");
@@ -47,14 +48,16 @@ export default function TabelaCartinhas({
   }, [dados]);
 
   const dadosFiltrados = useMemo(() => {
+    const numeroBuscado = filtroNumero.trim().replace(/^#/, "");
     return dados.filter((item) => {
+      if (numeroBuscado && String(item.numero_sequencial ?? item.id) !== numeroBuscado) return false;
       if (filtroStatus && item.status !== filtroStatus) return false;
       if (filtroInstituicao && String(item.instituicao_id) !== filtroInstituicao) return false;
       if (filtroCrachaNeon === "sim" && !item.necessidade_especial) return false;
       if (filtroCrachaNeon === "nao" && item.necessidade_especial) return false;
       return true;
     });
-  }, [dados, filtroStatus, filtroInstituicao, filtroCrachaNeon]);
+  }, [dados, filtroNumero, filtroStatus, filtroInstituicao, filtroCrachaNeon]);
 
   const { paginaAtual, setPaginaAtual, totalPaginas, dadosPaginados } = usePaginacao(dadosFiltrados);
   const handleExcluir = useExclusaoComConfirmacao(
@@ -62,8 +65,9 @@ export default function TabelaCartinhas({
     "Deseja realmente apagar esta cartinha?",
   );
 
-  const temFiltroAtivo = Boolean(filtroStatus || filtroInstituicao || filtroCrachaNeon);
+  const temFiltroAtivo = Boolean(filtroNumero || filtroStatus || filtroInstituicao || filtroCrachaNeon);
   const limparFiltros = () => {
+    setFiltroNumero("");
     setFiltroStatus("");
     setFiltroInstituicao("");
     setFiltroCrachaNeon("");
@@ -133,6 +137,25 @@ export default function TabelaCartinhas({
   return (
     <div className="overflow-x-auto">
       <div className="flex flex-wrap items-end gap-4 p-4 border-b border-stone-100 bg-cream/40">
+        <div className="w-28">
+          <label htmlFor="filtro-cartinha-numero" className="block text-[11px] font-semibold text-stone-500 uppercase tracking-wide mb-1">
+            Nº da cartinha
+          </label>
+          <input
+            id="filtro-cartinha-numero"
+            type="text"
+            inputMode="numeric"
+            placeholder="Ex: 42"
+            value={filtroNumero}
+            onChange={(e) => {
+              setFiltroNumero(e.target.value);
+              setPaginaAtual(1);
+              setSelecionados(new Set());
+            }}
+            className="w-full border border-stone-300 rounded px-2 py-1.5 text-sm text-ink bg-white focus:outline-none focus:border-ink"
+          />
+        </div>
+
         <div className="min-w-40">
           <label htmlFor="filtro-cartinha-status" className="block text-[11px] font-semibold text-stone-500 uppercase tracking-wide mb-1">
             Status
