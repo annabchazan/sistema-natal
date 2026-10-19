@@ -522,7 +522,7 @@ export async function excluirConta(): Promise<AuthActionState> {
     const [emAndamento] = await conn.query<ContagemRow[]>(
       `SELECT COUNT(*) as total FROM cartinhas
        WHERE apadrinhado_por_usuario_id = ?
-       AND status IN ('conferida', 'embrulhado', 'reapadrinhado')
+       AND status IN ('conferida', 'embrulhado')
        FOR UPDATE`,
       [usuario.id],
     );

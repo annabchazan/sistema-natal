@@ -104,7 +104,6 @@ const STATUS_PERMITIDOS = [
   "conferida",
   "carente",
   "embrulhado",
-  "reapadrinhado",
   "entregue",
   "cancelada",
 ] as const;
@@ -701,32 +700,14 @@ export async function finalizarApadrinamento(
       };
     }
 
-    const idsNovos = disponiveis.filter((c) => c.status === "disponivel").map((c) => c.id);
-    const idsReapadrinhados = disponiveis.filter((c) => c.status === "carente").map((c) => c.id);
-
-    if (idsNovos.length > 0) {
-      const ph = idsNovos.map(() => "?").join(",");
-      await conn.query(
-        `UPDATE cartinhas
-         SET status = 'apadrinhada',
-             data_apadrinamento = NOW(),
-             apadrinhado_por_usuario_id = ?
-         WHERE id IN (${ph})`,
-        [usuario.id, ...idsNovos],
-      );
-    }
-
-    if (idsReapadrinhados.length > 0) {
-      const ph = idsReapadrinhados.map(() => "?").join(",");
-      await conn.query(
-        `UPDATE cartinhas
-         SET status = 'reapadrinhado',
-             data_apadrinamento = NOW(),
-             apadrinhado_por_usuario_id = ?
-         WHERE id IN (${ph})`,
-        [usuario.id, ...idsReapadrinhados],
-      );
-    }
+    await conn.query(
+      `UPDATE cartinhas
+       SET status = 'apadrinhada',
+           data_apadrinamento = NOW(),
+           apadrinhado_por_usuario_id = ?
+       WHERE id IN (${placeholders})`,
+      [usuario.id, ...cartas_ids],
+    );
 
     await conn.commit();
 

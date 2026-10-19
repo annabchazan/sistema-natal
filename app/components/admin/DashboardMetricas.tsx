@@ -13,7 +13,6 @@ const LABEL_PLURAL: Record<string, string> = {
   conferida: "Conferidas",
   carente: "Carentes",
   embrulhado: "Embrulhadas",
-  reapadrinhado: "Reapadrinhadas",
   entregue: "Entregues",
   cancelada: "Canceladas",
 };

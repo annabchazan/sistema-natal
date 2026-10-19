@@ -27,7 +27,6 @@ const STATUS_LABEL: Record<string, string> = {
   conferida:     "Conferida",
   carente:       "Carente",
   embrulhado:    "Embrulhado",
-  reapadrinhado: "Reapadrinhado",
   entregue:      "Entregue",
   cancelada:     "Cancelada",
 };

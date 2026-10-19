@@ -218,7 +218,6 @@ export default function FormularioCartinha({
               <option value="conferida">Conferida</option>
               <option value="carente">Carente</option>
               <option value="embrulhado">Embrulhado</option>
-              <option value="reapadrinhado">Reapadrinhado</option>
               <option value="entregue">Entregue</option>
               <option value="cancelada">Cancelada</option>
             </select>

@@ -84,7 +84,7 @@ export async function finalizarCampanha(): Promise<CampanhaState> {
     const [linhasAgregados] = await db.query<AgregadosCampanhaRow[]>(
       `SELECT
          COUNT(*) AS total_cartinhas,
-         SUM(CASE WHEN status IN ('apadrinhada','conferida','embrulhado','reapadrinhado','entregue') THEN 1 ELSE 0 END) AS total_apadrinhadas,
+         SUM(CASE WHEN status IN ('apadrinhada','conferida','embrulhado','entregue') THEN 1 ELSE 0 END) AS total_apadrinhadas,
          SUM(CASE WHEN status = 'entregue' THEN 1 ELSE 0 END) AS total_entregues,
          COUNT(DISTINCT instituicao_id) AS total_instituicoes
        FROM cartinhas WHERE campanha_id = ?`,

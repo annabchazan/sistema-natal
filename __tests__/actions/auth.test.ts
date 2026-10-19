@@ -246,7 +246,7 @@ describe("excluirConta", () => {
     expect(res.message).toMatch(/administrador/i);
   });
 
-  it("bloqueia quando há cartinhas em andamento (conferida/embrulhado/reapadrinhado)", async () => {
+  it("bloqueia quando há cartinhas em andamento (conferida/embrulhado)", async () => {
     mockGetUsuario.mockResolvedValue(usuarioFake);
     const conn = mockConexao([
       [[{ total: 1 }]], // SELECT COUNT(*) ... FOR UPDATE
