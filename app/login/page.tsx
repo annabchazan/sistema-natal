@@ -63,6 +63,8 @@ function LoginForm() {
   const [erro, setErro] = useState("");
   const [isPending, startTransition] = useTransition();
   const [mostrarSenha, setMostrarSenha] = useState(false);
+  // Só aceita caminho interno: um ?next=https://site-falso.com viraria phishing pós-login.
+  const next = caminhoInternoSeguro(searchParams.get("next"));
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -86,8 +88,6 @@ function LoginForm() {
         return;
       }
 
-      // Só aceita caminho interno: um ?next=https://site-falso.com viraria phishing pós-login.
-      const next = caminhoInternoSeguro(searchParams.get("next"));
       router.push(next || resultado.redirectTo || "/usuario");
       router.refresh();
     });
@@ -185,7 +185,7 @@ function LoginForm() {
             <p className="text-center text-[13px] text-stone-500">
               Não tem conta?{" "}
               <Link
-                href="/cadastro"
+                href={next ? `/cadastro?next=${encodeURIComponent(next)}` : "/cadastro"}
                 className="font-semibold text-brand-dark hover:underline"
               >
                 Cadastre-se

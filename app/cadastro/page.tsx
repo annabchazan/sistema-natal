@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { caminhoInternoSeguro } from "@/app/utils/redirecionamento";
 import {
   emailValido,
   formatarTelefoneCelular,
@@ -75,7 +76,17 @@ const classeIconeCampo =
   "pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-500";
 
 export default function CadastroPage() {
+  return (
+    <Suspense fallback={null}>
+      <CadastroForm />
+    </Suspense>
+  );
+}
+
+function CadastroForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const next = caminhoInternoSeguro(searchParams.get("next"));
   const [formulario, setFormulario] = useState<FormularioCadastro>({
     nome: "",
     telefone: "",
@@ -147,7 +158,7 @@ export default function CadastroPage() {
       return;
     }
 
-    router.push("/usuario");
+    router.push(next || "/usuario");
     router.refresh();
   };
 
@@ -320,7 +331,7 @@ export default function CadastroPage() {
             <p className="text-center text-[13px] text-stone-500">
               Já tem conta?{" "}
               <Link
-                href="/login"
+                href={next ? `/login?next=${encodeURIComponent(next)}` : "/login"}
                 className="font-semibold text-brand-dark hover:underline"
               >
                 Entrar
