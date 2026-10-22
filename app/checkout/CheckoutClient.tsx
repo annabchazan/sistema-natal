@@ -15,6 +15,7 @@ interface DadosAtuais {
   presente_pedido: string;
   status: string;
   foto_cartinha: string | null;
+  numero_sequencial: number | null;
 }
 
 function IconeFechar() {
@@ -198,7 +199,7 @@ export default function CheckoutClient() {
               )}
 
               <div className="flex-1 min-h-[200px] lg:min-h-0 lg:max-h-[400px] overflow-y-auto pr-2 scrollbar-fina">
-                {cartinhas.map((cartinha, index) => {
+                {cartinhas.map((cartinha) => {
                   const atual = dadosAtuais[cartinha.id];
                   const dados = atual ?? cartinha;
                   const foiApadrinhada =
@@ -246,7 +247,8 @@ export default function CheckoutClient() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between mb-1.5 gap-2">
                           <h3 className="font-semibold text-sm text-ink">
-                            Nº {index + 1} · {dados.nome_crianca}
+                            {atual?.numero_sequencial != null && `Nº ${atual.numero_sequencial} · `}
+                            {dados.nome_crianca}
                             {foiApadrinhada && (
                               <span className="ml-2 text-xs font-normal text-vermelho-natal">
                                 (já apadrinhada)

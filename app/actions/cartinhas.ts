@@ -490,6 +490,7 @@ interface CartinhaCheckoutRow extends RowDataPacket {
   presente_pedido: string;
   status: string;
   foto_cartinha: string | null;
+  numero_sequencial: number | null;
 }
 
 // --- BUSCAR DADOS ATUAIS DAS CARTINHAS DO CARRINHO (checkout) ---
@@ -503,7 +504,7 @@ export async function buscarCartinhasParaCheckout(
   try {
     const placeholders = ids.map(() => "?").join(",");
     const [cartinhas] = await db.query<CartinhaCheckoutRow[]>(
-      `SELECT id, nome_crianca, idade, texto_cartinha, presente_pedido, status, foto_cartinha
+      `SELECT id, nome_crianca, idade, texto_cartinha, presente_pedido, status, foto_cartinha, numero_sequencial
        FROM cartinhas WHERE id IN (${placeholders})`,
       ids,
     );
