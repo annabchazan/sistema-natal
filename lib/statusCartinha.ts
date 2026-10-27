@@ -25,3 +25,17 @@ export const STATUS_CARTINHA: Record<StatusCartinha, StatusCartinhaInfo> = {
   entregue:      { label: "Entregue",      badge: "bg-verde-natal/10 text-verde-natal",       dot: "bg-verde-natal" },
   cancelada:     { label: "Cancelada",     badge: "bg-vermelho-natal/10 text-vermelho-natal", dot: "bg-vermelho-natal" },
 };
+
+// Status em que a cartinha aparece na home e não tem padrinho.
+export function statusLivre(status: string | null | undefined): boolean {
+  return status === "disponivel" || status === "carente";
+}
+
+// Se a cartinha vai para um status "livre" mas ainda tem padrinho (vínculo ou snapshot),
+// o vínculo precisa ser solto junto, senão ela fica na lista pública e na área do padrinho antigo.
+export function padrinhoDeveSerLiberado(
+  statusNovo: string,
+  vinculo: { usuarioId: number | null; emailSnapshot: string | null },
+): boolean {
+  return statusLivre(statusNovo) && (vinculo.usuarioId !== null || Boolean(vinculo.emailSnapshot));
+}

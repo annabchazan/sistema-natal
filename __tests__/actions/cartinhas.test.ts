@@ -29,15 +29,16 @@ vi.mock("@/lib/email", () => ({
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 import db from "@/lib/db";
-import { getUsuarioAutenticado } from "@/lib/auth";
+import { getUsuarioAutenticado, validarPermissaoAdmin } from "@/lib/auth";
 import { enviarConfirmacaoApadrinhamento, enviarCancelamentoApadrinamento, enviarAvisoDesistenciaEquipe } from "@/lib/email";
-import { finalizarApadrinamento, cancelarApadrinamento, gerarNumeroSequencial, listarCartinhasFiltradas } from "@/app/actions/cartinhas";
+import { salvarCartinha, finalizarApadrinamento, cancelarApadrinamento, gerarNumeroSequencial, listarCartinhasFiltradas } from "@/app/actions/cartinhas";
 
 const mockDb = db as unknown as {
   query: ReturnType<typeof vi.fn>;
   getConnection: ReturnType<typeof vi.fn>;
 };
 const mockGetUsuario = vi.mocked(getUsuarioAutenticado);
+const mockPermissao = vi.mocked(validarPermissaoAdmin);
 const mockEnviarConfirmacao = vi.mocked(enviarConfirmacaoApadrinhamento);
 const mockEnviarCancelamento = vi.mocked(enviarCancelamentoApadrinamento);
 const mockEnviarAvisoEquipe = vi.mocked(enviarAvisoDesistenciaEquipe);
@@ -239,5 +240,78 @@ describe("listarCartinhasFiltradas", () => {
     mockListagem();
     await listarCartinhasFiltradas({ tag_id: 2, instituicao_id: 5, nome_crianca: "Lu" });
     expect(mockDb.query.mock.calls[0][1]).toEqual([2, 5, "%Lu%", "%Lu%"]);
+  });
+});
+
+// ─── salvarCartinha: libera o padrinho ao voltar para a lista ───────────────
+
+describe("salvarCartinha (cartinha volta para disponivel/carente)", () => {
+  function formEdicao(status: string) {
+    const f = new FormData();
+    f.set("id", "7");
+    f.set("nome_crianca", "Ana");
+    f.set("idade", "8");
+    f.set("texto_cartinha", "Querido Papai Noel");
+    f.set("presente_pedido", "Boneca");
+    f.set("instituicao_id", "1");
+    f.set("numero_sequencial", "12");
+    f.set("status", status);
+    return f;
+  }
+
+  function prepararAdmin(anterior: Record<string, unknown>, extrasConn: unknown[] = [[{}], [{}], [{}]]) {
+    mockPermissao.mockResolvedValue({
+      ok: true,
+      usuario: { ...usuarioFake, tipo: "admin", admin_role: "full" },
+    } as never);
+    mockDb.query
+      .mockResolvedValueOnce([[{ id: 1 }]])          // instituição existe
+      .mockResolvedValueOnce([[]])                   // número não duplicado
+      .mockResolvedValueOnce([[{
+        status: "apadrinhada", nome_crianca: "Ana", presente_pedido: "Boneca",
+        numero_sequencial: 12, foto_cartinha: null, apadrinhado_por_usuario_id: 5,
+        nome_padrinho: null, email_padrinho: null,
+        padrinho_nome: "Maria", padrinho_email: "maria@teste.com",
+        ...anterior,
+      }]])
+      .mockResolvedValue([{}]);
+    return mockConexao(extrasConn);
+  }
+
+  it("limpa o vínculo e registra a desistência quando volta para carente", async () => {
+    const conn = prepararAdmin({});
+    const res = await salvarCartinha(null, formEdicao("carente"));
+    expect(res.success).toBe(true);
+    const sqls = conn.query.mock.calls.map((c) => String(c[0]));
+    expect(sqls.some((q) => /apadrinhado_por_usuario_id = NULL[\s\S]*data_apadrinamento = NULL[\s\S]*nome_padrinho = NULL[\s\S]*email_padrinho = NULL/.test(q))).toBe(true);
+    const insert = conn.query.mock.calls.find((c) => /INSERT INTO desistencias/.test(String(c[0])));
+    expect(insert?.[1]).toEqual([7, 5, "Maria", "maria@teste.com", "Ana", 12]);
+    expect(conn.commit).toHaveBeenCalled();
+    expect(conn.release).toHaveBeenCalled();
+  });
+
+  it("desfaz tudo se algum passo falhar", async () => {
+    const conn = prepararAdmin({});
+    conn.query.mockRejectedValueOnce(new Error("falha"));
+    const res = await salvarCartinha(null, formEdicao("disponivel"));
+    expect(res.success).toBe(false);
+    expect(conn.rollback).toHaveBeenCalled();
+    expect(conn.commit).not.toHaveBeenCalled();
+    expect(conn.release).toHaveBeenCalled();
+  });
+
+  it("limpa vínculo velho sem registrar desistência se já estava livre", async () => {
+    const conn = prepararAdmin({ status: "disponivel" });
+    const res = await salvarCartinha(null, formEdicao("disponivel"));
+    expect(res.success).toBe(true);
+    expect(conn.query.mock.calls.some((c) => /INSERT INTO desistencias/.test(String(c[0])))).toBe(false);
+    expect(conn.commit).toHaveBeenCalled();
+  });
+
+  it("mantém o padrinho quando o novo status não é livre", async () => {
+    prepararAdmin({});
+    const res = await salvarCartinha(null, formEdicao("conferida"));
+    expect(res.success).toBe(true);
+    expect(mockDb.getConnection).not.toHaveBeenCalled();
   });
 });

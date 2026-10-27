@@ -9,6 +9,7 @@ import { NUMERACAO_MANUAL_CARTINHAS } from "@/lib/config";
 import { tipoImagemDoArquivo } from "@/lib/imagem";
 import { dentroDoLimite } from "@/lib/rateLimit";
 import { idValido, idsValidos } from "@/lib/seguranca";
+import { padrinhoDeveSerLiberado, statusLivre } from "@/lib/statusCartinha";
 import type { RowDataPacket } from "mysql2/promise";
 
 export interface CartinhaState {
@@ -66,6 +67,9 @@ interface CartinhaAnteriorRow extends RowDataPacket {
   presente_pedido: string;
   numero_sequencial: number;
   foto_cartinha: string | null;
+  apadrinhado_por_usuario_id: number | null;
+  nome_padrinho: string | null;
+  email_padrinho: string | null;
   padrinho_nome: string | null;
   padrinho_email: string | null;
 }
@@ -303,7 +307,9 @@ export async function salvarCartinha(
       // Captura status anterior e dados do padrinho antes de atualizar
       const [anterior] = await db.query<CartinhaAnteriorRow[]>(
         `SELECT c.status, c.nome_crianca, c.presente_pedido, c.numero_sequencial,
-                c.foto_cartinha, u.nome AS padrinho_nome, u.email AS padrinho_email
+                c.foto_cartinha, c.apadrinhado_por_usuario_id,
+                c.nome_padrinho, c.email_padrinho,
+                u.nome AS padrinho_nome, u.email AS padrinho_email
          FROM cartinhas c
          LEFT JOIN usuarios u ON c.apadrinhado_por_usuario_id = u.id
          WHERE c.id = ? LIMIT 1`,
@@ -316,7 +322,7 @@ export async function salvarCartinha(
           ? null
           : (anterior?.[0]?.foto_cartinha ?? null);
 
-      await db.query(
+      const sqlAtualizar =
         NUMERACAO_MANUAL_CARTINHAS
           ? `UPDATE cartinhas
              SET nome_crianca = ?, idade = ?, texto_cartinha = ?, presente_pedido = ?,
@@ -331,7 +337,8 @@ export async function salvarCartinha(
                  foto_cartinha = ?,
                  data_limite_entrega = ?, status = ?,
                  necessidade_especial = ?, observacao_especial = ?
-             WHERE id = ?`,
+             WHERE id = ?`;
+      const paramsAtualizar =
         NUMERACAO_MANUAL_CARTINHAS
           ? [
               nome_crianca, idade, texto_cartinha, presente_pedido,
@@ -345,8 +352,52 @@ export async function salvarCartinha(
               instituicao_id, tag_id, fotoFinal,
               data_limite_entrega || null, status,
               necessidade_especial, observacao_especial, Number(id),
-            ],
-      );
+            ];
+
+      const dadosAnteriores = anterior?.[0];
+      const liberaPadrinho = padrinhoDeveSerLiberado(status, {
+        usuarioId: dadosAnteriores?.apadrinhado_por_usuario_id ?? null,
+        emailSnapshot: dadosAnteriores?.email_padrinho ?? null,
+      });
+
+      if (liberaPadrinho && dadosAnteriores) {
+        // A cartinha volta pra lista: solta o padrinho e, se ela estava de fato apadrinhada
+        // (não só com vínculo velho), registra a desistência como o cancelamento do padrinho faz.
+        const nomePadrinho = dadosAnteriores.padrinho_nome ?? dadosAnteriores.nome_padrinho;
+        const emailPadrinho = dadosAnteriores.padrinho_email ?? dadosAnteriores.email_padrinho;
+        const estavaApadrinhada = !statusLivre(statusAnterior);
+        const conn = await db.getConnection();
+        try {
+          await conn.beginTransaction();
+          await conn.query(sqlAtualizar, paramsAtualizar);
+          await conn.query(
+            `UPDATE cartinhas
+             SET apadrinhado_por_usuario_id = NULL, data_apadrinamento = NULL,
+                 nome_padrinho = NULL, email_padrinho = NULL
+             WHERE id = ?`,
+            [Number(id)],
+          );
+          if (estavaApadrinhada && nomePadrinho && emailPadrinho) {
+            await conn.query(
+              `INSERT INTO desistencias (cartinha_id, usuario_id, nome_padrinho, email_padrinho, nome_crianca, numero_sequencial)
+               VALUES (?, ?, ?, ?, ?, ?)`,
+              [
+                Number(id), dadosAnteriores.apadrinhado_por_usuario_id,
+                nomePadrinho, emailPadrinho,
+                dadosAnteriores.nome_crianca, dadosAnteriores.numero_sequencial,
+              ],
+            );
+          }
+          await conn.commit();
+        } catch (err) {
+          await conn.rollback();
+          throw err;
+        } finally {
+          conn.release();
+        }
+      } else {
+        await db.query(sqlAtualizar, paramsAtualizar);
+      }
 
       // Dispara e-mail ao padrinho quando o status muda para "entregue"
       if (status === "entregue" && statusAnterior !== "entregue") {
