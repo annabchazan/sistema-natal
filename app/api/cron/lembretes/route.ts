@@ -21,6 +21,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
+    // Só lembra quem ainda não levou o presente: conferida/embrulhado já foi recebido pela equipe.
     // Cartinhas com prazo em exatamente 10 dias, sem lembrete '10d' enviado
     const [em10dias] = await db.query<CartinhaLembrete[]>(`
       SELECT
@@ -33,7 +34,7 @@ export async function GET(req: NextRequest) {
       LEFT JOIN lembretes_enviados le
              ON le.cartinha_id = c.id AND le.tipo = '10d'
       WHERE DATEDIFF(c.data_limite_entrega, CURDATE()) = 10
-        AND c.status NOT IN ('entregue', 'cancelada')
+        AND c.status NOT IN ('conferida', 'embrulhado', 'entregue', 'cancelada')
         AND le.id IS NULL
     `);
 
@@ -49,7 +50,7 @@ export async function GET(req: NextRequest) {
       LEFT JOIN lembretes_enviados le
              ON le.cartinha_id = c.id AND le.tipo = 'vencido'
       WHERE c.data_limite_entrega < CURDATE()
-        AND c.status NOT IN ('entregue', 'cancelada')
+        AND c.status NOT IN ('conferida', 'embrulhado', 'entregue', 'cancelada')
         AND le.id IS NULL
     `);
 
