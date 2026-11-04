@@ -566,12 +566,6 @@ export async function excluirConta(): Promise<AuthActionState> {
       [usuario.id],
     );
 
-    try {
-      await conn.query("DELETE FROM lembretes_enviados WHERE usuario_id = ?", [usuario.id]);
-    } catch {
-      // tabela pode não existir em ambientes antigos
-    }
-
     await conn.query("DELETE FROM usuarios WHERE id = ?", [usuario.id]);
     await conn.commit();
 

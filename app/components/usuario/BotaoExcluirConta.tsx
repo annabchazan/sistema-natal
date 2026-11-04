@@ -11,7 +11,10 @@ export default function BotaoExcluirConta() {
   function handleExcluir() {
     if (
       !confirm(
-        "Tem certeza que deseja excluir sua conta?\n\nEsta ação é permanente e não pode ser desfeita. Seus dados serão removidos do sistema.",
+        "Tem certeza que deseja excluir sua conta?\n\n" +
+          "• Esta ação é permanente e não pode ser desfeita.\n" +
+          "• As cartinhas que você apadrinhou e ainda não foram conferidas voltarão a ficar disponíveis para outros padrinhos. Se você ainda não entregou o presente, ele não será mais esperado.\n" +
+          "• Seus dados pessoais serão removidos do sistema.",
       )
     )
       return;

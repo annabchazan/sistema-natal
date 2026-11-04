@@ -266,7 +266,6 @@ describe("excluirConta", () => {
       [{ affectedRows: 1 }],  // UPDATE ... status = 'carente' (apadrinhada)
       [{ affectedRows: 1 }],  // UPDATE ... snapshot + NULL (entregue)
       [{ affectedRows: 1 }],  // UPDATE ... NULL sem snapshot (demais status)
-      [{ affectedRows: 1 }],  // DELETE FROM lembretes_enviados
       [{ affectedRows: 1 }],  // DELETE FROM usuarios
     ]);
 

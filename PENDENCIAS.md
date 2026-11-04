@@ -6,16 +6,12 @@ Backlog vivo do projeto. Atualizar conforme itens forem concluídos ou reprioriz
 
 ## Prioridade Alta — Resolver antes de ir a produção
 
-### 🔴 E-mails para padrinhos não estão sendo entregues (domínio não verificado no Resend)
-Diagnosticado em 2026-07-29: testei o envio real pela API do Resend e confirmei. `EMAIL_FROM` está com o valor padrão de sandbox (`onboarding@resend.dev`), sem domínio verificado na conta. Nesse modo, o Resend **bloqueia com erro 403 qualquer envio para destinatário que não seja o e-mail dono da conta Resend** (`annachazan@id.uff.br`) — ou seja, todo e-mail para padrinho real (confirmação de apadrinhamento, lembrete, recuperação de senha, cancelamento, notificação de entrega) está falhando silenciosamente.
+### ~~E-mails para padrinhos não eram entregues (domínio não verificado no Resend)~~ ✅ Resolvido
+Diagnosticado em 2026-07-29: `EMAIL_FROM` estava no sandbox (`onboarding@resend.dev`), e o Resend bloqueava (403) qualquer destinatário que não fosse o dono da conta. Resolvido com a verificação do domínio no Resend; confirmado em 2026-11-03 que os e-mails já chegam corretamente ao cliente.
 
-Importante (confusão comum): verificar um domínio é sobre o **remetente**, não sobre quem pode receber — depois de verificado, dá pra mandar de `contato@dominio.org` pra qualquer destinatário (Gmail, Hotmail, etc.), sem restrição de domínio do lado de quem recebe.
-
-Agravante: em `lib/email.ts`, erro do Resend só vai pra `console.error` — ninguém (nem padrinho, nem equipe) fica sabendo que o envio falhou.
-
-- [ ] Verificar um domínio próprio no Resend (resend.com/domains) — precisa de acesso ao DNS do domínio escolhido (ver item "Domínio" na tabela de decisões do cliente abaixo, que trata do mesmo DNS pro WhatsApp/subdomínio)
-- [ ] Atualizar `EMAIL_FROM` em produção (e `.env.local`) para um endereço nesse domínio
-- [ ] Considerar dar visibilidade às falhas de envio (hoje somem no `console.error`) antes de ir a produção
+- [x] Verificar um domínio próprio no Resend
+- [x] Atualizar `EMAIL_FROM` em produção
+- [ ] (Opcional) Dar visibilidade às falhas de envio — em `lib/email.ts`, erro do Resend ainda só vai pra `console.error`, então uma falha futura continuaria silenciosa
 
 ### ~~Lembretes automáticos por e-mail~~ ✅ Feito
 - Cron diário às 9h via Vercel (`vercel.json`)
@@ -63,10 +59,8 @@ Complementar o lembrete por e-mail com mensagem no WhatsApp do padrinho, usando 
 - `LoginForm` (que usa `useSearchParams()`) já está envolvido em `<Suspense fallback={null}>` em `login/page.tsx`
 - Confirmado rodando `npx next build` em 2026-07-22: `/login` prerenderiza como estático (`○`), build completo sem erros
 
-### Fotos quebradas de cartinhas antigas (`/uploads/...` 404)
-Duas cartinhas no banco (dev) têm `foto_cartinha` apontando para `/uploads/cartinha_...` — caminho local de uma versão antiga do código, antes da integração com Cloudinary (`public/uploads` só tem `.gitkeep`, os arquivos nunca existiram neste ambiente). O código atual não escreve mais nesse caminho (só Cloudinary ou base64), então não é um bug ativo — é dado legado.
-
-- [ ] Conferir depois: `SELECT id, nome_crianca, foto_cartinha FROM cartinhas WHERE foto_cartinha LIKE '/uploads/%';` e reeditar essas cartinhas no admin (reupload) ou limpar o campo (`UPDATE cartinhas SET foto_cartinha = NULL WHERE foto_cartinha LIKE '/uploads/%';`)
+### ~~Fotos quebradas de cartinhas antigas (`/uploads/...` 404)~~ ✅ Feito
+Duas cartinhas no banco (dev) tinham `foto_cartinha` apontando para `/uploads/cartinha_...` — caminho local de uma versão antiga do código, antes da integração com Cloudinary. Era dado legado, não um bug ativo. Resolvido (marcado como feito em 2026-11-03).
 
 ### Revisão de segurança
 Revisão feita em 2026-07-22: SQL injection, autenticação, sessão, upload e exportação CSV foram checados. Nenhuma injeção de SQL encontrada (todas as queries usam `?` parametrizado, inclusive filtros dinâmicos e `IN (...)`). Sessão (HMAC + expiração), hash de senha (scrypt + `timingSafeEqual`) e proteção do `/admin` (middleware + `requireAdminAccess()` revalidando no servidor) estão corretos. Três gaps menores foram encontrados e corrigidos em 2026-07-28:
@@ -77,18 +71,16 @@ Revisão feita em 2026-07-22: SQL injection, autenticação, sessão, upload e e
 - [x] **Enumeração de contas via mensagem de bloqueio** (achado numa revisão de segurança em cima do fix acima, em 2026-07-28): a primeira versão do rate limiting gravava tentativas/bloqueio em colunas de `usuarios`, então só e-mails cadastrados chegavam a ver "Muitas tentativas de login" — um e-mail inexistente nunca bloqueava, o que permitia inferir quais e-mails estão cadastrados testando 5 senhas erradas. Corrigido rastreando por e-mail digitado (tabela `login_tentativas`) em vez de por usuário — agora e-mail cadastrado e inexistente se comportam de forma idêntica.
 - `migration_v9.sql` (tabela `login_tentativas`) já aplicada em produção em 2026-07-28.
 
-### Revisão geral de layout e responsividade
-Passar por todas as páginas e alinhar visual, espaçamentos e responsividade antes do lançamento.
-
-Páginas a revisar:
-- [ ] `/` — home com grid de cartinhas
-- [ ] `/checkout` — confirmação de apadrinhamento
-- [ ] `/usuario` — área do padrinho
-- [ ] `/admin` — painel administrativo (todas as abas)
-- [ ] `/login` e `/cadastro`
-- [ ] `/esqueci-senha` e `/redefinir-senha`
-- [ ] `/duvidas-frequentes`, `/quem-somos`, `/como-funciona`
-- [ ] `/pontos-entrega`
+### ~~Revisão geral de layout e responsividade~~ ✅ Feito
+Revisão de todas as páginas (visual, espaçamentos e responsividade) concluída — marcada como feita em 2026-11-03:
+- [x] `/` — home com grid de cartinhas
+- [x] `/checkout` — confirmação de apadrinhamento
+- [x] `/usuario` — área do padrinho
+- [x] `/admin` — painel administrativo (todas as abas)
+- [x] `/login` e `/cadastro`
+- [x] `/esqueci-senha` e `/redefinir-senha`
+- [x] `/duvidas-frequentes`, `/quem-somos`, `/como-funciona`
+- [x] `/pontos-entrega`
 
 ### ~~Menu lateral (drawer) para mobile~~ ✅ Feito
 Em 2026-07-22, ao revisar responsividade, foram encontradas duas navegações que sumiam sem alternativa no mobile: o menu principal (`Header.tsx`, links escondidos abaixo de `lg`) e a sidebar do admin (`admin/page.tsx`, escondida abaixo de `md`). A correção rápida (painel inline no Header, `<select>` no admin) foi substituída por um drawer de verdade:
@@ -143,14 +135,19 @@ Encontrado numa revisão geral em 2026-07-22 (não bloqueia produção, é manut
 - `master` é o único nível que pode promover/rebaixar outros admins (`adminPodeGerenciarPermissoes()`)
 - `full` perdeu a capacidade de gerenciar permissões, mas continua podendo criar/editar/excluir cartinhas, instituições, tags e pontos de entrega
 - `validarPermissaoAdmin()` ganhou o valor `"users"`; aba "Usuários" no painel agora é gated por `canManageUsers`
-- `migration_v6.sql` já aplicada em produção. **Pendente:** confirmar que pelo menos um admin foi promovido manualmente a `master` (senão ninguém acessa a aba Usuários)
+- `migration_v6.sql` já aplicada em produção, e confirmado em 2026-11-03 que há admin `master` e tudo funcionando em produção.
 
-### Exclusão de conta (LGPD)
-Obrigatório por lei para sistemas com dados de usuários brasileiros.
+### ~~Exclusão de conta (LGPD)~~ ✅ Feito
+- `excluirConta()` em `app/actions/auth.ts` + botão `BotaoExcluirConta` no rodapé de `/usuario`, com testes em `__tests__/actions/auth.test.ts`
+- Transação com `FOR UPDATE`; admins não podem se excluir por aqui; bloqueia se houver cartinha `conferida` ou `embrulhado`
+- Cartinhas `apadrinhada` voltam para `carente` e geram linha em `desistencias` (com snapshot de nome/e-mail do padrinho)
+- Cartinhas `entregue` perdem o vínculo mas guardam `nome_padrinho`/`email_padrinho` (`migration_v10.sql`, `migration_v11.sql`)
+- Sessão só é limpa depois do commit
 
-- Página de solicitação de exclusão na área do usuário (`/usuario`)
-- Ao excluir: anonimizar ou deletar dados pessoais, manter cartinhas com `apadrinhado_por_usuario_id = NULL`
-- Política de retenção de dados: **6 meses** pós-campanha, confirmada com o cliente — ver "Retenção de dados (LGPD)" mais abaixo
+**Ajustes menores (todos resolvidos em 2026-11-03):**
+- ~~`nome_padrinho`/`email_padrinho` em `desistencias` sem prazo~~ — decidido: o cliente apaga quando quiser (ver "Retenção de dados")
+- [x] Removido o `DELETE FROM lembretes_enviados WHERE usuario_id = ?` de `excluirConta()` (o cron só grava `cartinha_id` e `tipo`, então a query não fazia nada)
+- [x] Texto de confirmação do `BotaoExcluirConta` agora avisa que as cartinhas apadrinhadas voltam a ficar disponíveis (continua sendo `confirm()` nativo)
 
 ---
 
@@ -168,7 +165,7 @@ Respostas de Gabi (responsável pelo projeto) às perguntas pendentes.
 | WhatsApp — CNPJ | `12.629.489/0001-44` | ✅ Recebido |
 | WhatsApp — número dedicado | Cliente ainda vai definir internamente quem fica com essa função (não pode ser um número institucional já em uso). | ⏳ Bloqueado — aguardando definição interna do cliente |
 | WhatsApp — aprovação dos templates | Ainda não respondido nesta rodada. | ⏳ Pendente |
-| Domínio | Vão usar subdomínio do site atual. Cliente vai conversar com o responsável pelo DNS. | ⏳ Aguardando registro DNS do lado do cliente |
+| Domínio | Vão usar subdomínio do site atual. Cliente vai conversar com o responsável pelo DNS. | ✅ Resolvido (confirmado em 2026-11-03) |
 
 ---
 
@@ -177,16 +174,18 @@ Respostas de Gabi (responsável pelo projeto) às perguntas pendentes.
 ### ~~Histórico de desistência de apadrinhamento~~ ✅ Feito
 - Nova tabela `desistencias` (`migration_v8.sql`): `cartinha_id`, `usuario_id`, `nome_crianca`/`numero_sequencial` (snapshot), `data_desistencia`.
 - `cancelarApadrinamento()` agora roda em transação (`beginTransaction` + `SELECT ... FOR UPDATE`, igual `finalizarApadrinamento()`): atualiza a cartinha e grava a linha em `desistencias` atomicamente.
-- **Falta**: aplicar `migration_v8.sql` no banco. Consulta futura via SQL direta por enquanto (`SELECT * FROM desistencias ORDER BY data_desistencia DESC`) — aba dedicada no admin fica pra depois, se for útil.
+- `migration_v8.sql` aplicada (confirmado em 2026-11-03 que tudo roda em produção). Consulta via SQL direta por enquanto (`SELECT * FROM desistencias ORDER BY data_desistencia DESC`) — aba dedicada no admin fica pra depois, se for útil.
 
 ### ~~Notificar equipe por e-mail no cancelamento~~ ✅ Feito
 - `enviarAvisoDesistenciaEquipe()` em `lib/email.ts`, chamada dentro de `cancelarApadrinamento()` após o commit, para `cartinhas@semprecrianca.org`.
 - Template dedicado `emails/AvisoDesistenciaEquipe.tsx` (mais simples que o e-mail do padrinho).
 
-### Retenção de dados (LGPD) — 6 meses pós-campanha
-- Não existe hoje o conceito de "fim de campanha" no schema — precisa decidir onde registrar essa data (nova tabela `campanhas`? campo de config?).
-- Job (cron ou manual) que, 6 meses após o fim da campanha, anonimiza/remove dados pessoais de apadrinhamento (nome do padrinho, e-mail, telefone), mantendo dados agregados se necessário.
+### ~~Retenção de dados (LGPD) — 6 meses pós-campanha~~ ✅ Feito
+- "Fim da campanha" = `campanhas.data_encerramento`, preenchido por `finalizarCampanha()` (`app/actions/campanhas.ts`), ação **manual** do Super Adm na aba Campanhas.
+- Cron diário `/api/cron/limpeza-campanhas` (`app/api/cron/limpeza-campanhas/route.ts`, 08:00): para campanhas encerradas há mais de 6 meses e com `dados_removidos_em IS NULL`, apaga as cartinhas da campanha e marca `dados_removidos_em`. Os totais agregados em `campanhas` ficam. Também limpa `rate_limit` vencido. Testado manualmente em 2026-09-21 (sem campanha elegível ainda).
 - Cliente faz a exportação para o Mailchimp por fora — sistema não precisa integrar com Mailchimp.
+- **Decidido (2026-11-03):** `desistencias` sobrevive à limpeza e o cliente apaga esses registros quando quiser, por conta própria — o cron não mexe nela. As cartinhas `entregue` já somem junto com o resto, então o snapshot delas deixa de ser problema.
+- Contas em `usuarios` não são tocadas pelo cron (padrinho pode participar de várias campanhas) — só saem pela exclusão de conta.
 
 ### ~~Crachá especial (PCD / alergia alimentar)~~ ✅ Feito
 - Campo `necessidade_especial` (BOOLEAN) + `observacao_especial` (TEXT) em `cartinhas` (`migration_v7.sql`). Checkbox + textarea condicional em `FormularioCartinha.tsx`. Indicador "Crachá neon" na `TabelaCartinhas.tsx`.
