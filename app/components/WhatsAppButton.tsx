@@ -14,6 +14,9 @@ export default function WhatsAppButton() {
   const phoneNumber = "5521995720162";
   const message = "Olá! Tenho uma dúvida sobre o Natal Solidário.";
 
+  // No checkout (celular) há uma barra de confirmação fixa no rodapé: o botão sobe para não cobri-la.
+  const noCheckout = pathname === "/checkout";
+
   if (pathname?.startsWith("/admin")) {
     return null;
   }
@@ -26,7 +29,7 @@ export default function WhatsAppButton() {
   return (
     <>
       {/* Botão flutuante */}
-      <div className="fixed bottom-6 right-6 z-50 print:hidden">
+      <div className={`fixed ${noCheckout ? "bottom-24 lg:bottom-6" : "bottom-6"} right-6 z-50 print:hidden`}>
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="bg-green-500 hover:bg-green-600 text-white rounded-full p-4 shadow-lg transition-all duration-300 hover:scale-110"
@@ -53,7 +56,7 @@ export default function WhatsAppButton() {
           />
 
           {/* Modal */}
-          <div className="fixed bottom-24 right-6 left-6 sm:left-auto w-auto sm:w-80 max-h-[70vh] overflow-y-auto bg-white rounded-md border border-stone-200 shadow-[0_8px_24px_rgba(30,27,23,.18)] z-50">
+          <div className={`fixed ${noCheckout ? "bottom-40 lg:bottom-24" : "bottom-24"} right-6 left-6 sm:left-auto w-auto sm:w-80 max-h-[70vh] overflow-y-auto bg-white rounded-md border border-stone-200 shadow-[0_8px_24px_rgba(30,27,23,.18)] z-50`}>
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-[15px] font-bold text-ink">

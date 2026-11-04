@@ -164,11 +164,16 @@ export default function CheckoutClient() {
   }
 
   return (
-    <div className="min-h-full bg-cream-deep py-14">
+    <div className="min-h-full bg-cream-deep pt-14 pb-28 lg:pb-14">
       <div className="max-w-4xl mx-auto px-4">
           <h1 className="text-[26px] font-bold text-center text-ink tracking-tight mb-9">
             Finalizar Apadrinhamento
           </h1>
+
+          <p className="text-center text-[14px] font-semibold text-brand-dark -mt-5 mb-8">
+            Falta só um passo: confirme abaixo para reservar{" "}
+            {cartinhas.length === 1 ? "a cartinha" : "as cartinhas"}.
+          </p>
 
           {mensagem && (
             <div
@@ -316,6 +321,11 @@ export default function CheckoutClient() {
                     </p>
                   </div>
                 </div>
+
+                <p className="lg:hidden mt-4 text-[11px] text-stone-500">
+                  Ao confirmar, você se compromete a entregar o presente até o
+                  prazo indicado.
+                </p>
               </div>
 
               <div className="bg-white border border-stone-200 rounded-md p-5">
@@ -333,11 +343,13 @@ export default function CheckoutClient() {
                 </a>
               </div>
 
-              <div className="bg-white border border-stone-200 rounded-md p-5">
+              {/* No celular, a confirmação fica fixa no rodapé para não passar despercebida.
+                  pr-20 deixa livre o botão flutuante do WhatsApp (canto direito). */}
+              <div className="fixed bottom-0 inset-x-0 z-40 bg-white border-t border-stone-200 shadow-[0_-4px_12px_rgba(0,0,0,0.08)] px-4 py-3 lg:static lg:z-auto lg:border lg:rounded-md lg:p-5 lg:shadow-none">
                 <button
                   onClick={handleFinalizarApadrinamento}
                   disabled={isLoading}
-                  className="w-full bg-brand-dark text-white py-3.5 rounded font-bold text-[14.5px] hover:bg-brand-darker transition-colors disabled:opacity-50 flex items-center justify-center gap-2 mb-2.5"
+                  className="w-full bg-brand-dark text-white py-3.5 rounded font-bold text-[14.5px] hover:bg-brand-darker transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg lg:shadow-none lg:mb-2.5"
                 >
                   {isLoading ? (
                     <>
@@ -349,7 +361,7 @@ export default function CheckoutClient() {
                   )}
                 </button>
 
-                <p className="text-[11px] text-stone-500 text-center">
+                <p className="hidden lg:block text-[11px] text-stone-500 text-center">
                   Ao confirmar, você se compromete a entregar o presente até o
                   prazo indicado.
                 </p>
