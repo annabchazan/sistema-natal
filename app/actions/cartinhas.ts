@@ -117,7 +117,10 @@ type StatusCartinha = (typeof STATUS_PERMITIDOS)[number];
 // --- UPLOAD CLOUDINARY ---
 async function uploadToCloudinary(file: File): Promise<string | null> {
   const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
-  if (!cloudName) return null;
+  if (!cloudName) {
+    console.error("Upload Cloudinary não executado: CLOUDINARY_CLOUD_NAME ausente ou vazia");
+    return null;
+  }
 
   const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
   const uploadPreset = process.env.CLOUDINARY_UPLOAD_PRESET;
@@ -142,6 +145,9 @@ async function uploadToCloudinary(file: File): Promise<string | null> {
   } else if (uploadPreset) {
     formData.append("upload_preset", uploadPreset);
   } else {
+    console.error(
+      "Upload Cloudinary não executado: faltam CLOUDINARY_API_KEY e CLOUDINARY_API_SECRET (ou CLOUDINARY_UPLOAD_PRESET)",
+    );
     return null;
   }
 
@@ -152,7 +158,9 @@ async function uploadToCloudinary(file: File): Promise<string | null> {
       return null;
     }
     const data = await response.json();
-    return data.secure_url || data.url || null;
+    const url = data.secure_url || data.url || null;
+    if (!url) console.error("Cloudinary respondeu sem URL da imagem:", JSON.stringify(data).slice(0, 300));
+    return url;
   } catch (err) {
     console.error("Erro ao enviar imagem para Cloudinary:", err);
     return null;
