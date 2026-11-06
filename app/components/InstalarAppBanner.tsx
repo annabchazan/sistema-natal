@@ -12,7 +12,7 @@ const CLASSE_BOTAO =
  * Faixa fixa no rodapé (só celular) convidando padrinhos e equipe logados a
  * instalar o app. Visitante não vê: o foco dele é conhecer as cartinhas.
  * Android abre o diálogo nativo; iPhone não tem isso, então mostra o passo a
- * passo do Safari. Fica por cima do botão do WhatsApp (z-60 contra z-50), que
+ * passo do Safari. Não aparece no checkout nem nos fluxos de senha. Fica por cima do botão do WhatsApp (z-60 contra z-50), que
  * volta a aparecer quando o banner é dispensado.
  */
 export default function InstalarAppBanner({ logado }: { logado: boolean }) {
@@ -21,8 +21,10 @@ export default function InstalarAppBanner({ logado }: { logado: boolean }) {
   const pathname = usePathname();
   const faixa = useRef<HTMLDivElement>(null);
 
-  // Fluxos de senha: a pessoa está no meio de outra coisa.
-  const visivel = logado && plataforma !== "nenhuma" && !pathname?.endsWith("-senha");
+  // Fluxos de senha e checkout: a pessoa está no meio de outra coisa. No
+  // checkout, além disso, a faixa cobriria a barra fixa "Confirmar apadrinhamento".
+  const noMeioDeUmFluxo = pathname?.endsWith("-senha") || pathname === "/checkout";
+  const visivel = logado && plataforma !== "nenhuma" && !noMeioDeUmFluxo;
 
   // A faixa é fixa e cobriria o rodapé e o fim dos formulários; reservamos o
   // espaço dela no fim da página enquanto ela estiver na tela (e quando os
