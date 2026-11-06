@@ -144,6 +144,13 @@ describe("tela de aceite — requireUsuarioAutenticado", () => {
     );
   });
 
+  it("sem informar o destino, volta para /usuario depois do aceite", async () => {
+    sessaoDe(padrinho(null));
+    expect(await redirecionouPara(() => requireUsuarioAutenticado())).toBe(
+      "/aceitar-politica?next=%2Fusuario",
+    );
+  });
+
   it("com aceite devolve o usuário", async () => {
     sessaoDe(padrinho(VERSAO_POLITICA));
     const usuario = await requireUsuarioAutenticado();
@@ -218,10 +225,12 @@ describe("arquivos da política de privacidade", () => {
     expect(pagina).toContain("12.629.489/0001-44");
     expect(pagina).toContain("vigente a partir de 06/11/2026");
     expect(pagina.match(/contato@semprecrianca\.org/g)).toHaveLength(2);
-    // Só o trecho sobre autorização dos responsáveis ainda depende da organização.
-    const pendentes = pagina.match(/\[[^\]]*\]/g)?.filter((t) => /confirmar com a/.test(t)) ?? [];
-    expect(pendentes).toHaveLength(1);
-    expect(pagina.match(/\[(data|e-mail)[^\]]*\]/g)).toBeNull();
+    // Nenhum texto pendente entre colchetes nem TODO na página pública.
+    const semClasses = pagina.replace(/\[[0-9.]+px\]|\[0\]/g, "");
+    expect(semClasses.match(/\[[^\]]*\]/g)).toBeNull();
+    expect(pagina).not.toMatch(/TODO/);
+    // A frase sobre os dados das crianças termina em "instituições parceiras." (sem trecho extra).
+    expect(pagina.replace(/\s+/g, " ")).toContain("Eles são fornecidos pelas instituições parceiras. </li>");
     for (const titulo of [
       "1. Quem é responsável pelos dados",
       "2. Quais dados coletamos",

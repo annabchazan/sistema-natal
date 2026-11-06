@@ -85,8 +85,7 @@ export default function PoliticaDePrivacidade() {
           <li>
             Os dados das crianças são tratados no seu melhor interesse (art. 14 da LGPD),
             exclusivamente para a realização da campanha. Eles são fornecidos pelas instituições
-            parceiras, [que obtêm a autorização dos pais ou responsáveis — confirmar com a
-            organização].
+            parceiras.
           </li>
           <li>
             As observações sobre necessidades especiais são dados sensíveis (art. 11 da LGPD) e ficam
