@@ -1,0 +1,17 @@
+{
+  "testRunner": "vitest",
+  "mutate": [
+    "lib/auth.ts",
+    "lib/seguranca.ts",
+    "lib/rateLimit.ts",
+    "lib/cron.ts",
+    "app/api/cron/lembretes/route.ts",
+    "app/api/cron/limpeza-campanhas/route.ts",
+    "proxy.ts"
+  ],
+  "reporters": ["clear-text", "json"],
+  "coverageAnalysis": "perTest",
+  "concurrency": 4,
+  "ignoreStatic": true,
+  "timeoutMS": 15000
+}

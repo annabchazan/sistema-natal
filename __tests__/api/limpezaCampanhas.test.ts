@@ -319,6 +319,27 @@ describe("GET /api/cron/limpeza-campanhas?dry=1 — simulação", () => {
     expect(params).toEqual([7]);
   });
 
+  it("conta as cartinhas da campanha com a consulta e o parâmetro certos", async () => {
+    mockQuery.mockResolvedValueOnce([[{ id: 7, ano: 2025 }]]);
+    mockCampanhaSimulada({ desistencias: 0, cartinhas: 9 });
+    await chamar(true, "?dry=1");
+
+    const [sql, params] = mockQuery.mock.calls[3];
+    expect(String(sql)).toBe("SELECT COUNT(*) AS total FROM cartinhas WHERE campanha_id = ?");
+    expect(params).toEqual([7]);
+  });
+
+  it("se a contagem não devolver linha, conta zero em vez de falhar", async () => {
+    mockQuery
+      .mockResolvedValueOnce([[{ id: 7, ano: 2025 }]])
+      .mockResolvedValueOnce([[]])   // fotos
+      .mockResolvedValueOnce([[]])   // COUNT desistencias sem linha
+      .mockResolvedValueOnce([[]]);  // COUNT cartinhas sem linha
+    const res = await chamar(true, "?dry=1");
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ cartinhasRemovidas: 0, desistenciasRemovidas: 0 });
+  });
+
   it("totaliza várias campanhas e marca no log que foi simulação", async () => {
     mockQuery.mockResolvedValueOnce([[{ id: 1, ano: 2024 }, { id: 2, ano: 2025 }]]);
     mockCampanhaSimulada({ desistencias: 1, cartinhas: 10 });
