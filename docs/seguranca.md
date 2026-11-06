@@ -23,7 +23,7 @@ Este documento descreve os controles de segurança que já existem, as decisões
 | Crons | `CRON_SECRET` obrigatório, comparação em tempo constante, falha fechada. | `lib/cron.ts` |
 | Segredos | `.env*` no `.gitignore`; nenhum segredo em variável `NEXT_PUBLIC_`. | `.gitignore`, gate |
 | Dependências | `npm audit` sem vulnerabilidade moderate+ em produção. | `scripts/scan-dependencias.mjs` |
-| LGPD | Exclusão de conta pelo próprio padrinho; retenção de 6 meses após o fim da campanha (cron de limpeza). | `app/actions/auth.ts`, cron |
+| LGPD | Exclusão de conta pelo próprio padrinho; retenção de 6 meses após o fim da campanha: o cron de limpeza apaga cartinhas, fotos no Cloudinary e desistências (nome e e-mail do padrinho) da campanha; `?dry=1` simula. | `app/actions/auth.ts`, cron |
 
 ## Decisões registradas
 

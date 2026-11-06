@@ -127,4 +127,4 @@ Definidas em `vercel.json` e protegidas por `CRON_SECRET`:
 | Rota | Horário (UTC) | O que faz |
 |---|---|---|
 | `/api/cron/lembretes` | 09:00 | Lembrete de prazo (10 dias antes e vencido) aos padrinhos que ainda não entregaram |
-| `/api/cron/limpeza-campanhas` | 08:00 | Remove cartas de campanhas encerradas há mais de seis meses, preservando os totais |
+| `/api/cron/limpeza-campanhas` | 08:00 | Remove cartas, fotos (Cloudinary) e desistências de campanhas encerradas há mais de seis meses, preservando os totais. `?dry=1` só simula |

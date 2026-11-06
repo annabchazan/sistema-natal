@@ -145,7 +145,7 @@ Encontrado numa revisão geral em 2026-07-22 (não bloqueia produção, é manut
 - Sessão só é limpa depois do commit
 
 **Ajustes menores (todos resolvidos em 2026-11-03):**
-- ~~`nome_padrinho`/`email_padrinho` em `desistencias` sem prazo~~ — decidido: o cliente apaga quando quiser (ver "Retenção de dados")
+- ~~`nome_padrinho`/`email_padrinho` em `desistencias` sem prazo~~ — resolvido em 2026-11-06: o cron de limpeza apaga as desistências junto com a campanha (ver "Retenção de dados")
 - [x] Removido o `DELETE FROM lembretes_enviados WHERE usuario_id = ?` de `excluirConta()` (o cron só grava `cartinha_id` e `tipo`, então a query não fazia nada)
 - [x] Texto de confirmação do `BotaoExcluirConta` agora avisa que as cartinhas apadrinhadas voltam a ficar disponíveis (continua sendo `confirm()` nativo)
 
@@ -185,7 +185,8 @@ Respostas de Gabi (responsável pelo projeto) às perguntas pendentes.
 - Cron diário `/api/cron/limpeza-campanhas` (`app/api/cron/limpeza-campanhas/route.ts`, 08:00): para campanhas encerradas há mais de 6 meses e com `dados_removidos_em IS NULL`, apaga as cartinhas da campanha e marca `dados_removidos_em`. Os totais agregados em `campanhas` ficam. Também limpa `rate_limit` vencido. Testado manualmente em 2026-09-21 (sem campanha elegível ainda).
 - **Imagens (2026-11-06):** o cron também apaga no Cloudinary as fotos das cartinhas removidas (antes de apagar as linhas, pra não perder as URLs). `excluirCartinha` e a troca/remoção de foto em `salvarCartinha` apagam a imagem antiga. Falha no Cloudinary só vai pro log, nunca impede a operação principal. Código em `lib/cloudinary.ts`; exige `CLOUDINARY_API_KEY`/`CLOUDINARY_API_SECRET` (só com upload preset não dá pra apagar). Imagens órfãs antigas (anteriores a essa mudança) continuam no Cloudinary.
 - Cliente faz a exportação para o Mailchimp por fora — sistema não precisa integrar com Mailchimp.
-- **Decidido (2026-11-03):** `desistencias` sobrevive à limpeza e o cliente apaga esses registros quando quiser, por conta própria — o cron não mexe nela. As cartinhas `entregue` já somem junto com o resto, então o snapshot delas deixa de ser problema.
+- **Revisto (2026-11-06), substitui a decisão de 2026-11-03:** `desistencias` guarda nome e e-mail do padrinho, então também entra na retenção de 6 meses. O cron apaga as desistências de cada campanha **antes** das cartinhas (`DELETE FROM desistencias WHERE cartinha_id IN (SELECT id FROM cartinhas WHERE campanha_id = ?)`), porque a tabela não tem `campanha_id` e o único elo é `cartinha_id`. Funciona com qualquer FK dessa coluna (sem FK, CASCADE ou RESTRICT). **Não** há varredura por idade: o histórico fica disponível durante a campanha e até a limpeza dela, 6 meses após o encerramento. As cartinhas `entregue` somem junto com o resto.
+- **Simulação:** `GET /api/cron/limpeza-campanhas?dry=1` (com `Authorization: Bearer <CRON_SECRET>`) só conta o que seria removido (cartinhas, desistências, imagens), sem apagar nem marcar a campanha. A resposta traz `simulacao: true`. Use antes da primeira limpeza real.
 - Contas em `usuarios` não são tocadas pelo cron (padrinho pode participar de várias campanhas) — só saem pela exclusão de conta.
 
 ### ~~Crachá especial (PCD / alergia alimentar)~~ ✅ Feito
