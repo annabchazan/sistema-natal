@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 vi.mock("@/lib/db", () => ({
   default: {
@@ -28,10 +28,16 @@ vi.mock("@/lib/email", () => ({
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
+vi.mock("@/lib/cloudinary", () => ({
+  apagarImagem: vi.fn(),
+  apagarImagens: vi.fn(),
+}));
+
 import db from "@/lib/db";
 import { getUsuarioAutenticado, validarPermissaoAdmin } from "@/lib/auth";
 import { enviarConfirmacaoApadrinhamento, enviarCancelamentoApadrinamento, enviarAvisoDesistenciaEquipe } from "@/lib/email";
-import { salvarCartinha, finalizarApadrinamento, cancelarApadrinamento, gerarNumeroSequencial, listarCartinhasFiltradas } from "@/app/actions/cartinhas";
+import { apagarImagem } from "@/lib/cloudinary";
+import { salvarCartinha, excluirCartinha, finalizarApadrinamento, cancelarApadrinamento, gerarNumeroSequencial, listarCartinhasFiltradas } from "@/app/actions/cartinhas";
 
 const mockDb = db as unknown as {
   query: ReturnType<typeof vi.fn>;
@@ -42,6 +48,7 @@ const mockPermissao = vi.mocked(validarPermissaoAdmin);
 const mockEnviarConfirmacao = vi.mocked(enviarConfirmacaoApadrinhamento);
 const mockEnviarCancelamento = vi.mocked(enviarCancelamentoApadrinamento);
 const mockEnviarAvisoEquipe = vi.mocked(enviarAvisoDesistenciaEquipe);
+const mockApagarImagem = vi.mocked(apagarImagem);
 
 const usuarioFake = {
   id: 1,
@@ -313,5 +320,173 @@ describe("salvarCartinha (cartinha volta para disponivel/carente)", () => {
     const res = await salvarCartinha(null, formEdicao("conferida"));
     expect(res.success).toBe(true);
     expect(mockDb.getConnection).not.toHaveBeenCalled();
+  });
+});
+
+// ─── Cloudinary: apagar imagens ─────────────────────────────────────────────
+
+const FOTO_VELHA = "https://res.cloudinary.com/demo/image/upload/v1/velha.jpg";
+const FOTO_NOVA = "https://res.cloudinary.com/demo/image/upload/v2/nova.jpg";
+
+describe("excluirCartinha (imagem no Cloudinary)", () => {
+  beforeEach(() => {
+    mockPermissao.mockResolvedValue({
+      ok: true,
+      usuario: { ...usuarioFake, tipo: "admin", admin_role: "full" },
+    } as never);
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  it("apaga a imagem depois de excluir a cartinha", async () => {
+    mockDb.query
+      .mockResolvedValueOnce([[{ foto_cartinha: FOTO_VELHA }]])
+      .mockResolvedValueOnce([{}]);
+    const res = await excluirCartinha(7);
+    expect(res.success).toBe(true);
+    expect(mockApagarImagem).toHaveBeenCalledWith(FOTO_VELHA);
+    expect(mockApagarImagem.mock.invocationCallOrder[0]).toBeGreaterThan(
+      mockDb.query.mock.invocationCallOrder[1],
+    );
+  });
+
+  it("não apaga a imagem se o DELETE da cartinha falhar", async () => {
+    mockDb.query
+      .mockResolvedValueOnce([[{ foto_cartinha: FOTO_VELHA }]])
+      .mockRejectedValueOnce(new Error("fk"));
+    const res = await excluirCartinha(7);
+    expect(res.success).toBe(false);
+    expect(mockApagarImagem).not.toHaveBeenCalled();
+  });
+
+  it("falha ao apagar no Cloudinary não impede a exclusão", async () => {
+    mockDb.query
+      .mockResolvedValueOnce([[{ foto_cartinha: FOTO_VELHA }]])
+      .mockResolvedValueOnce([{}]);
+    mockApagarImagem.mockResolvedValue(false);
+    const res = await excluirCartinha(7);
+    expect(res.success).toBe(true);
+  });
+
+  it("cartinha sem foto não gera chamada com URL (apagarImagem recebe vazio)", async () => {
+    mockDb.query.mockResolvedValueOnce([[{ foto_cartinha: null }]]).mockResolvedValueOnce([{}]);
+    const res = await excluirCartinha(7);
+    expect(res.success).toBe(true);
+    expect(mockApagarImagem).toHaveBeenCalledWith(null);
+  });
+
+  it("sem permissão, não lê nem apaga nada", async () => {
+    mockPermissao.mockResolvedValue({ ok: false, message: "negado" } as never);
+    const res = await excluirCartinha(7);
+    expect(res.success).toBe(false);
+    expect(mockDb.query).not.toHaveBeenCalled();
+    expect(mockApagarImagem).not.toHaveBeenCalled();
+  });
+});
+
+describe("salvarCartinha (imagem no Cloudinary)", () => {
+  function form(extras: Record<string, string | File> = {}) {
+    const f = new FormData();
+    f.set("id", "7");
+    f.set("nome_crianca", "Ana");
+    f.set("idade", "8");
+    f.set("texto_cartinha", "Querido Papai Noel");
+    f.set("presente_pedido", "Boneca");
+    f.set("instituicao_id", "1");
+    f.set("numero_sequencial", "12");
+    f.set("status", "conferida");
+    for (const [k, v] of Object.entries(extras)) f.set(k, v);
+    return f;
+  }
+
+  function jpeg() {
+    return new File([new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])], "foto.jpg", {
+      type: "image/jpeg",
+    });
+  }
+
+  function prepararEdicao(fotoAnterior: string | null, updateFalha = false) {
+    mockPermissao.mockResolvedValue({
+      ok: true,
+      usuario: { ...usuarioFake, tipo: "admin", admin_role: "full" },
+    } as never);
+    mockDb.query
+      .mockResolvedValueOnce([[{ id: 1 }]])
+      .mockResolvedValueOnce([[]])
+      .mockResolvedValueOnce([[{
+        status: "apadrinhada", nome_crianca: "Ana", presente_pedido: "Boneca",
+        numero_sequencial: 12, foto_cartinha: fotoAnterior, apadrinhado_por_usuario_id: 5,
+        nome_padrinho: null, email_padrinho: null,
+        padrinho_nome: "Maria", padrinho_email: "maria@teste.com",
+      }]]);
+    if (updateFalha) mockDb.query.mockRejectedValueOnce(new Error("update falhou"));
+    else mockDb.query.mockResolvedValue([{}]);
+  }
+
+  function stubUpload() {
+    vi.stubEnv("CLOUDINARY_CLOUD_NAME", "demo");
+    vi.stubEnv("CLOUDINARY_API_KEY", "k");
+    vi.stubEnv("CLOUDINARY_API_SECRET", "s");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({ ok: true, json: async () => ({ secure_url: FOTO_NOVA }) }),
+    );
+  }
+
+  beforeEach(() => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
+              });
+
+  it("foto trocada: apaga a antiga depois do UPDATE", async () => {
+    stubUpload();
+    prepararEdicao(FOTO_VELHA);
+    const res = await salvarCartinha(null, form({ foto_cartinha: jpeg() }));
+    expect(res.success).toBe(true);
+    expect(mockApagarImagem).toHaveBeenCalledTimes(1);
+    expect(mockApagarImagem).toHaveBeenCalledWith(FOTO_VELHA);
+  });
+
+  it("foto removida (checkbox): apaga a antiga", async () => {
+    prepararEdicao(FOTO_VELHA);
+    const res = await salvarCartinha(null, form({ remover_foto: "on" }));
+    expect(res.success).toBe(true);
+    expect(mockApagarImagem).toHaveBeenCalledWith(FOTO_VELHA);
+  });
+
+  it("edição sem mexer na foto: não apaga nada", async () => {
+    prepararEdicao(FOTO_VELHA);
+    const res = await salvarCartinha(null, form());
+    expect(res.success).toBe(true);
+    expect(mockApagarImagem).not.toHaveBeenCalled();
+  });
+
+  it("cartinha sem foto anterior recebendo foto nova: não apaga nada", async () => {
+    stubUpload();
+    prepararEdicao(null);
+    const res = await salvarCartinha(null, form({ foto_cartinha: jpeg() }));
+    expect(res.success).toBe(true);
+    expect(mockApagarImagem).not.toHaveBeenCalled();
+  });
+
+  it("UPDATE falhou: mantém a antiga e apaga a foto nova que ficaria órfã", async () => {
+    stubUpload();
+    prepararEdicao(FOTO_VELHA, true);
+    const res = await salvarCartinha(null, form({ foto_cartinha: jpeg() }));
+    expect(res.success).toBe(false);
+    expect(mockApagarImagem).toHaveBeenCalledTimes(1);
+    expect(mockApagarImagem).toHaveBeenCalledWith(FOTO_NOVA);
+    expect(mockApagarImagem).not.toHaveBeenCalledWith(FOTO_VELHA);
+  });
+
+  it("falha ao apagar a antiga no Cloudinary não faz a edição falhar", async () => {
+    stubUpload();
+    prepararEdicao(FOTO_VELHA);
+    mockApagarImagem.mockResolvedValue(false);
+    const res = await salvarCartinha(null, form({ foto_cartinha: jpeg() }));
+    expect(res.success).toBe(true);
   });
 });

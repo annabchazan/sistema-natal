@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import db from "@/lib/db";
 import { cronAutorizado } from "@/lib/cron";
 import { limparContadoresAntigos } from "@/lib/rateLimit";
+import { apagarImagens } from "@/lib/cloudinary";
 import type { ResultSetHeader, RowDataPacket } from "mysql2/promise";
 
 
@@ -10,9 +11,13 @@ interface CampanhaParaLimpar extends RowDataPacket {
   ano: number;
 }
 
+interface FotoCartinhaRow extends RowDataPacket {
+  foto_cartinha: string;
+}
+
 // Retenção combinada com a cliente (LGPD, 2026-07-20): mantém o histórico de
 // apadrinhamento por 6 meses após o fim da campanha, depois apaga. As
-// cartinhas em si somem; o resumo agregado em campanhas (totais, datas) fica
+// cartinhas em si somem (e as fotos delas no Cloudinary); o resumo agregado em campanhas (totais, datas) fica
 // pra sempre, e desistencias/lembretes_enviados sobrevivem por já guardarem
 // snapshot ou não precisarem do vínculo (ver migration_v12.sql).
 export async function GET(req: NextRequest) {
@@ -29,11 +34,24 @@ export async function GET(req: NextRequest) {
     );
 
     let cartinhasRemovidas = 0;
+    let imagensApagadas = 0;
+    let imagensComFalha = 0;
 
     // Aproveita o cron diário pra limpar contadores de rate limit vencidos.
     await limparContadoresAntigos().catch((err) => console.error("Falha ao limpar rate_limit:", err));
 
     for (const campanha of pendentes) {
+      // Imagens primeiro, enquanto as URLs ainda existem no banco: depois do DELETE elas
+      // se perderiam e as fotos ficariam órfãs no Cloudinary. Falha aqui só é logada
+      // (apagarImagens nunca lança) e não impede a limpeza dos dados.
+      const [fotos] = await db.query<FotoCartinhaRow[]>(
+        "SELECT foto_cartinha FROM cartinhas WHERE campanha_id = ? AND foto_cartinha IS NOT NULL",
+        [campanha.id],
+      );
+      const imagens = await apagarImagens(fotos.map((f) => f.foto_cartinha));
+      imagensApagadas += imagens.apagadas;
+      imagensComFalha += imagens.falhas;
+
       const [resultado] = await db.query<ResultSetHeader>(
         "DELETE FROM cartinhas WHERE campanha_id = ?",
         [campanha.id],
@@ -47,13 +65,15 @@ export async function GET(req: NextRequest) {
     }
 
     console.log(
-      `[cron/limpeza-campanhas] campanhas=${pendentes.length} cartinhas_removidas=${cartinhasRemovidas}`,
+      `[cron/limpeza-campanhas] campanhas=${pendentes.length} cartinhas_removidas=${cartinhasRemovidas} imagens_apagadas=${imagensApagadas} imagens_com_falha=${imagensComFalha}`,
     );
 
     return NextResponse.json({
       ok: true,
       campanhasLimpas: pendentes.map((c) => c.ano),
       cartinhasRemovidas,
+      imagensApagadas,
+      imagensComFalha,
     });
   } catch (err) {
     console.error("[cron/limpeza-campanhas] erro:", err);

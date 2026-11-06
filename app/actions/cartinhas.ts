@@ -7,6 +7,7 @@ import { enviarConfirmacaoApadrinhamento, enviarNotificacaoEntrega, enviarCancel
 import { obterOuCriarCampanhaAtiva } from "@/app/actions/campanhas";
 import { NUMERACAO_MANUAL_CARTINHAS } from "@/lib/config";
 import { tipoImagemDoArquivo } from "@/lib/imagem";
+import { apagarImagem } from "@/lib/cloudinary";
 import { dentroDoLimite } from "@/lib/rateLimit";
 import { idValido, idsValidos } from "@/lib/seguranca";
 import { padrinhoDeveSerLiberado, statusLivre } from "@/lib/statusCartinha";
@@ -76,6 +77,10 @@ interface CartinhaAnteriorRow extends RowDataPacket {
 
 interface CartinhaIdRow extends RowDataPacket {
   id: number;
+}
+
+interface CartinhaFotoRow extends RowDataPacket {
+  foto_cartinha: string | null;
 }
 
 interface CartinhaStatusRow extends RowDataPacket {
@@ -271,6 +276,10 @@ export async function salvarCartinha(
     return { success: false, message: "Número da cartinha inválido." };
   }
 
+  let fotoPath: string | null = null;
+  // Se algo falhar depois do upload, a foto nova ficaria órfã no Cloudinary.
+  let fotoNovaPersistida = false;
+
   try {
     const [instituicaoExiste] = await db.query<CartinhaIdRow[]>(
       "SELECT id FROM instituicoes WHERE id = ? LIMIT 1",
@@ -293,8 +302,6 @@ export async function salvarCartinha(
         return { success: false, message: "Já existe uma cartinha com esse número nessa instituição." };
       }
     }
-
-    let fotoPath: string | null = null;
 
     if (foto_cartinha && foto_cartinha.size > 0) {
       if (foto_cartinha.size > 5 * 1024 * 1024) {
@@ -407,6 +414,14 @@ export async function salvarCartinha(
         await db.query(sqlAtualizar, paramsAtualizar);
       }
 
+      fotoNovaPersistida = true;
+
+      // Foto trocada ou removida: a antiga some do Cloudinary (só depois do UPDATE dar certo).
+      const fotoAnterior = anterior?.[0]?.foto_cartinha ?? null;
+      if (fotoAnterior && fotoAnterior !== fotoFinal) {
+        await apagarImagem(fotoAnterior);
+      }
+
       // Dispara e-mail ao padrinho quando o status muda para "entregue"
       if (status === "entregue" && statusAnterior !== "entregue") {
         const padrinho = anterior?.[0];
@@ -439,6 +454,7 @@ export async function salvarCartinha(
           necessidade_especial, observacao_especial,
         ],
       );
+      fotoNovaPersistida = true;
     }
 
     revalidatePath("/admin");
@@ -446,6 +462,9 @@ export async function salvarCartinha(
     return { success: true, message: id ? "Cartinha atualizada!" : "Cartinha cadastrada!" };
   } catch (err) {
     console.error("Erro na operação:", err);
+    if (fotoPath && !fotoNovaPersistida) {
+      await apagarImagem(fotoPath);
+    }
     return { success: false, message: "Erro ao salvar no banco." };
   }
 }
@@ -461,7 +480,13 @@ export async function excluirCartinha(id: number): Promise<CartinhaState> {
     return { success: false, message: "Cartinha inválida." };
   }
   try {
+    const [fotos] = await db.query<CartinhaFotoRow[]>(
+      "SELECT foto_cartinha FROM cartinhas WHERE id = ? LIMIT 1",
+      [idLimpo],
+    );
     await db.query("DELETE FROM cartinhas WHERE id = ?", [idLimpo]);
+    // Só depois do DELETE dar certo; falha aqui é logada e não desfaz a exclusão.
+    await apagarImagem(fotos?.[0]?.foto_cartinha);
     revalidatePath("/admin");
     revalidatePath("/");
     return { success: true, message: "Cartinha removida com sucesso!" };
