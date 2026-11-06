@@ -108,7 +108,7 @@ describe("padrões proibidos no código", () => {
 
   it("SQL só interpola fragmentos montados no servidor (placeholders/condições), nunca entrada crua", () => {
     const PERMITIDOS = new Set([
-      "placeholders", "placeholdersAtualizar", "ph", "where", "COLUNAS_CARTINHA_PUBLICA",
+      "placeholders", "placeholdersAtualizar", "placeholdersStatus", "ph", "where", "COLUNAS_CARTINHA_PUBLICA",
       "condicoes.join(\" AND \")",
     ]);
     const problemas: string[] = [];

@@ -35,9 +35,9 @@ vi.mock("@/lib/cloudinary", () => ({
 
 import db from "@/lib/db";
 import { getUsuarioAutenticado, validarPermissaoAdmin } from "@/lib/auth";
-import { enviarConfirmacaoApadrinhamento, enviarCancelamentoApadrinamento, enviarAvisoDesistenciaEquipe } from "@/lib/email";
+import { enviarConfirmacaoApadrinhamento, enviarCancelamentoApadrinamento, enviarAvisoDesistenciaEquipe, enviarNotificacaoEntrega } from "@/lib/email";
 import { apagarImagem } from "@/lib/cloudinary";
-import { salvarCartinha, excluirCartinha, finalizarApadrinamento, cancelarApadrinamento, gerarNumeroSequencial, listarCartinhasFiltradas } from "@/app/actions/cartinhas";
+import { salvarCartinha, excluirCartinha, marcarCartinhasEntregues, finalizarApadrinamento, cancelarApadrinamento, gerarNumeroSequencial, listarCartinhasFiltradas } from "@/app/actions/cartinhas";
 
 const mockDb = db as unknown as {
   query: ReturnType<typeof vi.fn>;
@@ -48,6 +48,7 @@ const mockPermissao = vi.mocked(validarPermissaoAdmin);
 const mockEnviarConfirmacao = vi.mocked(enviarConfirmacaoApadrinhamento);
 const mockEnviarCancelamento = vi.mocked(enviarCancelamentoApadrinamento);
 const mockEnviarAvisoEquipe = vi.mocked(enviarAvisoDesistenciaEquipe);
+const mockEnviarEntrega = vi.mocked(enviarNotificacaoEntrega);
 const mockApagarImagem = vi.mocked(apagarImagem);
 
 const usuarioFake = {
@@ -497,5 +498,86 @@ describe("salvarCartinha (imagem no Cloudinary)", () => {
     mockApagarImagem.mockResolvedValue(false);
     const res = await salvarCartinha(null, form({ foto_cartinha: jpeg() }));
     expect(res.success).toBe(true);
+  });
+});
+
+// ─── marcarCartinhasEntregues: só quem tem padrinho e está no fluxo ──────────
+
+describe("marcarCartinhasEntregues", () => {
+  const cartinha = (id: number, extras: Record<string, unknown> = {}) => ({
+    id, nome_crianca: `Criança ${id}`, presente_pedido: "Bola", numero_sequencial: id,
+    padrinho_nome: "Maria", padrinho_email: "maria@teste.com", ...extras,
+  });
+
+  beforeEach(() => {
+    mockPermissao.mockResolvedValue({
+      ok: true,
+      usuario: { ...usuarioFake, tipo: "admin", admin_role: "editor" },
+    } as never);
+    mockEnviarEntrega.mockResolvedValue({ ok: true } as never);
+  });
+
+  it("só consulta e atualiza cartinhas apadrinhada, conferida e embrulhado", async () => {
+    mockDb.query.mockResolvedValueOnce([[cartinha(1), cartinha(2)]]).mockResolvedValueOnce([{}]);
+    const res = await marcarCartinhasEntregues([1, 2]);
+    expect(res.success).toBe(true);
+
+    const [sqlSelect, paramsSelect] = mockDb.query.mock.calls[0];
+    expect(String(sqlSelect)).toContain("c.status IN (?,?,?)");
+    expect(String(sqlSelect)).not.toContain("NOT IN");
+    expect(paramsSelect).toEqual([1, 2, "apadrinhada", "conferida", "embrulhado"]);
+
+    const [sqlUpdate, paramsUpdate] = mockDb.query.mock.calls[1];
+    expect(String(sqlUpdate)).toContain("SET status = 'entregue'");
+    expect(String(sqlUpdate)).toContain("AND status IN (?,?,?)");
+    expect(paramsUpdate).toEqual([1, 2, "apadrinhada", "conferida", "embrulhado"]);
+  });
+
+  it("nenhuma apta (ex.: só disponível/carente): erro claro e nenhum UPDATE nem e-mail", async () => {
+    mockDb.query.mockResolvedValueOnce([[]]);
+    const res = await marcarCartinhasEntregues([10, 11]);
+    expect(res.success).toBe(false);
+    expect(res.message).toMatch(/Nenhuma das cartinhas selecionadas pode ser marcada como entregue/);
+    expect(res.message).toMatch(/apadrinhadas, conferidas ou embrulhadas/);
+    expect(mockDb.query).toHaveBeenCalledTimes(1);
+    expect(mockEnviarEntrega).not.toHaveBeenCalled();
+  });
+
+  it("seleção mista: marca só as aptas e informa quantas foram ignoradas", async () => {
+    mockDb.query.mockResolvedValueOnce([[cartinha(1), cartinha(2)]]).mockResolvedValueOnce([{}]);
+    const res = await marcarCartinhasEntregues([1, 2, 3, 4, 5]);
+    expect(res.success).toBe(true);
+    expect(res.message).toContain("2 cartinhas marcadas como entregues!");
+    expect(res.message).toContain("3 foram ignoradas");
+    expect(mockDb.query.mock.calls[1][1]).toEqual([1, 2, "apadrinhada", "conferida", "embrulhado"]);
+  });
+
+  it("uma ignorada usa o singular", async () => {
+    mockDb.query.mockResolvedValueOnce([[cartinha(1)]]).mockResolvedValueOnce([{}]);
+    const res = await marcarCartinhasEntregues([1, 2]);
+    expect(res.message).toContain("1 cartinha marcada como entregue!");
+    expect(res.message).toContain("1 foi ignorada");
+  });
+
+  it("tudo apto: mensagem simples, sem falar em ignoradas", async () => {
+    mockDb.query.mockResolvedValueOnce([[cartinha(1), cartinha(2)]]).mockResolvedValueOnce([{}]);
+    const res = await marcarCartinhasEntregues([1, 2]);
+    expect(res.message).toBe("2 cartinhas marcadas como entregues!");
+  });
+
+  it("avisa por e-mail só os padrinhos das cartinhas efetivamente marcadas", async () => {
+    mockDb.query
+      .mockResolvedValueOnce([[cartinha(1), cartinha(2, { padrinho_email: null })]])
+      .mockResolvedValueOnce([{}]);
+    await marcarCartinhasEntregues([1, 2, 3]);
+    expect(mockEnviarEntrega).toHaveBeenCalledTimes(1);
+    expect(mockEnviarEntrega).toHaveBeenCalledWith(expect.objectContaining({ emailPadrinho: "maria@teste.com", numeroSequencial: 1 }));
+  });
+
+  it("sem permissão ou sem ids válidos, não toca no banco", async () => {
+    expect((await marcarCartinhasEntregues([])).success).toBe(false);
+    mockPermissao.mockResolvedValue({ ok: false, message: "negado" } as never);
+    expect((await marcarCartinhasEntregues([1])).success).toBe(false);
+    expect(mockDb.query).not.toHaveBeenCalled();
   });
 });

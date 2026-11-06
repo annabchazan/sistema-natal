@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { excluirCartinha, marcarCartinhasEntregues } from "@/app/actions/cartinhas";
+import { podeMarcarComoEntregue } from "@/lib/statusCartinha";
 import { STATUS_CARTINHA } from "@/lib/statusCartinha";
 import { usePaginacao } from "@/app/hooks/usePaginacao";
 import { useExclusaoComConfirmacao } from "@/app/hooks/useExclusaoComConfirmacao";
@@ -75,9 +76,10 @@ export default function TabelaCartinhas({
     setSelecionados(new Set());
   };
 
-  // Só faz sentido selecionar cartinhas que ainda não estão entregues/canceladas
+  // Só se seleciona o que pode ser marcado como entregue: apadrinhada, conferida ou embrulhado.
+  // Disponível/carente (sem padrinho), entregue e cancelada ficam sem caixa de seleção.
   const idsSelecionaveis = useMemo(
-    () => dadosFiltrados.filter((item) => item.status !== "entregue" && item.status !== "cancelada").map((item) => item.id),
+    () => dadosFiltrados.filter((item) => podeMarcarComoEntregue(item.status)).map((item) => item.id),
     [dadosFiltrados],
   );
   const todosSelecionados =
@@ -104,7 +106,12 @@ export default function TabelaCartinhas({
     if (total === 0) return;
     if (
       !confirm(
-        `Marcar ${total} cartinha${total !== 1 ? "s" : ""} como entregue${total !== 1 ? "s" : ""}? Um e-mail de confirmação será enviado aos padrinhos.`,
+        `Marcar ${total} cartinha${total !== 1 ? "s" : ""} como entregue${total !== 1 ? "s" : ""}? Um e-mail de confirmação será enviado aos padrinhos.` +
+          (dadosFiltrados.length > total
+            ? `
+
+As outras ${dadosFiltrados.length - total} cartinhas da lista não serão alteradas.`
+            : ""),
       )
     ) {
       return;
@@ -244,10 +251,25 @@ export default function TabelaCartinhas({
         </div>
       </div>
 
+      <p className="px-4 py-2 text-xs text-stone-500 border-b border-stone-100">
+        Só as cartinhas <strong>apadrinhadas, conferidas ou embrulhadas</strong> têm caixa de seleção e
+        podem ser marcadas como entregues. &quot;Selecionar todas&quot; marca apenas essas:{" "}
+        <strong>
+          {idsSelecionaveis.length} de {dadosFiltrados.length}
+        </strong>{" "}
+        {dadosFiltrados.length === 1 ? "cartinha" : "cartinhas"} na lista.
+      </p>
+
       {selecionados.size > 0 && (
         <div className="flex flex-wrap items-center gap-3 px-4 py-3 border-b border-stone-100 bg-brand/5">
           <span className="text-sm font-semibold text-ink">
             {selecionados.size} selecionada{selecionados.size !== 1 ? "s" : ""}
+            {dadosFiltrados.length > selecionados.size && (
+              <span className="font-normal text-stone-500">
+                {" "}
+                (de {dadosFiltrados.length} na lista; as outras não serão alteradas)
+              </span>
+            )}
           </span>
           <button
             onClick={handleMarcarEntregues}
@@ -274,7 +296,8 @@ export default function TabelaCartinhas({
                   type="checkbox"
                   checked={todosSelecionados}
                   onChange={alternarSelecaoTodos}
-                  aria-label="Selecionar todas as cartinhas filtradas"
+                  aria-label="Selecionar todas as cartinhas aptas para entrega"
+                  title="Seleciona só as apadrinhadas, conferidas e embrulhadas"
                   className="w-4 h-4 accent-brand-dark cursor-pointer"
                 />
               )}
@@ -291,7 +314,7 @@ export default function TabelaCartinhas({
         <tbody>
           {dadosPaginados.map((item) => {
             const { statusInfo, prazoVencido } = metaDoItem(item);
-            const podeSelecionar = item.status !== "entregue" && item.status !== "cancelada";
+            const podeSelecionar = podeMarcarComoEntregue(item.status);
 
             return (
               <tr key={item.id} className="bg-white border-b border-stone-100 hover:bg-cream-deep">
@@ -371,7 +394,7 @@ export default function TabelaCartinhas({
       <div className="md:hidden divide-y divide-stone-100">
         {dadosPaginados.map((item) => {
           const { statusInfo, prazoVencido } = metaDoItem(item);
-          const podeSelecionar = item.status !== "entregue" && item.status !== "cancelada";
+          const podeSelecionar = podeMarcarComoEntregue(item.status);
 
           return (
             <div key={item.id} className="p-4 space-y-2">

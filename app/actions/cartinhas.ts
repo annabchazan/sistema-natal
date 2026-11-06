@@ -10,7 +10,12 @@ import { tipoImagemDoArquivo } from "@/lib/imagem";
 import { apagarImagem } from "@/lib/cloudinary";
 import { dentroDoLimite } from "@/lib/rateLimit";
 import { idValido, idsValidos } from "@/lib/seguranca";
-import { padrinhoDeveSerLiberado, statusLivre } from "@/lib/statusCartinha";
+import {
+  MENSAGEM_STATUS_ENTREGAVEIS,
+  STATUS_ENTREGAVEIS,
+  padrinhoDeveSerLiberado,
+  statusLivre,
+} from "@/lib/statusCartinha";
 import { MSG_ACEITE_OBRIGATORIO, precisaAceitarPolitica } from "@/lib/politica";
 import type { RowDataPacket } from "mysql2/promise";
 
@@ -521,24 +526,31 @@ export async function marcarCartinhasEntregues(ids: number[]): Promise<CartinhaS
 
   try {
     const placeholders = ids.map(() => "?").join(",");
+    const placeholdersStatus = STATUS_ENTREGAVEIS.map(() => "?").join(",");
     const [candidatas] = await db.query<CartinhaEntregaRow[]>(
       `SELECT c.id, c.nome_crianca, c.presente_pedido, c.numero_sequencial,
               u.nome AS padrinho_nome, u.email AS padrinho_email
        FROM cartinhas c
        LEFT JOIN usuarios u ON c.apadrinhado_por_usuario_id = u.id
-       WHERE c.id IN (${placeholders}) AND c.status NOT IN ('entregue', 'cancelada')`,
-      ids,
+       WHERE c.id IN (${placeholders}) AND c.status IN (${placeholdersStatus})`,
+      [...ids, ...STATUS_ENTREGAVEIS],
     );
 
     if (candidatas.length === 0) {
-      return { success: false, message: "As cartinhas selecionadas já estão entregues ou canceladas." };
+      return {
+        success: false,
+        message: `Nenhuma das cartinhas selecionadas pode ser marcada como entregue. ${MENSAGEM_STATUS_ENTREGAVEIS}`,
+      };
     }
 
     const idsParaAtualizar = candidatas.map((c) => c.id);
     const placeholdersAtualizar = idsParaAtualizar.map(() => "?").join(",");
+    // O status vai de novo no UPDATE: se alguém mudar a cartinha entre o SELECT e aqui,
+    // ela não é marcada como entregue por engano.
     await db.query(
-      `UPDATE cartinhas SET status = 'entregue' WHERE id IN (${placeholdersAtualizar})`,
-      idsParaAtualizar,
+      `UPDATE cartinhas SET status = 'entregue'
+       WHERE id IN (${placeholdersAtualizar}) AND status IN (${placeholdersStatus})`,
+      [...idsParaAtualizar, ...STATUS_ENTREGAVEIS],
     );
 
     for (const cartinha of candidatas) {
@@ -557,9 +569,14 @@ export async function marcarCartinhasEntregues(ids: number[]): Promise<CartinhaS
     revalidatePath("/");
 
     const total = candidatas.length;
+    const ignoradas = ids.length - total;
+    const resumo = `${total} cartinha${total !== 1 ? "s" : ""} marcada${total !== 1 ? "s" : ""} como entregue${total !== 1 ? "s" : ""}!`;
     return {
       success: true,
-      message: `${total} cartinha${total !== 1 ? "s" : ""} marcada${total !== 1 ? "s" : ""} como entregue${total !== 1 ? "s" : ""}!`,
+      message:
+        ignoradas > 0
+          ? `${resumo} ${ignoradas} ${ignoradas !== 1 ? "foram ignoradas" : "foi ignorada"} (${MENSAGEM_STATUS_ENTREGAVEIS.replace(/\.$/, "")}).`
+          : resumo,
     };
   } catch (err) {
     console.error("Erro ao marcar cartinhas como entregues:", err);
