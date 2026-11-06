@@ -91,6 +91,11 @@ export default function Footer() {
                   Pontos de entrega
                 </Link>
               </li>
+              <li>
+                <Link href="/politica-de-privacidade" className="text-brand hover:text-white transition-colors">
+                  Política de Privacidade
+                </Link>
+              </li>
             </ul>
           </div>
 

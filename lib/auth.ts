@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import db from "@/lib/db";
 import { SESSION_COOKIE } from "@/lib/sessaoCookie";
 import { sha256Hex } from "@/lib/seguranca";
+import { caminhoAceitePolitica, precisaAceitarPolitica } from "@/lib/politica";
 import type { RowDataPacket } from "mysql2/promise";
 
 export type TipoUsuario = "admin" | "padrinho";
@@ -16,6 +17,8 @@ export interface UsuarioAutenticado {
   email: string;
   tipo: TipoUsuario;
   admin_role: AdminRole | null;
+  /** Versão da Política de Privacidade aceita; null = nunca aceitou. */
+  politica_versao?: string | null;
 }
 
 interface UsuarioRow extends RowDataPacket, UsuarioAutenticado {}
@@ -136,7 +139,7 @@ export async function getUsuarioAutenticado(): Promise<UsuarioAutenticado | null
   }
 
   const [rows] = await db.query<UsuarioRow[]>(
-    `SELECT u.id, u.nome, u.telefone, u.email, u.tipo, u.admin_role
+    `SELECT u.id, u.nome, u.telefone, u.email, u.tipo, u.admin_role, u.politica_versao
      FROM sessoes s
      JOIN usuarios u ON u.id = s.usuario_id
      WHERE s.token_hash = ? AND s.expira_em > NOW()
@@ -172,12 +175,22 @@ export function adminPodeGerenciarPermissoes(
   return usuarioEhAdmin(usuario) && usuario?.admin_role === "master";
 }
 
-export async function requireUsuarioAutenticado() {
+// Quem ainda não aceitou a versão atual da Política vai para a tela de aceite e volta
+// para `destino` depois. O carrinho fica no localStorage, então nada se perde no caminho.
+export function exigirPoliticaAceita(usuario: UsuarioAutenticado, destino: string) {
+  if (precisaAceitarPolitica(usuario)) {
+    redirect(caminhoAceitePolitica(destino));
+  }
+}
+
+export async function requireUsuarioAutenticado(destino = "/usuario") {
   const usuario = await getUsuarioAutenticado();
 
   if (!usuario) {
     redirect("/login");
   }
+
+  exigirPoliticaAceita(usuario, destino);
 
   return usuario;
 }
@@ -192,6 +205,8 @@ export async function requireAdminAccess() {
   if (!usuarioEhAdmin(usuario)) {
     redirect("/usuario");
   }
+
+  exigirPoliticaAceita(usuario, "/admin");
 
   return usuario;
 }

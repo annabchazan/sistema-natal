@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getUsuarioAutenticado } from "@/lib/auth";
+import { exigirPoliticaAceita, getUsuarioAutenticado } from "@/lib/auth";
 import db from "@/lib/db";
 import FormularioEditarPerfil from "@/app/components/usuario/FormularioEditarPerfil";
 import BotaoCancelarApadrinamento from "@/app/components/usuario/BotaoCancelarApadrinamento";
@@ -95,6 +95,7 @@ function BarraProgresso({ status }: { status: string }) {
 export default async function UsuarioPage() {
   const usuario = await getUsuarioAutenticado();
   if (!usuario) redirect("/login");
+  exigirPoliticaAceita(usuario, "/usuario");
 
   const [cartinhas] = await db.query<CartinhaUsuarioRow[]>(
     `SELECT

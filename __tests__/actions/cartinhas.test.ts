@@ -57,6 +57,7 @@ const usuarioFake = {
   email: "padrinho@teste.com",
   tipo: "padrinho" as const,
   admin_role: null,
+  politica_versao: "1.0",
 };
 
 function mockConexao(queryResults: unknown[] = []) {
@@ -108,6 +109,14 @@ describe("gerarNumeroSequencial", () => {
 // ─── finalizarApadrinamento ───────────────────────────────────────────────────
 
 describe("finalizarApadrinamento", () => {
+  it("rejeita quem ainda não aceitou a Política de Privacidade, sem tocar no banco", async () => {
+    mockGetUsuario.mockResolvedValue({ ...usuarioFake, politica_versao: null });
+    const res = await finalizarApadrinamento([1]);
+    expect(res.success).toBe(false);
+    expect(res.message).toMatch(/Política de Privacidade/);
+    expect(mockDb.getConnection).not.toHaveBeenCalled();
+  });
+
   it("rejeita quando usuário não está logado", async () => {
     mockGetUsuario.mockResolvedValue(null);
     const res = await finalizarApadrinamento([1]);

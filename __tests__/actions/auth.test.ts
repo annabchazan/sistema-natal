@@ -7,6 +7,7 @@ vi.mock("@/lib/db", () => ({
 vi.mock("@/lib/auth", () => ({
   getUsuarioAutenticado: vi.fn(),
   gerarHashSenha: vi.fn().mockReturnValue("salt:novohash"),
+  criarSessao: vi.fn(),
   validarSenha: vi.fn(),
   limparSessao: vi.fn(),
   revogarSessoesDoUsuario: vi.fn(),
@@ -26,9 +27,9 @@ vi.mock("@/lib/email", () => ({
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 import db from "@/lib/db";
-import { getUsuarioAutenticado, validarSenha, gerarHashSenha, limparSessao } from "@/lib/auth";
+import { getUsuarioAutenticado, validarSenha, gerarHashSenha, limparSessao, criarSessao } from "@/lib/auth";
 import { enviarEmailRecuperacaoSenha } from "@/lib/email";
-import { redefinirSenha, atualizarPerfil, solicitarRecuperacaoSenha, excluirConta } from "@/app/actions/auth";
+import { redefinirSenha, atualizarPerfil, solicitarRecuperacaoSenha, excluirConta, cadastrarUsuario, aceitarPolitica } from "@/app/actions/auth";
 
 const mockDb = db as unknown as { query: ReturnType<typeof vi.fn>; getConnection: ReturnType<typeof vi.fn> };
 const mockGetUsuario = vi.mocked(getUsuarioAutenticado);
@@ -305,5 +306,111 @@ describe("excluirConta", () => {
     const res = await excluirConta();
     expect(res.success).toBe(false);
     expect(conn.rollback).toHaveBeenCalled();
+  });
+});
+
+// ─── cadastrarUsuario: aceite da Política de Privacidade ─────────────────────
+
+describe("cadastrarUsuario (aceite da Política)", () => {
+  const dadosValidos = {
+    nome: "Maria Silva",
+    telefone: "(21) 99999-1234",
+    email: "maria@teste.com",
+    senha: "senhaForte123",
+    aceitouPolitica: true,
+  };
+
+  function prepararCadastro() {
+    mockGerarHash.mockReturnValue("salt:hash");
+    mockDb.query
+      .mockResolvedValueOnce([[]])                 // e-mail ainda não existe
+      .mockResolvedValueOnce([{ insertId: 42 }]);  // INSERT
+  }
+
+  it("rejeita sem o aceite (false) e não toca no banco", async () => {
+    const res = await cadastrarUsuario({ ...dadosValidos, aceitouPolitica: false });
+    expect(res.success).toBe(false);
+    expect(res.message).toMatch(/Política de Privacidade/);
+    expect(mockDb.query).not.toHaveBeenCalled();
+    expect(vi.mocked(criarSessao)).not.toHaveBeenCalled();
+  });
+
+  it("rejeita quando o campo do aceite está ausente", async () => {
+    const { aceitouPolitica: _omitido, ...semAceite } = dadosValidos;
+    void _omitido;
+    const res = await cadastrarUsuario(semAceite as never);
+    expect(res.success).toBe(false);
+    expect(mockDb.query).not.toHaveBeenCalled();
+  });
+
+  it("só aceita o booleano true: 'true', 1 e 'on' são rejeitados", async () => {
+    for (const valor of ["true", 1, "on", {}, []]) {
+      const res = await cadastrarUsuario({ ...dadosValidos, aceitouPolitica: valor as never });
+      expect(res.success).toBe(false);
+    }
+    expect(mockDb.query).not.toHaveBeenCalled();
+  });
+
+  it("com o aceite, grava a data (NOW()) e a versão 1.0 no INSERT", async () => {
+    prepararCadastro();
+    const res = await cadastrarUsuario(dadosValidos);
+
+    expect(res.success).toBe(true);
+    const [sql, params] = mockDb.query.mock.calls[1];
+    expect(String(sql)).toContain("politica_aceita_em");
+    expect(String(sql)).toContain("politica_versao");
+    expect(String(sql)).toContain("NOW()");
+    expect(params).toEqual(["Maria Silva", "(21) 99999-1234", "maria@teste.com", "salt:hash", "1.0"]);
+    expect(vi.mocked(criarSessao)).toHaveBeenCalledWith(42);
+  });
+
+  it("e-mail já cadastrado continua sendo recusado, mesmo com aceite", async () => {
+    mockDb.query.mockResolvedValueOnce([[{ id: 9 }]]);
+    const res = await cadastrarUsuario(dadosValidos);
+    expect(res.success).toBe(false);
+    expect(res.message).toMatch(/já existe/i);
+    expect(mockDb.query).toHaveBeenCalledTimes(1);
+  });
+});
+
+// ─── aceitarPolitica: quem já tinha conta ────────────────────────────────────
+
+describe("aceitarPolitica", () => {
+  it("exige estar logado", async () => {
+    mockGetUsuario.mockResolvedValue(null);
+    const res = await aceitarPolitica({ aceitouPolitica: true });
+    expect(res.success).toBe(false);
+    expect(mockDb.query).not.toHaveBeenCalled();
+  });
+
+  it("exige o booleano true", async () => {
+    mockGetUsuario.mockResolvedValue(usuarioFake);
+    for (const valor of [false, "true", 1, undefined]) {
+      const res = await aceitarPolitica({ aceitouPolitica: valor as never });
+      expect(res.success).toBe(false);
+    }
+    expect(mockDb.query).not.toHaveBeenCalled();
+  });
+
+  it("grava data e versão 1.0 só para o usuário logado", async () => {
+    mockGetUsuario.mockResolvedValue(usuarioFake);
+    mockDb.query.mockResolvedValueOnce([{}]);
+    const res = await aceitarPolitica({ aceitouPolitica: true });
+
+    expect(res.success).toBe(true);
+    const [sql, params] = mockDb.query.mock.calls[0];
+    expect(String(sql)).toBe(
+      "UPDATE usuarios SET politica_aceita_em = NOW(), politica_versao = ? WHERE id = ?",
+    );
+    expect(params).toEqual(["1.0", usuarioFake.id]);
+  });
+
+  it("erro do banco devolve mensagem amigável, sem vazar detalhes", async () => {
+    mockGetUsuario.mockResolvedValue(usuarioFake);
+    mockDb.query.mockRejectedValueOnce(new Error("ER_BAD_FIELD_ERROR politica_versao"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const res = await aceitarPolitica({ aceitouPolitica: true });
+    expect(res.success).toBe(false);
+    expect(res.message).not.toMatch(/ER_BAD_FIELD/);
   });
 });

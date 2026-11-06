@@ -11,6 +11,7 @@ import { apagarImagem } from "@/lib/cloudinary";
 import { dentroDoLimite } from "@/lib/rateLimit";
 import { idValido, idsValidos } from "@/lib/seguranca";
 import { padrinhoDeveSerLiberado, statusLivre } from "@/lib/statusCartinha";
+import { MSG_ACEITE_OBRIGATORIO, precisaAceitarPolitica } from "@/lib/politica";
 import type { RowDataPacket } from "mysql2/promise";
 
 export interface CartinhaState {
@@ -743,6 +744,10 @@ export async function finalizarApadrinamento(
   const usuario = await getUsuarioAutenticado();
   if (!usuario) {
     return { success: false, message: "Você precisa estar logado para finalizar o apadrinhamento." };
+  }
+  // Defesa no servidor: uma página de checkout aberta antes do deploy não pula o aceite.
+  if (precisaAceitarPolitica(usuario)) {
+    return { success: false, message: MSG_ACEITE_OBRIGATORIO };
   }
   if (!Array.isArray(cartas_ids) || cartas_ids.length === 0) {
     return { success: false, message: "Nenhuma cartinha selecionada." };

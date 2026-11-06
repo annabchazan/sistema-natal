@@ -25,6 +25,7 @@ import {
   validarDadosUsuario,
   validarPoliticaSenha,
 } from "@/lib/seguranca";
+import { MSG_ACEITE_OBRIGATORIO, VERSAO_POLITICA } from "@/lib/politica";
 import { revalidatePath } from "next/cache";
 import type { ResultSetHeader, RowDataPacket } from "mysql2/promise";
 
@@ -77,6 +78,7 @@ interface CadastroInput {
   telefone: string;
   email: string;
   senha: string;
+  aceitouPolitica: boolean;
 }
 
 interface LoginInput {
@@ -101,6 +103,12 @@ export async function cadastrarUsuario(
   const email = input.email.trim().toLowerCase();
   const senha = String(input.senha ?? "");
 
+  // Estrito de propósito: só o booleano true vale ("true", 1 ou ausente não). A checagem
+  // do navegador é só conveniência; o consentimento é validado aqui.
+  if (input.aceitouPolitica !== true) {
+    return { success: false, message: MSG_ACEITE_OBRIGATORIO };
+  }
+
   const erroValidacao =
     validarDadosUsuario({ nome, telefone, email }) ??
     validarPoliticaSenha(senha, { min: SENHA_MIN_PADRINHO, email });
@@ -124,8 +132,9 @@ export async function cadastrarUsuario(
 
     const senhaHash = gerarHashSenha(senha);
     const [resultado] = await db.query<ResultSetHeader>(
-      "INSERT INTO usuarios (nome, telefone, email, senha, tipo) VALUES (?, ?, ?, ?, 'padrinho')",
-      [nome, telefone, email, senhaHash],
+      `INSERT INTO usuarios (nome, telefone, email, senha, tipo, politica_aceita_em, politica_versao)
+       VALUES (?, ?, ?, ?, 'padrinho', NOW(), ?)`,
+      [nome, telefone, email, senhaHash, VERSAO_POLITICA],
     );
 
     await criarSessao(resultado.insertId);
@@ -212,6 +221,31 @@ export async function loginUsuario(input: LoginInput): Promise<AuthActionState> 
   } catch (error) {
     console.error("Erro ao fazer login:", error);
     return { success: false, message: "Não foi possível fazer login." };
+  }
+}
+
+// Aceite da Política por quem já tinha conta (ou por quem aceitou uma versão antiga).
+export async function aceitarPolitica(input: {
+  aceitouPolitica: boolean;
+}): Promise<AuthActionState> {
+  const usuario = await getUsuarioAutenticado();
+  if (!usuario) {
+    return { success: false, message: "Você precisa estar logado." };
+  }
+  if (input?.aceitouPolitica !== true) {
+    return { success: false, message: MSG_ACEITE_OBRIGATORIO };
+  }
+
+  try {
+    await db.query(
+      "UPDATE usuarios SET politica_aceita_em = NOW(), politica_versao = ? WHERE id = ?",
+      [VERSAO_POLITICA, usuario.id],
+    );
+    revalidatePath("/", "layout");
+    return { success: true, message: "Aceite registrado." };
+  } catch (error) {
+    console.error("Erro ao registrar aceite da política:", error);
+    return { success: false, message: "Não foi possível registrar o aceite. Tente novamente." };
   }
 }
 

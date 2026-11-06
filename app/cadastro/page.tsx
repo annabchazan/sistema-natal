@@ -98,6 +98,7 @@ function CadastroForm() {
   const [salvando, setSalvando] = useState(false);
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [mostrarConfirmarSenha, setMostrarConfirmarSenha] = useState(false);
+  const [aceitouPolitica, setAceitouPolitica] = useState(false);
 
   const handleChange = (campo: keyof FormularioCadastro, valor: string) => {
     setErro("");
@@ -150,7 +151,13 @@ function CadastroForm() {
       return;
     }
 
-    const resultado = await cadastrarUsuario({ nome, telefone, email, senha });
+    if (!aceitouPolitica) {
+      setErro("Para criar a conta, leia e concorde com a Política de Privacidade.");
+      setSalvando(false);
+      return;
+    }
+
+    const resultado = await cadastrarUsuario({ nome, telefone, email, senha, aceitouPolitica });
 
     if (!resultado.success) {
       setErro(resultado.message);
@@ -312,6 +319,32 @@ function CadastroForm() {
                   {mostrarConfirmarSenha ? <IconeOlhoFechado /> : <IconeOlho />}
                 </button>
               </div>
+            </div>
+
+            <div>
+              <label className="flex items-start gap-2.5 text-[13px] text-stone-600 cursor-pointer">
+                <input
+                  id="aceitouPolitica"
+                  type="checkbox"
+                  checked={aceitouPolitica}
+                  onChange={(event) => {
+                    setErro("");
+                    setAceitouPolitica(event.target.checked);
+                  }}
+                  className="mt-0.5 h-4 w-4 shrink-0 accent-brand-dark"
+                />
+                <span>
+                  Li e concordo com a{" "}
+                  <Link
+                    href="/politica-de-privacidade"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-semibold text-brand-dark underline"
+                  >
+                    Política de Privacidade
+                  </Link>
+                </span>
+              </label>
             </div>
 
             {erro && (

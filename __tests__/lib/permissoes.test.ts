@@ -47,7 +47,7 @@ const mockQuery = (db as unknown as { query: ReturnType<typeof vi.fn> }).query;
 const TOKEN = "b".repeat(64);
 
 function usuario(tipo: "admin" | "padrinho", admin_role: UsuarioAutenticado["admin_role"] = null): UsuarioAutenticado {
-  return { id: 1, nome: "Teste", telefone: "21999999999", email: "t@t.com", tipo, admin_role };
+  return { id: 1, nome: "Teste", telefone: "21999999999", email: "t@t.com", tipo, admin_role, politica_versao: "1.0" };
 }
 
 const padrinho = usuario("padrinho");
