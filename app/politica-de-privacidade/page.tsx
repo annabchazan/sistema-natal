@@ -21,7 +21,7 @@ export default function PoliticaDePrivacidade() {
           Política de Privacidade — Natal Solidário Sempre Criança
         </h1>
         <p className="text-sm text-stone-500 mb-8">
-          Versão 1.0 — vigente a partir de [data de publicação]
+          Versão 1.0 — vigente a partir de 06/11/2026
         </p>
 
         <p className={classeP}>
@@ -36,7 +36,7 @@ export default function PoliticaDePrivacidade() {
           A responsável pelo tratamento dos dados (controladora) é a Sempre Criança, associação civil
           sem fins lucrativos com sede em Niterói (RJ), CNPJ 12.629.489/0001-44.
         </p>
-        <p className={classeP}>Contato para assuntos de privacidade: [e-mail de contato].</p>
+        <p className={classeP}>Contato para assuntos de privacidade: contato@semprecrianca.org.</p>
 
         <h2 className={classeH2}>2. Quais dados coletamos</h2>
         <h3 className={classeH3}>Dos padrinhos e das madrinhas</h3>
@@ -145,8 +145,7 @@ export default function PoliticaDePrivacidade() {
           <li>excluir sua conta diretamente na sua área do site;</li>
           <li>
             solicitar informações sobre o tratamento dos seus dados, revogar o consentimento ou
-            exercer os demais direitos previstos no art. 18 da LGPD pelo e-mail [e-mail de
-            contato].
+            exercer os demais direitos previstos no art. 18 da LGPD pelo e-mail contato@semprecrianca.org.
           </li>
         </ul>
 

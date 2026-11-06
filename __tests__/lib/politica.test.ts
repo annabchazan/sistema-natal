@@ -216,6 +216,12 @@ describe("arquivos da política de privacidade", () => {
     const pagina = ler("app", "politica-de-privacidade", "page.tsx");
     expect(pagina).toContain("Versão 1.0");
     expect(pagina).toContain("12.629.489/0001-44");
+    expect(pagina).toContain("vigente a partir de 06/11/2026");
+    expect(pagina.match(/contato@semprecrianca\.org/g)).toHaveLength(2);
+    // Só o trecho sobre autorização dos responsáveis ainda depende da organização.
+    const pendentes = pagina.match(/\[[^\]]*\]/g)?.filter((t) => /confirmar com a/.test(t)) ?? [];
+    expect(pendentes).toHaveLength(1);
+    expect(pagina.match(/\[(data|e-mail)[^\]]*\]/g)).toBeNull();
     for (const titulo of [
       "1. Quem é responsável pelos dados",
       "2. Quais dados coletamos",
