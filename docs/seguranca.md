@@ -27,7 +27,7 @@ Este documento descreve os controles de segurança que já existem, as decisões
 
 ## Decisões registradas
 
-**RLS / isolamento no banco: não se aplica.** O MySQL não tem RLS, o sistema não é multi-tenant e o navegador nunca acessa o banco (só o servidor, por uma conexão única). A proteção real do banco é: credenciais só na Vercel, conexão com SSL, e acesso remoto liberado apenas para quem precisa.
+**RLS / isolamento no banco: não se aplica.** O MySQL não tem RLS, o sistema não é multi-tenant e o navegador nunca acessa o banco (só o servidor, por uma conexão única). A proteção real do banco é: credenciais só na Vercel e conexão com TLS obrigatório (`DB_SSL=true`, certificado verificado). O "MySQL remoto" da Hostinger aceita qualquer IP, porque a Vercel não tem IP fixo; a proteção vem da credencial forte e do TLS.
 
 **Dados das crianças (primeiro nome e idade) não são tratados como sensíveis** (decisão da equipe). Mesmo assim `buscarCartinhasParaCheckout` só aceita até 20 ids por chamada.
 
@@ -67,12 +67,12 @@ Todos ficam nas variáveis de ambiente da Vercel (`vercel env`) e em `.env.local
 
 1. Aplicar `migration_v13.sql` no banco de produção **antes** de subir o código (sem a tabela `sessoes` ninguém loga).
 2. Subir o código. Todos os usuários logados precisarão entrar de novo uma vez.
-3. Ligar SSL no banco (ver abaixo) e conferir o login.
+3. Conferir que `DB_SSL=true` está na Vercel (Production e Preview) e testar o login. Se a conexão falhar, o TLS não está passando: não desligue o SSL, investigue o certificado.
 4. Depois de estável, remover `AUTH_SECRET` da Vercel.
 
 ## Limitações conhecidas e próximos passos
 
-- **Banco de produção sem SSL** (Hostinger). O código já usa SSL quando `DB_SSL=true` (com verificação de certificado); falta a hospedagem fornecer o certificado/CA e a env ser ligada. Enquanto isso, credenciais e dados trafegam sem criptografia. Restrinja no painel da Hostinger quais IPs podem conectar (o "MySQL remoto").
+- **Banco de produção com TLS desde 2026-11-13.** A Hostinger (`*.hstgr.io`) aceita TLS 1.3 com certificado Let's Encrypt, validado pela CA padrão do Node; nenhuma CA customizada é necessária. `DB_SSL` está gravada como Secret na Vercel (não aparece no painel); se houver dúvida sobre o valor, regrave com `printf "true" | vercel env add DB_SSL --environment=production` e faça redeploy. Como `rejectUnauthorized: true` não tem fallback, o site conectar já prova que o TLS está ativo.
 - Bloqueio de login por e-mail permite que alguém trave a conta de outra pessoa por 15 minutos digitando senha errada; é o preço de não vazar contas. O limite por IP reduz, mas não elimina.
 - Rate limit de janela fixa: um atacante pode fazer até 2x o limite na virada da janela.
 - A comparação de cadastro "e-mail já existe" revela que o e-mail está cadastrado (necessário para a experiência); é limitada por IP.
