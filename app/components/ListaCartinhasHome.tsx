@@ -425,7 +425,16 @@ export default function ListaCartinhasHome({
 
         {listaChips}
 
-        {total === 0 ? (
+        {total === 0 && quantidadeFiltrosAtivos === 0 ? (
+          <div className="text-center py-20">
+            <p className="text-lg text-ink font-semibold">
+              Todas as cartinhas já foram apadrinhadas!
+            </p>
+            <p className="mt-2 text-stone-500">
+              Obrigado a todos os padrinhos e madrinhas. Novas cartinhas podem aparecer por aqui, volte mais tarde.
+            </p>
+          </div>
+        ) : total === 0 ? (
           <div className="text-center py-20">
             <p className="text-lg text-stone-500">
               Nenhuma cartinha encontrada com os filtros aplicados.
