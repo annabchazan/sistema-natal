@@ -8,6 +8,10 @@ Antes de entregar cada questão, confira:
 - [ ] Fiz **todos os itens**? (as 3 tuplas, a mensagem do `else`...)
 - [ ] O critério está certo? (`>= 6` ou `>= 7`?)
 - [ ] O enunciado diz **"apenas"**? Então não imprima nada a mais.
+- [ ] **Vale o que o enunciado PEDE, e não o que o exemplo MOSTRA** (Collatz: o exemplo explica a regra, mas o pedido é "apenas os números").
+- [ ] Fórmulas diferentes para cada caso? Confira se cada uma ficou **no `if` certo** (RET × TRI) e faça **uma conta à mão**.
+- [ ] Questão de "justifique"? **Escreva o raciocínio** (ex.: `/` dá float → `50.0`, e não `50`).
+- [ ] No `write` com "mesmo formato": compare com uma linha do original, **vírgula por vírgula**, sem espaços e sem `{lista}` inteira.
 
 ## 2. Uma variável = um papel só
 ```python
@@ -43,7 +47,8 @@ for t in textos:
 ## 6. Operadores
 | | |
 |---|---|
-| `**` | potência · o `^` **NÃO** é potência |
+| `*` | **multiplicação** (área = base `*` altura) |
+| `**` | **potência** · o `^` **NÃO** é potência · não confunda com `*` |
 | `** 0.5` | raiz quadrada |
 | `/` | sempre dá **float** (`6 / 2 = 3.0`) |
 | `//` | divisão inteira (`7 // 2 = 3`) |
@@ -93,6 +98,10 @@ Onde zerar: **dentro** do `for` se for "por linha/escola/célula", e **antes de 
 - No f-string, **só o que está dentro de `{}`** vira valor.
 - O `else` fica **alinhado** com o `if`.
 - `a, b = 7` dá erro (o número de variáveis tem que ser igual ao de valores).
+- `(dado)` **não** é tupla: quem cria a tupla é a **vírgula** → `(tipo, base, altura)`.
+- Tupla **não tem `append`**: para devolver um par, use `return a, b`.
+- Cada `for` tira **uma camada**: `for a, b in catetos` ✅ · `for a, b in (3, 4)` 💥
+- Não use `max`, `min`, `sum`, `len`, `list` como nome de variável.
 
 ## 12. Arquivos
 - `open(nome, "r")` lê · `"w"` **apaga tudo** e escreve · `"a"` acrescenta no final.
