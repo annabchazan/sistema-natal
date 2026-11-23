@@ -2,7 +2,7 @@
 
 - **VS: 25/11/2026 (quarta-feira)** (matéria toda: aulas 1 a 20)
 - Critério da VS: precisa de **6,0 ou mais**.
-- Com a P2 = 1 e direito à VS, a P1 foi alta: a matéria da P1 (aulas 1 a 11) está mais segura. **Foco na matéria da P2 (aulas 12 a 20).**
+- Notas: P1 = 6, P2 = 1 (média 3,5). Pelo slide da aula 1, média abaixo de 4,0 reprova direto — **confirmar com o professor que ela tem direito à VS**. A matéria da P1 (aulas 1 a 11) está razoável; **foco na matéria da P2 (aulas 12 a 20)**.
 
 ## Plano por sessão (prioridade máxima)
 | sessão | o quê |
