@@ -1,8 +1,17 @@
 # Plano de estudos para a VS de Python
 
-- **VS: 08/12/2026** (matéria toda: aulas 1 a 20)
-- VR: 28/11/2026 (perguntar ao professor se a VR pode substituir a P2)
-- Critério da VS: média (P1 + P2) / 2 entre 4,0 e 6,0 dá direito à VS; na VS precisa de **6,0 ou mais**.
+- **VS: 25/11/2026 (quarta-feira)** (matéria toda: aulas 1 a 20)
+- Critério da VS: precisa de **6,0 ou mais**.
+- Com a P2 = 1 e direito à VS, a P1 foi alta: a matéria da P1 (aulas 1 a 11) está mais segura. **Foco na matéria da P2 (aulas 12 a 20).**
+
+## Plano de 2 dias (prioridade máxima)
+| quando | o quê |
+|---|---|
+| **Seg 23/11** | As **3 questões da prova** (string → "4a5b"; lista de dicionários → arquivo; multiplicação + transposta), até saírem certas sozinha · Aula 18, ex. 3 e 4 (lista de dicionários e dicionário aninhado) · Aula 19 (arquivo) |
+| **Ter 24/11** | Aula 12 (3) · Aula 16, ex. 6 e 7 · Aula 20, ex. 6 e 7 (arquivos) · Aula 14, ex. 3 (lista 3D) · Aula 10, ex. 4 e 5 (duplicados, segundo maior) · Simulado · Ler a colinha · **Dormir cedo** |
+| **Qua 25/11** | **VS** |
+
+O cronograma e a checklist completos abaixo ficam para consulta e para treinar depois, se der tempo.
 
 ## Método
 1. Fazer **sozinha, sem olhar e sem rodar**, como na prova.
@@ -12,7 +21,7 @@
 
 Legenda: ⬜ falta · 🔁 refazer · ✅ acertou de primeira
 
-## Cronograma
+## Cronograma (antigo, para a VS em 08/12 — não vale mais)
 | dia | o quê |
 |---|---|
 | 23/11 seg | Aula 03 (8) |
