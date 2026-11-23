@@ -4,15 +4,22 @@
 - Critério da VS: precisa de **6,0 ou mais**.
 - Notas: P1 = 6, P2 = 1 (média 3,5). Pelo slide da aula 1, média abaixo de 4,0 reprova direto — **confirmar com o professor que ela tem direito à VS**. A matéria da P1 (aulas 1 a 11) está razoável; **foco na matéria da P2 (aulas 12 a 20)**.
 
+## O que o professor disse que NÃO cai na VR
+- **Dicionário**
+- **Módulo 1** (a confirmar quais aulas: provavelmente a matéria da P1)
+- **Matriz**
+
+Sobra: **strings, tuplas, conjuntos (sets), funções, arquivos, `while`/`for` com listas e interpretação de código.**
+
 ## Plano por sessão (prioridade máxima)
 | sessão | o quê |
 |---|---|
-| **1. Segunda de manhã (2h)** | As **3 questões da prova**, sozinha, até saírem certas: string → "4a5b" · lista de dicionários → arquivo · multiplicação + transposta |
-| **2. Segunda à noite** | Aula 18, ex. 3 e 4 (lista de dicionários e dicionário aninhado) · Aula 19 (arquivo) · Aula 20, ex. 6 (estoque) |
-| **3. Terça de manhã** (só se o TCC deixar; senão, pular) | Aula 12, ex. 1 e 3 · Aula 16, ex. 6 e 7 · Aula 14, ex. 3 (lista 3D) |
-| **4. Terça à noite** (leve, depois do TCC) | Simulado · refazer **um** exercício que errou · ler a colinha · **dormir cedo** |
-| **5. Quarta de manhã** | Refazer **multiplicação** e **lista de dicionários → arquivo** uma última vez · ler a colinha · **nada de matéria nova** |
-| **Quarta** | **VS** |
+| **1. Segunda de manhã (2h)** | **Strings:** Aula 12, ex. 1 (formato do professor) e ex. 3 (RLE) · questão da prova "4a5b" **sem dicionário** · Aula 16, ex. 4 (palavras únicas com set) |
+| **2. Segunda à noite** | **Arquivos:** Aula 19 (turma → médias) · Aula 20, ex. 6 (estoque) e ex. 7 (polígonos com lista de tuplas) |
+| **3. Terça de manhã** (só se o TCC deixar) | **Funções + tuplas + sets:** Aula 18, ex. 1 (potência) e ex. 2 (média ponderada) · Aula 20, ex. 2 e 4 · Aula 16, ex. 1, 2 e 3 |
+| **4. Terça à noite** (leve) | Aula 20, ex. 1 (interpretação) e ex. 8 (Collatz) · ler a colinha · **dormir cedo** |
+| **5. Quarta de manhã** | Refazer **um de string** e **um de arquivo** · ler a colinha · **nada de matéria nova** |
+| **Quarta** | **Prova** |
 
 O cronograma e a checklist completos abaixo ficam para consulta e para treinar depois, se der tempo.
 
