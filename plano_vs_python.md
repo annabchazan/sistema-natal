@@ -4,12 +4,15 @@
 - Critério da VS: precisa de **6,0 ou mais**.
 - Com a P2 = 1 e direito à VS, a P1 foi alta: a matéria da P1 (aulas 1 a 11) está mais segura. **Foco na matéria da P2 (aulas 12 a 20).**
 
-## Plano de 2 dias (prioridade máxima)
-| quando | o quê |
+## Plano por sessão (prioridade máxima)
+| sessão | o quê |
 |---|---|
-| **Seg 23/11** | As **3 questões da prova** (string → "4a5b"; lista de dicionários → arquivo; multiplicação + transposta), até saírem certas sozinha · Aula 18, ex. 3 e 4 (lista de dicionários e dicionário aninhado) · Aula 19 (arquivo) |
-| **Ter 24/11** | Aula 12 (3) · Aula 16, ex. 6 e 7 · Aula 20, ex. 6 e 7 (arquivos) · Aula 14, ex. 3 (lista 3D) · Aula 10, ex. 4 e 5 (duplicados, segundo maior) · Simulado · Ler a colinha · **Dormir cedo** |
-| **Qua 25/11** | **VS** |
+| **1. Segunda de manhã (2h)** | As **3 questões da prova**, sozinha, até saírem certas: string → "4a5b" · lista de dicionários → arquivo · multiplicação + transposta |
+| **2. Segunda à noite** | Aula 18, ex. 3 e 4 (lista de dicionários e dicionário aninhado) · Aula 19 (arquivo) · Aula 20, ex. 6 (estoque) |
+| **3. Terça de manhã** (só se o TCC deixar; senão, pular) | Aula 12, ex. 1 e 3 · Aula 16, ex. 6 e 7 · Aula 14, ex. 3 (lista 3D) |
+| **4. Terça à noite** (leve, depois do TCC) | Simulado · refazer **um** exercício que errou · ler a colinha · **dormir cedo** |
+| **5. Quarta de manhã** | Refazer **multiplicação** e **lista de dicionários → arquivo** uma última vez · ler a colinha · **nada de matéria nova** |
+| **Quarta** | **VS** |
 
 O cronograma e a checklist completos abaixo ficam para consulta e para treinar depois, se der tempo.
 
